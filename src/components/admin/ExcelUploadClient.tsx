@@ -1,0 +1,255 @@
+"use client";
+
+import type { ImportPreview } from "@/lib/suppliers/excel-import";
+import Link from "next/link";
+import { useState } from "react";
+
+type PreviewResponse = {
+  filename: string;
+  sheetName: string;
+  rowCount: number;
+  incompleteCount: number;
+  preview: ImportPreview;
+  lowVolumeWarning: boolean;
+  databaseActiveCount: number;
+};
+
+export function ExcelUploadClient() {
+  const [file, setFile] = useState<File | null>(null);
+  const [previewData, setPreviewData] = useState<PreviewResponse | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [applyLoading, setApplyLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [resultMsg, setResultMsg] = useState<string | null>(null);
+  const [excludeIncomplete, setExcludeIncomplete] = useState(false);
+  const [confirmBulkDeactivate, setConfirmBulkDeactivate] = useState(false);
+  const [confirmLowVolume, setConfirmLowVolume] = useState(false);
+
+  async function runPreview(selected: File) {
+    setError(null);
+    setResultMsg(null);
+    setPreviewData(null);
+    setLoading(true);
+    try {
+      const fd = new FormData();
+      fd.set("file", selected);
+      const res = await fetch("/api/admin/upload-excel", {
+        method: "POST",
+        body: fd,
+      });
+      const data: { error?: string } & Partial<PreviewResponse> =
+        await res.json();
+      if (!res.ok) {
+        setError(data.error ?? "Error al analizar el archivo");
+        return;
+      }
+      setPreviewData(data as PreviewResponse);
+      setExcludeIncomplete(false);
+      setConfirmBulkDeactivate(false);
+      setConfirmLowVolume(false);
+    } catch {
+      setError("Error de red");
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  async function runApply() {
+    if (!file) return;
+    setError(null);
+    setResultMsg(null);
+    setApplyLoading(true);
+    try {
+      const fd = new FormData();
+      fd.set("file", file);
+      if (excludeIncomplete) fd.set("exclude_incomplete", "1");
+      if (confirmBulkDeactivate) fd.set("confirm_bulk_deactivate", "1");
+      if (confirmLowVolume) fd.set("confirm_low_volume", "1");
+      const res = await fetch("/api/admin/confirm-upload", {
+        method: "POST",
+        body: fd,
+      });
+      const data: {
+        error?: string;
+        message?: string;
+        created?: number;
+        updated?: number;
+        deactivated?: number;
+        skipped_warnings?: number;
+      } = await res.json();
+      if (res.status === 409 && data.error === "bulk_deactivate_confirm") {
+        setError(
+          "Debes marcar la casilla de confirmación para desactivar muchos proveedores.",
+        );
+        return;
+      }
+      if (res.status === 409 && data.error === "low_volume_confirm") {
+        setError(
+          "Debes confirmar la importación con pocas filas respecto al directorio actual.",
+        );
+        return;
+      }
+      if (!res.ok) {
+        setError(data.error ?? "No se pudieron aplicar los cambios");
+        return;
+      }
+      setResultMsg(
+        `Listo: creados ${data.created ?? 0}, actualizados ${data.updated ?? 0}, desactivados ${data.deactivated ?? 0}. Omitidos por incompletos: ${data.skipped_warnings ?? 0}.`,
+      );
+      setPreviewData(null);
+      setFile(null);
+    } catch {
+      setError("Error de red");
+    } finally {
+      setApplyLoading(false);
+    }
+  }
+
+  const p = previewData?.preview;
+
+  return (
+    <div className="mx-auto max-w-xl space-y-8">
+      <div>
+        <Link
+          href="/admin"
+          className="text-sm text-zinc-500 underline hover:text-zinc-700"
+        >
+          ← Admin
+        </Link>
+        <h1 className="mt-4 text-2xl font-semibold text-zinc-900">
+          Subir Excel
+        </h1>
+        <p className="mt-2 text-sm text-zinc-600">
+          Primera hoja, columnas: Código, Tienda, Instagram, Categoría,
+          Dirección, Tipo, Observación, WhatsApp (nombres sin distinguir
+          mayúsculas).
+        </p>
+      </div>
+
+      <div className="rounded-2xl border border-zinc-200 bg-white p-6 shadow-sm">
+        <label className="block text-sm font-medium text-zinc-700">
+          Archivo .xlsx
+        </label>
+        <input
+          type="file"
+          accept=".xlsx,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+          className="mt-2 block w-full text-sm text-zinc-600"
+          onChange={(e) => {
+            const f = e.target.files?.[0];
+            setFile(f ?? null);
+            setPreviewData(null);
+            setResultMsg(null);
+            setError(null);
+            if (f) void runPreview(f);
+          }}
+        />
+        {loading ? (
+          <p className="mt-3 text-sm text-zinc-500">Analizando…</p>
+        ) : null}
+      </div>
+
+      {error ? (
+        <p className="text-sm text-red-600" role="alert">
+          {error}
+        </p>
+      ) : null}
+      {resultMsg ? (
+        <p className="text-sm text-emerald-800" role="status">
+          {resultMsg}
+        </p>
+      ) : null}
+
+      {p && file ? (
+        <div className="space-y-4 rounded-2xl border border-zinc-200 bg-white p-6 shadow-sm">
+          <h2 className="font-medium text-zinc-900">Vista previa</h2>
+          <p className="text-sm text-zinc-600">
+            Hoja: {previewData.sheetName} · {previewData.rowCount} filas ·{" "}
+            {previewData.filename}
+          </p>
+          <ul className="list-inside list-disc space-y-1 text-sm text-zinc-700">
+            <li>Nuevos: {p.newCount}</li>
+            <li>Actualizados: {p.updatedCount}</li>
+            <li>Desactivados: {p.deactivatedCount}</li>
+            <li>Sin cambios: {p.unchangedCount}</li>
+          </ul>
+
+          {p.incompleteCodes.length > 0 ? (
+            <div className="rounded-lg border border-amber-200 bg-amber-50 p-3 text-sm text-amber-900">
+              <p className="font-medium">
+                {p.incompleteCodes.length} proveedor(es) con datos muy
+                incompletos (códigos: {p.incompleteCodes.slice(0, 15).join(", ")}
+                {p.incompleteCodes.length > 15 ? "…" : ""}).
+              </p>
+              <label className="mt-2 flex items-center gap-2">
+                <input
+                  type="checkbox"
+                  checked={excludeIncomplete}
+                  onChange={(e) => setExcludeIncomplete(e.target.checked)}
+                />
+                Excluir estos del import (no se crearán ni actualizarán)
+              </label>
+            </div>
+          ) : null}
+
+          {previewData.lowVolumeWarning ? (
+            <div className="rounded-lg border border-amber-300 bg-amber-50 p-3 text-sm text-amber-950">
+              <p className="font-medium">
+                El archivo tiene {previewData.rowCount} proveedor(es) pero la
+                base tiene {previewData.databaseActiveCount} activos. ¿Estás
+                seguro? Esto puede desactivar hasta {p.deactivatedCount}{" "}
+                proveedor(es) que no aparezcan en el archivo.
+              </p>
+              <label className="mt-2 flex items-center gap-2">
+                <input
+                  type="checkbox"
+                  checked={confirmLowVolume}
+                  onChange={(e) => setConfirmLowVolume(e.target.checked)}
+                />
+                Sí, el archivo es correcto y quiero continuar
+              </label>
+            </div>
+          ) : null}
+
+          {p.needsBulkDeactivateConfirm ? (
+            <div className="rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-900">
+              <p className="font-medium">
+                Se desactivarán {p.deactivatedCount} proveedores. ¿Confirmas?
+              </p>
+              <label className="mt-2 flex items-center gap-2">
+                <input
+                  type="checkbox"
+                  checked={confirmBulkDeactivate}
+                  onChange={(e) => setConfirmBulkDeactivate(e.target.checked)}
+                />
+                Sí, desactivar los que no vengan en el Excel
+              </label>
+            </div>
+          ) : null}
+
+          <button
+            type="button"
+            disabled={
+              applyLoading ||
+              (p.needsBulkDeactivateConfirm && !confirmBulkDeactivate) ||
+              (previewData.lowVolumeWarning && !confirmLowVolume)
+            }
+            onClick={() => void runApply()}
+            className="rounded-xl bg-zinc-900 px-4 py-2 text-sm font-medium text-white hover:bg-zinc-800 disabled:opacity-50"
+          >
+            {applyLoading ? "Aplicando…" : "Confirmar e importar"}
+          </button>
+          {p.needsBulkDeactivateConfirm && !confirmBulkDeactivate ? (
+            <p className="text-xs text-zinc-500">
+              Marca la confirmación de desactivación masiva para continuar.
+            </p>
+          ) : null}
+          {previewData.lowVolumeWarning && !confirmLowVolume ? (
+            <p className="text-xs text-zinc-500">
+              Confirma que el archivo con pocas filas es intencional.
+            </p>
+          ) : null}
+        </div>
+      ) : null}
+    </div>
+  );
+}

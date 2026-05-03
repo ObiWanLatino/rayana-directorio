@@ -1,0 +1,55 @@
+export function sanitizeWhatsapp(
+  raw: string | number | null | undefined,
+): string | null {
+  if (raw === null || raw === undefined) return null;
+  if (typeof raw === "number" && Number.isNaN(raw)) return null;
+  const str = String(raw).trim();
+  if (str === "" || str === "NaN" || str === "nan") return null;
+  const digits = str.replace(/\D/g, "");
+  return digits.length > 0 ? digits : null;
+}
+
+export function sanitizeInstagram(
+  raw: string | number | null | undefined,
+): string | null {
+  if (raw === null || raw === undefined) return null;
+  const s = String(raw).trim();
+  if (!s) return null;
+  let clean = s;
+  clean = clean.replace(/^https?:\/\/(www\.)?instagram\.com\//i, "");
+  clean = clean.replace(/^@/, "");
+  clean = clean.replace(/\/$/, "");
+  return clean || null;
+}
+
+export function titleCaseWords(s: string): string {
+  return s
+    .toLowerCase()
+    .split(/\s+/)
+    .filter(Boolean)
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(" ");
+}
+
+export function sanitizeCategoria(
+  raw: string | number | null | undefined,
+): string | null {
+  if (raw == null || raw === "") return null;
+  const t = String(raw).trim();
+  if (!t) return null;
+  return titleCaseWords(t);
+}
+
+export function sanitizeOptionalText(
+  raw: string | number | null | undefined,
+): string | null {
+  if (raw == null || raw === "") return null;
+  const t = String(raw).trim();
+  return t || null;
+}
+
+export function sanitizeTienda(
+  raw: string | number | null | undefined,
+): string {
+  return String(raw ?? "").trim();
+}
