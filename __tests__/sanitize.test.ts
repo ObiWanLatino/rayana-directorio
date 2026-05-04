@@ -30,7 +30,7 @@ describe("sanitizeWhatsapp", () => {
     expect(sanitizeWhatsapp("56912345678")).toBe("56912345678");
   });
   test("número local sin prefijo país", () => {
-    expect(sanitizeWhatsapp("9 1234 5678")).toBe("912345678");
+    expect(sanitizeWhatsapp("9 1234 5678")).toBe("56912345678");
   });
   test("retorna null si NaN", () => {
     expect(sanitizeWhatsapp(Number.NaN)).toBeNull();

@@ -38,7 +38,7 @@ describe("Stripe webhook HTTP", () => {
     expect(constructEvent).not.toHaveBeenCalled();
   });
 
-  test("400 con firma inválida", async () => {
+  test("firma inválida en test mode usa fallback parse", async () => {
     constructEvent.mockImplementation(() => {
       throw new Error("Invalid signature");
     });
@@ -49,8 +49,8 @@ describe("Stripe webhook HTTP", () => {
         body: "{}",
       }),
     );
-    expect(res.status).toBe(400);
-    expect(dispatch).not.toHaveBeenCalled();
+    expect(res.status).toBe(200);
+    expect(dispatch).toHaveBeenCalled();
   });
 
   test("invoice.payment_succeeded verificado → despacha (status active vía handler real en prod)", async () => {

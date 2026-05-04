@@ -6,7 +6,11 @@ export function sanitizeWhatsapp(
   const str = String(raw).trim();
   if (str === "" || str === "NaN" || str === "nan") return null;
   const digits = str.replace(/\D/g, "");
-  return digits.length > 0 ? digits : null;
+  if (digits.length === 0) return null;
+  if (digits.startsWith("56") && digits.length === 11) return digits;
+  if (digits.length === 9) return `56${digits}`;
+  if (digits.length === 8) return `569${digits}`;
+  return digits;
 }
 
 export function sanitizeInstagram(
