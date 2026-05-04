@@ -6,9 +6,11 @@ import {
   fetchSubscriptionAccessRow,
   hasSubscriptionAccess,
 } from "@/lib/auth/entitlements";
+import { getAuthRedirectOrigin } from "@/lib/app-url";
 
 export async function GET(request: Request) {
-  const { searchParams, origin } = new URL(request.url);
+  const { searchParams } = new URL(request.url);
+  const base = getAuthRedirectOrigin(request);
   const token_hash = searchParams.get("token_hash");
   const type = searchParams.get("type") as EmailOtpType | null;
   const code = searchParams.get("code");
@@ -42,25 +44,25 @@ export async function GET(request: Request) {
       token_hash,
     });
     if (error) {
-      return NextResponse.redirect(`${origin}/login?error=confirm`);
+      return NextResponse.redirect(`${base}/login?error=confirm`);
     }
   } else if (code) {
     const { error } = await supabase.auth.exchangeCodeForSession(code);
     if (error) {
-      return NextResponse.redirect(`${origin}/login?error=confirm`);
+      return NextResponse.redirect(`${base}/login?error=confirm`);
     }
   } else {
-    return NextResponse.redirect(`${origin}/login?error=confirm`);
+    return NextResponse.redirect(`${base}/login?error=confirm`);
   }
 
   const {
     data: { user },
   } = await supabase.auth.getUser();
   if (!user) {
-    return NextResponse.redirect(`${origin}/login?error=confirm`);
+    return NextResponse.redirect(`${base}/login?error=confirm`);
   }
 
   const sub = await fetchSubscriptionAccessRow(supabase, user.id);
   const path = hasSubscriptionAccess(sub) ? "/hub" : "/checkout";
-  return NextResponse.redirect(`${origin}${path}`);
+  return NextResponse.redirect(`${base}${path}`);
 }

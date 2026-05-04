@@ -16,6 +16,14 @@ const errorMessages: Record<string, string> = {
   confirm: "El enlace de confirmación no es válido o expiró.",
 };
 
+function clientAuthOrigin(): string {
+  const envUrl = process.env.NEXT_PUBLIC_APP_URL?.trim();
+  if (envUrl && /^https?:\/\//i.test(envUrl)) {
+    return envUrl.replace(/\/$/, "");
+  }
+  return window.location.origin;
+}
+
 export function LoginForm({ initialError }: LoginFormProps) {
   const router = useRouter();
   const [mode, setMode] = useState<Mode>("signin");
@@ -33,11 +41,10 @@ export function LoginForm({ initialError }: LoginFormProps) {
     setError(null);
     setInfo(null);
     setLoading(true);
-    const origin = window.location.origin;
     const { error: oauthError } = await supabase.auth.signInWithOAuth({
       provider: "google",
       options: {
-        redirectTo: `${origin}/auth/callback`,
+        redirectTo: `${clientAuthOrigin()}/auth/callback`,
       },
     });
     setLoading(false);
@@ -71,7 +78,7 @@ export function LoginForm({ initialError }: LoginFormProps) {
         email,
         password,
         options: {
-          emailRedirectTo: `${window.location.origin}/auth/confirm`,
+          emailRedirectTo: `${clientAuthOrigin()}/auth/confirm`,
         },
       });
       if (signUpError) {

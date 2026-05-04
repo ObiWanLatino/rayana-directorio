@@ -5,13 +5,15 @@ import {
   fetchSubscriptionAccessRow,
   hasSubscriptionAccess,
 } from "@/lib/auth/entitlements";
+import { getAuthRedirectOrigin } from "@/lib/app-url";
 
 export async function GET(request: Request) {
-  const { searchParams, origin } = new URL(request.url);
+  const { searchParams } = new URL(request.url);
+  const base = getAuthRedirectOrigin(request);
   const code = searchParams.get("code");
 
   if (!code) {
-    return NextResponse.redirect(`${origin}/login?error=oauth`);
+    return NextResponse.redirect(`${base}/login?error=oauth`);
   }
 
   const cookieStore = await cookies();
@@ -39,17 +41,17 @@ export async function GET(request: Request) {
 
   const { error } = await supabase.auth.exchangeCodeForSession(code);
   if (error) {
-    return NextResponse.redirect(`${origin}/login?error=oauth`);
+    return NextResponse.redirect(`${base}/login?error=oauth`);
   }
 
   const {
     data: { user },
   } = await supabase.auth.getUser();
   if (!user) {
-    return NextResponse.redirect(`${origin}/login?error=oauth`);
+    return NextResponse.redirect(`${base}/login?error=oauth`);
   }
 
   const sub = await fetchSubscriptionAccessRow(supabase, user.id);
   const path = hasSubscriptionAccess(sub) ? "/hub" : "/checkout";
-  return NextResponse.redirect(`${origin}${path}`);
+  return NextResponse.redirect(`${base}${path}`);
 }
