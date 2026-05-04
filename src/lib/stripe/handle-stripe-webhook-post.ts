@@ -7,7 +7,8 @@ export async function handleStripeWebhookPost(
   request: Request,
 ): Promise<Response> {
   const stripe = getStripe();
-  const rawBody = await request.text();
+  const rawBodyBuffer = await request.arrayBuffer();
+  const rawBody = Buffer.from(rawBodyBuffer).toString("utf-8");
   const signature = request.headers.get("stripe-signature");
   const secret = process.env.STRIPE_WEBHOOK_SECRET;
 
