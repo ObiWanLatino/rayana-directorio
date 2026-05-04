@@ -72,6 +72,11 @@ CREATE TABLE IF NOT EXISTS public.suppliers (
   observacion TEXT,
   whatsapp TEXT,
   logo_url TEXT,
+  destacado BOOLEAN DEFAULT false,
+  verificado BOOLEAN DEFAULT false,
+  foto_1_url TEXT,
+  foto_2_url TEXT,
+  foto_3_url TEXT,
   activo BOOLEAN DEFAULT true,
   pais_codigo TEXT DEFAULT '56',
   created_at TIMESTAMPTZ DEFAULT now() NOT NULL,
@@ -157,3 +162,15 @@ DROP POLICY IF EXISTS "Public read supplier logos" ON storage.objects;
 CREATE POLICY "Public read supplier logos"
   ON storage.objects FOR SELECT
   USING (bucket_id = 'supplier-logos');
+
+-- ---------------------------------------------------------------------------
+-- Storage: supplier-photos (public read)
+-- ---------------------------------------------------------------------------
+INSERT INTO storage.buckets (id, name, public)
+VALUES ('supplier-photos', 'supplier-photos', true)
+ON CONFLICT (id) DO UPDATE SET public = EXCLUDED.public;
+
+DROP POLICY IF EXISTS "Public read supplier photos" ON storage.objects;
+CREATE POLICY "Public read supplier photos"
+  ON storage.objects FOR SELECT
+  USING (bucket_id = 'supplier-photos');

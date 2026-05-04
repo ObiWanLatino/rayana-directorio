@@ -156,6 +156,10 @@ body {
   display: none;
 }
 
+.featured-scroll::-webkit-scrollbar {
+  display: none;
+}
+
 /* Safe areas for notched phones (sticky headers / CTAs) */
 @supports (padding: env(safe-area-inset-bottom)) {
   .pb-safe {

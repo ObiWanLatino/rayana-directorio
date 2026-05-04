@@ -5,7 +5,9 @@ import {
   IconClose,
   IconSearch,
 } from "@/components/suppliers/directory-icons";
+import { SectionDivider } from "@/components/suppliers/SectionDivider";
 import { SupplierCard } from "@/components/suppliers/SupplierCard";
+import { VerifiedCarousel } from "@/components/suppliers/VerifiedCarousel";
 import { SupplierListSkeleton } from "@/components/suppliers/SupplierListSkeleton";
 import {
   UNCATEGORIZED,
@@ -120,6 +122,16 @@ export function ProveedoresView() {
       .sort((a, b) => a.codigo - b.codigo);
   }, [suppliers, query, selectedCategory]);
 
+  const featured = useMemo(
+    () => suppliers.filter((s) => s.destacado && s.activo),
+    [suppliers],
+  );
+
+  const regular = useMemo(
+    () => filtered.filter((s) => !s.destacado),
+    [filtered],
+  );
+
   function toggleCategory(cat: string) {
     setSelectedCategory((prev) => (prev === cat ? null : cat));
   }
@@ -155,6 +167,10 @@ export function ProveedoresView() {
         className="rayana-dir-bg flex min-h-screen flex-col lg:mx-auto lg:max-w-[1200px] lg:min-h-[calc(100vh-4rem)] lg:overflow-hidden lg:rounded-[28px] lg:shadow-[0_30px_60px_rgba(120,90,60,0.18),0_12px_24px_rgba(120,90,60,0.08)]"
         style={{ color: "#2B2B2B" }}
       >
+        {!loading && !error && featured.length > 0 ? (
+          <VerifiedCarousel suppliers={featured} />
+        ) : null}
+
         {/* Mobile header */}
         <header className="clay-header px-5 pb-2.5 pt-safe lg:hidden">
           <Link
@@ -343,12 +359,12 @@ export function ProveedoresView() {
               />
             </div>
 
-            {!loading && !error && suppliers.length > 0 && filtered.length > 0 ? (
+            {!loading && !error && suppliers.length > 0 && regular.length > 0 ? (
               <div
                 className="flex-shrink-0 px-5 py-2 text-xs font-medium text-[#A89878] lg:px-8"
               >
-                {filtered.length}{" "}
-                {filtered.length === 1 ? "proveedor" : "proveedores"}
+                {regular.length}{" "}
+                {regular.length === 1 ? "proveedor" : "proveedores"}
                 {selectedCategory !== null ? (
                   <span>
                     {" "}
@@ -397,9 +413,18 @@ export function ProveedoresView() {
                 <ProveedoresEmptyState onClear={clearFilters} />
               ) : null}
 
-              {!loading && !error && filtered.length > 0 ? (
+              {!loading &&
+              !error &&
+              featured.length > 0 &&
+              regular.length > 0 ? (
+                <div className="mb-3">
+                  <SectionDivider />
+                </div>
+              ) : null}
+
+              {!loading && !error && regular.length > 0 ? (
                 <ul className="flex flex-col gap-3 lg:grid lg:grid-cols-2 lg:gap-3.5 lg:content-start">
-                  {filtered.map((s) => (
+                  {regular.map((s) => (
                     <li key={s.id} className="lg:min-w-0">
                       <SupplierCard supplier={s} />
                     </li>

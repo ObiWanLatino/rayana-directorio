@@ -26,11 +26,17 @@ export function SupplierAdminForm(props: Props) {
   const [whatsapp, setWhatsapp] = useState(s?.whatsapp ?? "");
   const [activo, setActivo] = useState(s?.activo ?? true);
   const [paisCodigo, setPaisCodigo] = useState(s?.pais_codigo ?? "56");
+  const [destacado, setDestacado] = useState(s?.destacado ?? false);
+  const [verificado, setVerificado] = useState(s?.verificado ?? false);
 
   const [saving, setSaving] = useState(false);
   const [deactivating, setDeactivating] = useState(false);
   const [logoBusy, setLogoBusy] = useState(false);
   const [logoUrl, setLogoUrl] = useState<string | null>(s?.logo_url ?? null);
+  const [fotoBusy, setFotoBusy] = useState<"1" | "2" | "3" | null>(null);
+  const [foto1Url, setFoto1Url] = useState<string | null>(s?.foto_1_url ?? null);
+  const [foto2Url, setFoto2Url] = useState<string | null>(s?.foto_2_url ?? null);
+  const [foto3Url, setFoto3Url] = useState<string | null>(s?.foto_3_url ?? null);
   const [error, setError] = useState<string | null>(null);
 
   async function uploadLogo(file: File) {
@@ -57,6 +63,33 @@ export function SupplierAdminForm(props: Props) {
     }
   }
 
+  async function uploadFoto(file: File, fotoIndex: "1" | "2" | "3") {
+    if (!isEdit) return;
+    setFotoBusy(fotoIndex);
+    setError(null);
+    try {
+      const fd = new FormData();
+      fd.set("supplier_id", props.supplier.id);
+      fd.set("foto_index", fotoIndex);
+      fd.set("file", file);
+      const res = await fetch("/api/admin/upload-foto", { method: "POST", body: fd });
+      const data: { error?: string; url?: string } = await res.json();
+      if (!res.ok) {
+        setError(data.error ?? "Error al subir foto");
+        return;
+      }
+      if (data.url) {
+        if (fotoIndex === "1") setFoto1Url(data.url);
+        if (fotoIndex === "2") setFoto2Url(data.url);
+        if (fotoIndex === "3") setFoto3Url(data.url);
+      }
+    } catch {
+      setError("Error de red al subir foto");
+    } finally {
+      setFotoBusy(null);
+    }
+  }
+
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError(null);
@@ -76,6 +109,8 @@ export function SupplierAdminForm(props: Props) {
             whatsapp: whatsapp.trim() === "" ? null : whatsapp,
             activo,
             pais_codigo: paisCodigo,
+            destacado,
+            verificado,
           }),
         });
         const data: { error?: string } = await res.json();
@@ -307,6 +342,27 @@ export function SupplierAdminForm(props: Props) {
         </label>
 
         {isEdit ? (
+          <>
+            <label className="flex items-center gap-2 text-sm text-zinc-800">
+              <input
+                type="checkbox"
+                checked={destacado}
+                onChange={(e) => setDestacado(e.target.checked)}
+              />
+              Proveedor Destacado (aparece en la zona superior con carrusel)
+            </label>
+            <label className="flex items-center gap-2 text-sm text-zinc-800">
+              <input
+                type="checkbox"
+                checked={verificado}
+                onChange={(e) => setVerificado(e.target.checked)}
+              />
+              Proveedor Verificado Makeray (muestra el badge dorado)
+            </label>
+          </>
+        ) : null}
+
+        {isEdit ? (
           <div className="rounded-xl border border-zinc-200 bg-white p-4">
             <p className="text-sm font-medium text-zinc-800">Logo</p>
             <p className="mt-1 text-xs text-zinc-500">
@@ -343,6 +399,52 @@ export function SupplierAdminForm(props: Props) {
                 ) : null}
               </div>
             </div>
+          </div>
+        ) : null}
+
+        {isEdit ? (
+          <div className="space-y-4 rounded-xl border border-zinc-200 bg-white p-4">
+            <p className="text-sm font-medium text-zinc-800">Fotos destacadas</p>
+            <p className="text-xs text-zinc-500">
+              Hasta 3 imágenes para el carrusel del directorio. El Excel no modifica
+              estas URLs.
+            </p>
+            {(
+              [
+                { n: "1" as const, url: foto1Url, label: "Foto 1" },
+                { n: "2" as const, url: foto2Url, label: "Foto 2" },
+                { n: "3" as const, url: foto3Url, label: "Foto 3" },
+              ] as const
+            ).map(({ n, url, label }) => (
+              <div key={n}>
+                <label className="block text-sm font-medium text-zinc-700">
+                  {label}
+                </label>
+                {url ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img
+                    src={url}
+                    alt=""
+                    className="mt-1 rounded border border-zinc-100"
+                    style={{ height: 80, objectFit: "cover" }}
+                  />
+                ) : null}
+                <input
+                  type="file"
+                  accept="image/jpeg,image/png,image/webp"
+                  disabled={fotoBusy !== null}
+                  onChange={(e) => {
+                    const f = e.target.files?.[0];
+                    if (f) void uploadFoto(f, n);
+                    e.target.value = "";
+                  }}
+                  className="mt-1 block text-sm"
+                />
+                {fotoBusy === n ? (
+                  <p className="mt-1 text-xs text-zinc-500">Subiendo…</p>
+                ) : null}
+              </div>
+            ))}
           </div>
         ) : null}
 

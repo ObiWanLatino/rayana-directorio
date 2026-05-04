@@ -4,7 +4,7 @@ import {
   IconWhatsApp,
 } from "@/components/suppliers/directory-icons";
 
-const WA_MESSAGE = encodeURIComponent(
+export const WA_MESSAGE = encodeURIComponent(
   "Hola! vine a traves de Rayana del canal @makeray.youtube. Quiero comprar por mayor con uds! ¿Podrias enviarme el catalogo por favor?",
 );
 

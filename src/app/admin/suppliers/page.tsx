@@ -69,6 +69,8 @@ export default async function AdminSuppliersPage() {
                 <th className="px-4 py-3">WhatsApp</th>
                 <th className="px-4 py-3">Instagram</th>
                 <th className="px-4 py-3">Activo</th>
+                <th className="px-4 py-3">Destacado</th>
+                <th className="px-4 py-3">Verificado</th>
                 <th className="px-4 py-3" />
               </tr>
             </thead>
@@ -99,6 +101,16 @@ export default async function AdminSuppliersPage() {
                       }
                     >
                       {r.activo ? "Sí" : "No"}
+                    </span>
+                  </td>
+                  <td className="px-4 py-3">
+                    <span className="text-xs text-zinc-700">
+                      {r.destacado ? "⭐ Sí" : "—"}
+                    </span>
+                  </td>
+                  <td className="px-4 py-3">
+                    <span className="text-xs text-zinc-700">
+                      {r.verificado ? "✓" : "—"}
                     </span>
                   </td>
                   <td className="whitespace-nowrap px-4 py-3">

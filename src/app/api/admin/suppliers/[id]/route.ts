@@ -29,6 +29,8 @@ type PatchByIdBody = {
   whatsapp?: string | null;
   activo?: boolean;
   pais_codigo?: string;
+  destacado?: boolean;
+  verificado?: boolean;
 };
 
 export async function PATCH(
@@ -111,6 +113,12 @@ export async function PATCH(
   }
   if (body.activo !== undefined) {
     patch.activo = Boolean(body.activo);
+  }
+  if (body.destacado !== undefined) {
+    patch.destacado = Boolean(body.destacado);
+  }
+  if (body.verificado !== undefined) {
+    patch.verificado = Boolean(body.verificado);
   }
   if (body.pais_codigo !== undefined) {
     const p = String(body.pais_codigo).trim();
