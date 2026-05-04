@@ -47,6 +47,98 @@ export async function GET(request: Request) {
   return NextResponse.json({ suppliers: list });
 }
 
+type PostBody = {
+  codigo: number;
+  tienda: string;
+  instagram?: string | null;
+  categoria?: string | null;
+  direccion?: string | null;
+  tipo: string;
+  observacion?: string | null;
+  whatsapp?: string | null;
+  activo?: boolean;
+  pais_codigo?: string;
+};
+
+export async function POST(request: Request) {
+  const user = await getAdminUser();
+  if (!user) {
+    return NextResponse.json({ error: "No autorizado" }, { status: 403 });
+  }
+
+  let body: PostBody;
+  try {
+    body = (await request.json()) as PostBody;
+  } catch {
+    return NextResponse.json({ error: "JSON inválido" }, { status: 400 });
+  }
+
+  const codigo = Number(body.codigo);
+  if (!Number.isInteger(codigo)) {
+    return NextResponse.json({ error: "codigo inválido" }, { status: 400 });
+  }
+
+  const tienda = sanitizeTienda(body.tienda);
+  if (!tienda) {
+    return NextResponse.json({ error: "tienda es requerido" }, { status: 400 });
+  }
+
+  const tipoSan = sanitizeOptionalText(body.tipo);
+  if (!tipoSan) {
+    return NextResponse.json({ error: "tipo es requerido" }, { status: 400 });
+  }
+
+  const admin = createAdminSupabaseClient();
+  const { data: dup } = await admin
+    .from("suppliers")
+    .select("id")
+    .eq("codigo", codigo)
+    .maybeSingle();
+
+  if (dup) {
+    return NextResponse.json(
+      { error: "Ya existe un proveedor con ese código" },
+      { status: 409 },
+    );
+  }
+
+  const pais = body.pais_codigo?.trim() ?? "56";
+  if (!/^\d+$/.test(pais)) {
+    return NextResponse.json(
+      { error: "pais_codigo debe ser numérico" },
+      { status: 400 },
+    );
+  }
+
+  const now = new Date().toISOString();
+  const insert = {
+    codigo,
+    tienda,
+    instagram: sanitizeInstagram(body.instagram),
+    categoria: sanitizeCategoria(body.categoria),
+    direccion: sanitizeOptionalText(body.direccion),
+    tipo: tipoSan,
+    observacion: sanitizeOptionalText(body.observacion),
+    whatsapp: sanitizeWhatsapp(body.whatsapp),
+    activo: body.activo !== false,
+    pais_codigo: pais,
+    created_at: now,
+    updated_at: now,
+  };
+
+  const { data, error } = await admin
+    .from("suppliers")
+    .insert(insert)
+    .select("*")
+    .single();
+
+  if (error) {
+    return NextResponse.json({ error: error.message }, { status: 500 });
+  }
+
+  return NextResponse.json({ supplier: data as Supplier }, { status: 201 });
+}
+
 type PatchBody = {
   codigo: number;
   tienda?: string;
