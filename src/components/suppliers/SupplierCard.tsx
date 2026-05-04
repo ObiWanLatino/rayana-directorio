@@ -59,10 +59,6 @@ export function SupplierCard({ supplier }: SupplierCardProps) {
   const dir = supplier.direccion?.trim();
   const cat = supplier.categoria?.trim();
 
-  const waHref =
-    wa != null && wa !== ""
-      ? `https://wa.me/${supplier.pais_codigo}${wa}`
-      : undefined;
   const igHref =
     ig != null && ig !== "" ? `https://instagram.com/${ig}` : undefined;
   const mapHref =
@@ -135,7 +131,7 @@ export function SupplierCard({ supplier }: SupplierCardProps) {
         <SupplierActionButton
           kind="whatsapp"
           disabled={!wa}
-          href={waHref}
+          whatsappPhone={wa ?? undefined}
         />
         <SupplierActionButton
           kind="instagram"

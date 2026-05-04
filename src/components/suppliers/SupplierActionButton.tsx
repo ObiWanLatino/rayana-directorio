@@ -4,11 +4,17 @@ import {
   IconWhatsApp,
 } from "@/components/suppliers/directory-icons";
 
+const WA_MESSAGE = encodeURIComponent(
+  "Hola! vine a traves de Rayana del canal @makeray.youtube. Quiero comprar por mayor con uds! ¿Podrias enviarme el catalogo por favor?",
+);
+
 type Kind = "whatsapp" | "instagram" | "map";
 
 type SupplierActionButtonProps = {
   kind: Kind;
   disabled: boolean;
+  /** Solo WhatsApp: dígitos para `wa.me` (sin +). Si hay valor y no está deshabilitado, se arma el link con mensaje predefinido. */
+  whatsappPhone?: string;
   href?: string;
   title?: string;
 };
@@ -16,6 +22,7 @@ type SupplierActionButtonProps = {
 export function SupplierActionButton({
   kind,
   disabled,
+  whatsappPhone,
   href,
   title,
 }: SupplierActionButtonProps) {
@@ -44,7 +51,17 @@ export function SupplierActionButton({
         ? "Sin Instagram"
         : "Sin ubicación";
 
-  if (disabled || !href) {
+  const waHref =
+    kind === "whatsapp" &&
+    !disabled &&
+    whatsappPhone != null &&
+    whatsappPhone !== ""
+      ? `https://wa.me/${whatsappPhone}?text=${WA_MESSAGE}`
+      : undefined;
+
+  const resolvedHref = kind === "whatsapp" ? waHref : href;
+
+  if (disabled || !resolvedHref) {
     return (
       <div
         title={title ?? defaultTitle}
@@ -58,7 +75,7 @@ export function SupplierActionButton({
 
   return (
     <a
-      href={href}
+      href={resolvedHref}
       target="_blank"
       rel="noopener noreferrer"
       title={title}
