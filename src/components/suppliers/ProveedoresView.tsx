@@ -127,10 +127,7 @@ export function ProveedoresView() {
     [suppliers],
   );
 
-  const regular = useMemo(
-    () => filtered.filter((s) => !s.destacado),
-    [filtered],
-  );
+  const regular = useMemo(() => filtered, [filtered]);
 
   function toggleCategory(cat: string) {
     setSelectedCategory((prev) => (prev === cat ? null : cat));
