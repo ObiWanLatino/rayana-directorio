@@ -16,6 +16,24 @@ const errorMessages: Record<string, string> = {
   confirm: "El enlace de confirmación no es válido o expiró.",
 };
 
+/** OAuth must return to this app’s `/auth/callback` (not Supabase’s host) so the PKCE `code` is exchanged in Next.js. */
+const GOOGLE_OAUTH_CALLBACK_PROD = "https://makeray.cl/auth/callback";
+
+function googleOAuthRedirectTo(): string {
+  if (typeof window === "undefined") {
+    return GOOGLE_OAUTH_CALLBACK_PROD;
+  }
+  const { hostname, origin } = window.location;
+  if (hostname === "localhost" || hostname === "127.0.0.1") {
+    return `${origin}/auth/callback`;
+  }
+  const envUrl = process.env.NEXT_PUBLIC_APP_URL?.trim().replace(/\/$/, "");
+  if (envUrl && /^https?:\/\//i.test(envUrl)) {
+    return `${envUrl}/auth/callback`;
+  }
+  return GOOGLE_OAUTH_CALLBACK_PROD;
+}
+
 function clientAuthOrigin(): string {
   const envUrl = process.env.NEXT_PUBLIC_APP_URL?.trim();
   if (envUrl && /^https?:\/\//i.test(envUrl)) {
@@ -44,7 +62,7 @@ export function LoginForm({ initialError }: LoginFormProps) {
     const { error: oauthError } = await supabase.auth.signInWithOAuth({
       provider: "google",
       options: {
-        redirectTo: `${clientAuthOrigin()}/auth/callback`,
+        redirectTo: googleOAuthRedirectTo(),
       },
     });
     setLoading(false);
