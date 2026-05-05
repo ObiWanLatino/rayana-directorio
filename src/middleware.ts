@@ -7,11 +7,20 @@ import {
 } from "@/lib/auth/entitlements";
 
 export async function middleware(request: NextRequest) {
-  const apiPath = request.nextUrl.pathname;
-  if (
-    apiPath.startsWith("/api/webhooks") ||
-    apiPath.startsWith("/api/stripe/webhook")
-  ) {
+  const pathname = request.nextUrl.pathname;
+
+  const isStripeWebhookPublic =
+    pathname.startsWith("/api/stripe/webhook") ||
+    pathname.startsWith("/api/webhooks/stripe");
+
+  const isPublic =
+    pathname === "/" ||
+    pathname === "/login" ||
+    pathname.startsWith("/auth/callback") ||
+    pathname.startsWith("/auth/confirm") ||
+    isStripeWebhookPublic;
+
+  if (isStripeWebhookPublic) {
     return NextResponse.next();
   }
 
@@ -45,15 +54,6 @@ export async function middleware(request: NextRequest) {
   const {
     data: { user },
   } = await supabase.auth.getUser();
-
-  const pathname = request.nextUrl.pathname;
-
-  const isAuthRoute =
-    pathname.startsWith("/auth/callback") ||
-    pathname.startsWith("/auth/confirm");
-
-  const isPublic =
-    pathname === "/" || pathname === "/login" || isAuthRoute;
 
   if (pathname === "/login" && user) {
     const sub = await fetchSubscriptionAccessRow(supabase, user.id);
