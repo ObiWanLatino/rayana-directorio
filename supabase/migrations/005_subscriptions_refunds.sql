@@ -1,0 +1,4 @@
+ALTER TABLE public.subscriptions
+  ADD COLUMN IF NOT EXISTS refunded_at TIMESTAMPTZ,
+  ADD COLUMN IF NOT EXISTS refunded_amount INTEGER,
+  ADD COLUMN IF NOT EXISTS refund_id TEXT;

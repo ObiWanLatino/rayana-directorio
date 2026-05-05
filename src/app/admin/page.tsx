@@ -38,6 +38,12 @@ const cards: {
     href: "/admin/upload",
     cta: "Ir a carga masiva",
   },
+  {
+    title: "Suscripciones",
+    description: "Ver suscripciones activas, cancelar y emitir reembolsos.",
+    href: "/admin/subscriptions",
+    cta: "Gestionar suscripciones",
+  },
 ];
 
 export default async function AdminHomePage() {

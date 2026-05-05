@@ -21,6 +21,9 @@ export type Subscription = {
   status: SubscriptionStatus;
   current_period_end: string | null;
   cancel_at_period_end: boolean;
+  refunded_at: string | null;
+  refunded_amount: number | null;
+  refund_id: string | null;
   created_at: string;
   updated_at: string;
 };

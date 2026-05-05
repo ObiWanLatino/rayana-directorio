@@ -50,6 +50,9 @@ CREATE TABLE IF NOT EXISTS public.subscriptions (
     CHECK (status IN ('active', 'past_due', 'canceled', 'inactive')),
   current_period_end TIMESTAMPTZ,
   cancel_at_period_end BOOLEAN DEFAULT false,
+  refunded_at TIMESTAMPTZ,
+  refunded_amount INTEGER,
+  refund_id TEXT,
   created_at TIMESTAMPTZ DEFAULT now() NOT NULL,
   updated_at TIMESTAMPTZ DEFAULT now() NOT NULL
 );
