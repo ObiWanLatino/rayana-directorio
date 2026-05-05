@@ -14,6 +14,9 @@ type LoginFormProps = {
 const errorMessages: Record<string, string> = {
   oauth: "No se pudo completar el inicio de sesión con Google.",
   confirm: "El enlace de confirmación no es válido o expiró.",
+  session: "Tu sesión fue iniciada en otro dispositivo. Por favor inicia sesión nuevamente.",
+  suspended:
+    "Tu cuenta ha sido suspendida. Contacta a soporte en hola@makeray.cl",
 };
 
 /** OAuth must return to this app’s `/auth/callback` (not Supabase’s host) so the PKCE `code` is exchanged in Next.js. */

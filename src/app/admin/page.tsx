@@ -39,10 +39,10 @@ const cards: {
     cta: "Ir a carga masiva",
   },
   {
-    title: "Suscripciones",
-    description: "Ver suscripciones activas, cancelar y emitir reembolsos.",
+    title: "Suscriptores",
+    description: "Panel completo de suscriptores, accesos y cobros.",
     href: "/admin/subscriptions",
-    cta: "Gestionar suscripciones",
+    cta: "Abrir panel",
   },
 ];
 

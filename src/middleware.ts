@@ -1,4 +1,5 @@
 import { createServerClient } from "@supabase/ssr";
+import { createClient } from "@supabase/supabase-js";
 import { NextResponse, type NextRequest } from "next/server";
 import {
   fetchSubscriptionAccessRow,
@@ -54,6 +55,48 @@ export async function middleware(request: NextRequest) {
   const {
     data: { user },
   } = await supabase.auth.getUser();
+  const {
+    data: { session },
+  } = await supabase.auth.getSession();
+
+  if (user) {
+    const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+    const serviceRole = process.env.SUPABASE_SERVICE_ROLE_KEY;
+    if (!url || !serviceRole) {
+      throw new Error(
+        "Missing NEXT_PUBLIC_SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY",
+      );
+    }
+    const admin = createClient(url, serviceRole, {
+      auth: { autoRefreshToken: false, persistSession: false },
+    });
+    const { data: profile } = await admin
+      .from("profiles")
+      .select("suspended, last_session_id")
+      .eq("id", user.id)
+      .maybeSingle();
+
+    if (profile?.suspended) {
+      await supabase.auth.signOut();
+      const urlLogin = request.nextUrl.clone();
+      urlLogin.pathname = "/login";
+      urlLogin.searchParams.set("error", "suspended");
+      return NextResponse.redirect(urlLogin);
+    }
+
+    const currentSessionId = session?.access_token;
+    if (
+      currentSessionId &&
+      profile?.last_session_id &&
+      profile.last_session_id !== currentSessionId
+    ) {
+      await supabase.auth.signOut();
+      const urlLogin = request.nextUrl.clone();
+      urlLogin.pathname = "/login";
+      urlLogin.searchParams.set("error", "session");
+      return NextResponse.redirect(urlLogin);
+    }
+  }
 
   if (pathname === "/login" && user) {
     const sub = await fetchSubscriptionAccessRow(supabase, user.id);

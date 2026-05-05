@@ -6,6 +6,7 @@ import {
   hasSubscriptionAccess,
 } from "@/lib/auth/entitlements";
 import { getAuthRedirectOrigin } from "@/lib/app-url";
+import { createAdminSupabaseClient } from "@/lib/supabase/admin";
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
@@ -39,7 +40,9 @@ export async function GET(request: Request) {
     },
   );
 
-  const { error } = await supabase.auth.exchangeCodeForSession(code);
+  const { data: exchangeData, error } = await supabase.auth.exchangeCodeForSession(
+    code,
+  );
   if (error) {
     return NextResponse.redirect(`${base}/login?error=oauth`);
   }
@@ -49,6 +52,18 @@ export async function GET(request: Request) {
   } = await supabase.auth.getUser();
   if (!user) {
     return NextResponse.redirect(`${base}/login?error=oauth`);
+  }
+
+  const sessionId = exchangeData.session?.access_token;
+  if (sessionId) {
+    const admin = createAdminSupabaseClient();
+    await admin
+      .from("profiles")
+      .update({
+        last_session_id: sessionId,
+        updated_at: new Date().toISOString(),
+      })
+      .eq("id", user.id);
   }
 
   const sub = await fetchSubscriptionAccessRow(supabase, user.id);

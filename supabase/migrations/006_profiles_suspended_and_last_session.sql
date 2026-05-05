@@ -1,0 +1,3 @@
+ALTER TABLE public.profiles
+  ADD COLUMN IF NOT EXISTS suspended BOOLEAN DEFAULT false NOT NULL,
+  ADD COLUMN IF NOT EXISTS last_session_id TEXT;

@@ -75,6 +75,7 @@ export function ProveedoresView() {
   const [searchFocusedMobile, setSearchFocusedMobile] = useState(false);
   const [searchFocusedDesktop, setSearchFocusedDesktop] = useState(false);
   const [userMark, setUserMark] = useState("");
+  const [userEmail, setUserEmail] = useState("");
 
   useEffect(() => {
     let cancel = false;
@@ -84,9 +85,13 @@ export function ProveedoresView() {
         const { data } = await sb.auth.getUser();
         if (cancel) return;
         const e = data.user?.email;
+        setUserEmail(e ?? "");
         setUserMark(e?.[0]?.toUpperCase() ?? "·");
       } catch {
-        if (!cancel) setUserMark("·");
+        if (!cancel) {
+          setUserEmail("");
+          setUserMark("·");
+        }
       }
     })();
     return () => {
@@ -164,6 +169,38 @@ export function ProveedoresView() {
         className="rayana-dir-bg flex min-h-screen flex-col lg:mx-auto lg:max-w-[1200px] lg:min-h-[calc(100vh-4rem)] lg:overflow-hidden lg:rounded-[28px] lg:shadow-[0_30px_60px_rgba(120,90,60,0.18),0_12px_24px_rgba(120,90,60,0.08)]"
         style={{ color: "#2B2B2B" }}
       >
+        {userEmail ? (
+          <div
+            style={{
+              position: "fixed",
+              inset: 0,
+              pointerEvents: "none",
+              zIndex: 9999,
+              overflow: "hidden",
+              opacity: 0.06,
+            }}
+            aria-hidden
+          >
+            {Array.from({ length: 20 }).map((_, i) => (
+              <div
+                key={i}
+                style={{
+                  position: "absolute",
+                  left: `${(i % 4) * 30}%`,
+                  top: `${Math.floor(i / 4) * 25}%`,
+                  transform: "rotate(-30deg)",
+                  fontSize: "13px",
+                  fontWeight: 600,
+                  color: "#1A1208",
+                  whiteSpace: "nowrap",
+                  userSelect: "none",
+                }}
+              >
+                {userEmail}
+              </div>
+            ))}
+          </div>
+        ) : null}
         {!loading && !error && featured.length > 0 ? (
           <VerifiedCarousel suppliers={featured} />
         ) : null}

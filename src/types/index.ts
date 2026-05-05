@@ -9,6 +9,8 @@ export type Profile = {
   email: string;
   full_name: string | null;
   avatar_url: string | null;
+  suspended: boolean;
+  last_session_id: string | null;
   created_at: string;
   updated_at: string;
 };

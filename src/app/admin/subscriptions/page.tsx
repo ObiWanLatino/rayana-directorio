@@ -1,4 +1,5 @@
 import { SubscriptionsAdminTable } from "@/components/admin/SubscriptionsAdminTable";
+import type { AdminSubscriptionRow } from "@/components/admin/SubscriptionsAdminTable";
 import { getAdminUser } from "@/lib/auth/require-admin";
 import { getStripe } from "@/lib/stripe/client";
 import { createAdminSupabaseClient } from "@/lib/supabase/admin";
@@ -7,72 +8,127 @@ import { redirect } from "next/navigation";
 
 export const dynamic = "force-dynamic";
 
-type DbRow = {
+type SubscriptionRow = {
   user_id: string;
-  status: string;
-  created_at: string;
+  status: "active" | "past_due" | "canceled" | "inactive";
+  created_at: string | null;
+  updated_at: string | null;
   current_period_end: string | null;
+  stripe_customer_id: string | null;
   stripe_subscription_id: string | null;
-  refunded_at: string | null;
-  profile: { email: string | null } | null;
 };
 
-type UiRow = {
-  user_id: string;
-  email: string;
-  started_at: string | null;
-  expires_at: string | null;
-  amount_clp: number | null;
-  status: string;
-  refunded_at: string | null;
+type ProfileRow = {
+  id: string;
+  email: string | null;
+  full_name: string | null;
+  avatar_url: string | null;
+  created_at: string;
+  suspended: boolean | null;
 };
 
-async function loadRows(): Promise<UiRow[]> {
+type Metrics = {
+  totalActive: number;
+  mrrUsd: number;
+  newThisMonth: number;
+  canceledThisMonth: number;
+};
+
+async function loadData(): Promise<{ rows: AdminSubscriptionRow[]; metrics: Metrics }> {
   const db = createAdminSupabaseClient();
-  const { data, error } = await db
-    .from("subscriptions")
-    .select(
-      "user_id, status, created_at, current_period_end, stripe_subscription_id, refunded_at, profile:profiles(email)",
-    )
-    .in("status", ["active", "past_due"])
-    .order("created_at", { ascending: false });
+  const [{ data: profiles, error: profilesError }, { data: subscriptions, error: subsError }] =
+    await Promise.all([
+      db
+        .from("profiles")
+        .select("id, email, full_name, avatar_url, created_at, suspended")
+        .order("created_at", { ascending: false }),
+      db
+        .from("subscriptions")
+        .select(
+          "user_id, status, created_at, updated_at, current_period_end, stripe_customer_id, stripe_subscription_id",
+        ),
+    ]);
 
-  if (error) {
-    throw new Error(error.message);
+  if (profilesError) {
+    throw new Error(profilesError.message);
+  }
+  if (subsError) {
+    throw new Error(subsError.message);
   }
 
-  const rows = (data ?? []) as unknown as DbRow[];
-  const stripe = getStripe();
+  const profileRows = (profiles ?? []) as ProfileRow[];
+  const subsRows = (subscriptions ?? []) as SubscriptionRow[];
+  const subByUser = new Map(subsRows.map((s) => [s.user_id, s]));
 
-  const amountMap = new Map<string, number | null>();
+  const stripe = getStripe();
+  const totalPaidByUser = new Map<string, number>();
   await Promise.all(
-    rows.map(async (row) => {
-      if (!row.stripe_subscription_id) {
-        amountMap.set(row.user_id, null);
+    subsRows.map(async (sub) => {
+      if (!sub.stripe_customer_id) {
+        totalPaidByUser.set(sub.user_id, 0);
         return;
       }
       try {
-        const subscription = await stripe.subscriptions.retrieve(
-          row.stripe_subscription_id,
-          { expand: ["items.data.price"] },
-        );
-        const firstPrice = subscription.items.data[0]?.price;
-        amountMap.set(row.user_id, firstPrice?.unit_amount ?? null);
+        const intents = await stripe.paymentIntents.list({
+          customer: sub.stripe_customer_id,
+          limit: 100,
+        });
+        const paid = intents.data
+          .filter((pi) => pi.status === "succeeded")
+          .reduce((sum, pi) => sum + (pi.amount_received ?? 0), 0);
+        totalPaidByUser.set(sub.user_id, paid);
       } catch {
-        amountMap.set(row.user_id, null);
+        totalPaidByUser.set(sub.user_id, 0);
       }
     }),
   );
 
-  return rows.map((row) => ({
-    user_id: row.user_id,
-    email: row.profile?.email ?? "(sin email)",
-    started_at: row.created_at,
-    expires_at: row.current_period_end,
-    amount_clp: amountMap.get(row.user_id) ?? null,
-    status: row.status,
-    refunded_at: row.refunded_at,
-  }));
+  const rows: AdminSubscriptionRow[] = profileRows.map((profile) => {
+    const sub = subByUser.get(profile.id);
+    return {
+      user_id: profile.id,
+      avatar_url: profile.avatar_url,
+      full_name: profile.full_name,
+      email: profile.email ?? "(sin email)",
+      registered_at: profile.created_at,
+      subscription_started_at: sub?.created_at ?? null,
+      next_billing_at: sub?.current_period_end ?? null,
+      total_paid_usd_cents: totalPaidByUser.get(profile.id) ?? 0,
+      status: sub?.status ?? "inactive",
+      suspended: Boolean(profile.suspended),
+    };
+  });
+
+  const now = new Date();
+  const month = now.getMonth();
+  const year = now.getFullYear();
+  const isThisMonth = (value: string | null) => {
+    if (!value) return false;
+    const d = new Date(value);
+    return d.getMonth() === month && d.getFullYear() === year;
+  };
+  const totalActive = rows.filter(
+    (r) => !r.suspended && (r.status === "active" || r.status === "past_due"),
+  ).length;
+  const newThisMonth = rows.filter(
+    (r) =>
+      !r.suspended &&
+      (r.status === "active" || r.status === "past_due") &&
+      isThisMonth(r.subscription_started_at),
+  ).length;
+  const canceledThisMonth = subsRows.filter(
+    (s) => s.status === "canceled" && isThisMonth(s.updated_at),
+  ).length;
+
+  return {
+    rows,
+    metrics: {
+      totalActive,
+      mrrUsd: totalActive * 19,
+      newThisMonth,
+      canceledThisMonth,
+    },
+  };
 }
 
 export default async function AdminSubscriptionsPage() {
@@ -81,7 +137,7 @@ export default async function AdminSubscriptionsPage() {
     redirect("/login?next=/admin/subscriptions");
   }
 
-  const rows = await loadRows();
+  const { rows, metrics } = await loadData();
 
   return (
     <div className="min-h-screen bg-zinc-100 px-4 py-10">
@@ -93,14 +149,13 @@ export default async function AdminSubscriptionsPage() {
           ← Volver a Admin
         </Link>
         <h1 className="mt-4 text-3xl font-bold tracking-tight text-zinc-900">
-          Gestión de suscripciones
+          Panel de suscriptores
         </h1>
         <p className="mt-2 max-w-3xl text-sm text-zinc-600">
-          Administra suscripciones activas, cancelaciones y reembolsos desde un
-          solo lugar.
+          Métricas y gestión completa de accesos, suscripciones y reembolsos.
         </p>
 
-        <SubscriptionsAdminTable rows={rows} />
+        <SubscriptionsAdminTable rows={rows} metrics={metrics} />
       </div>
     </div>
   );
