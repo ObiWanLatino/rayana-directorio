@@ -1,5 +1,11 @@
 import type { Metadata, Viewport } from "next";
+import { Inter } from "next/font/google";
 import "./globals.css";
+
+const inter = Inter({
+  subsets: ["latin"],
+  display: "swap",
+});
 
 export const metadata: Metadata = {
   title: "Rayana",
@@ -22,7 +28,9 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="es" className="h-full">
-      <body className="flex min-h-full flex-col font-sans antialiased">
+      <body
+        className={`${inter.className} flex min-h-full flex-col antialiased`}
+      >
         {children}
       </body>
     </html>
