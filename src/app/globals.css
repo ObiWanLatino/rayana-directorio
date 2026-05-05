@@ -1,5 +1,9 @@
 @import "tailwindcss";
 
+* {
+  -webkit-font-smoothing: antialiased;
+}
+
 :root {
   /* Sin next/font/google: evita descargas desde Google Fonts al arrancar */
   --font-sans-stack:
@@ -257,7 +261,7 @@ body {
   transform: rotate(180deg);
 }
 
-.faq-item .chev {
+.chev {
   transition: transform 0.25s ease;
 }
 

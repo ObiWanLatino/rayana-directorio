@@ -37,9 +37,8 @@ const FAQ_ITEMS = [
   },
 ] as const;
 
-export function MakerayLanding() {
+export default function LandingClient() {
   const [mobileOpen, setMobileOpen] = useState(false);
-  const [openFaqId, setOpenFaqId] = useState<string | null>(null);
 
   const closeMobile = useCallback(() => setMobileOpen(false), []);
 
@@ -405,7 +404,8 @@ export function MakerayLanding() {
               </p>
             </div>
             <div
-              className="card p-7 transition-shadow hover:shadow-lg md:translate-y-2"
+              className="card p-7 transition-shadow hover:shadow-lg"
+              style={{ transform: "translateY(8px)" }}
             >
               <div
                 className="mb-5 flex h-12 w-12 items-center justify-center rounded-2xl text-2xl"
@@ -850,13 +850,8 @@ export function MakerayLanding() {
             {FAQ_ITEMS.map((item) => (
               <details
                 key={item.id}
+                name="faq"
                 className="faq-item card overflow-hidden"
-                open={openFaqId === item.id}
-                onToggle={(e) => {
-                  const el = e.currentTarget;
-                  if (el.open) setOpenFaqId(item.id);
-                  else setOpenFaqId((p) => (p === item.id ? null : p));
-                }}
               >
                 <summary className="flex items-center justify-between gap-4 px-6 py-5">
                   <span className="text-[16px] font-bold">{item.q}</span>
