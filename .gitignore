@@ -30,6 +30,7 @@ e2e/.auth/
 # misc
 .DS_Store
 *.pem
+public/logo-original.png
 
 # debug
 npm-debug.log*
