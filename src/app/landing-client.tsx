@@ -4,7 +4,13 @@ import { MakerayLogo } from "@/components/MakerayLogo";
 import { useReveal } from "@/hooks/useReveal";
 import Image from "next/image";
 import Link from "next/link";
-import { useCallback, useEffect, useState } from "react";
+import {
+  useCallback,
+  useEffect,
+  useState,
+  type CSSProperties,
+  type MouseEvent,
+} from "react";
 
 const FAQ_ITEMS = [
   {
@@ -78,20 +84,50 @@ function SparkleIcon({ className }: { className?: string }) {
 }
 
 function RayanaSocialLinks() {
-  const btn =
-    "flex h-10 w-10 items-center justify-center rounded-xl border border-primary/20 text-primary transition-colors hover:border-accent hover:bg-accent hover:text-white";
+  const linkBaseStyle: CSSProperties = {
+    width: 44,
+    height: 44,
+    borderRadius: 12,
+    border: "1.5px solid rgba(89,47,146,0.2)",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    color: "var(--color-primary)",
+    textDecoration: "none",
+    transition: "background 0.2s, color 0.2s, border-color 0.2s",
+  };
+
+  const onEnter = (e: MouseEvent<HTMLAnchorElement>) => {
+    const el = e.currentTarget;
+    el.style.background = "var(--color-accent)";
+    el.style.color = "#fff";
+    el.style.borderColor = "var(--color-accent)";
+  };
+
+  const onLeave = (e: MouseEvent<HTMLAnchorElement>) => {
+    const el = e.currentTarget;
+    el.style.background = "transparent";
+    el.style.color = "var(--color-primary)";
+    el.style.borderColor = "rgba(89,47,146,0.2)";
+  };
+
   return (
-    <div className="mt-6 flex flex-wrap justify-center gap-2 md:justify-start">
+    <div
+      className="flex flex-wrap justify-center md:justify-start"
+      style={{ display: "flex", gap: 10, flexWrap: "wrap", marginTop: 20 }}
+    >
       <a
         href="https://instagram.com/makeray"
         target="_blank"
         rel="noopener noreferrer"
-        className={btn}
         aria-label="Instagram de Makeray"
+        style={linkBaseStyle}
+        onMouseEnter={onEnter}
+        onMouseLeave={onLeave}
       >
         <svg
-          width="18"
-          height="18"
+          width="20"
+          height="20"
           viewBox="0 0 24 24"
           fill="none"
           stroke="currentColor"
@@ -101,42 +137,52 @@ function RayanaSocialLinks() {
           aria-hidden
         >
           <rect x="2" y="2" width="20" height="20" rx="5" ry="5" />
-          <circle cx="12" cy="12" r="4" />
-          <circle cx="17.5" cy="6.5" r="1" fill="currentColor" stroke="none" />
+          <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z" />
+          <line x1="17.5" y1="6.5" x2="17.51" y2="6.5" />
         </svg>
       </a>
+
       <a
         href="https://youtube.com/@makeray.youtube"
         target="_blank"
         rel="noopener noreferrer"
-        className={btn}
         aria-label="YouTube de Makeray"
+        style={linkBaseStyle}
+        onMouseEnter={onEnter}
+        onMouseLeave={onLeave}
       >
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden>
-          <path d="M23 7s-.3-2-1.2-2.7c-1.1-1.2-2.4-1.2-3-1.3C16.2 3 12 3 12 3s-4.2 0-6.8.1c-.6.1-1.9.1-3 1.3C1.3 5 1 7 1 7S.7 9.1.7 11.3v2c0 2.1.3 4.3.3 4.3s.3 2 1.2 2.7c1.1 1.2 2.6 1.1 3.3 1.2C7.3 21.7 12 21.7 12 21.7s4.2 0 6.8-.2c.6-.1 1.9-.1 3-1.3.9-.7 1.2-2.7 1.2-2.7s.3-2.1.3-4.3v-2C23.3 9.1 23 7 23 7zM9.7 15.5V8.2l6.6 3.7-6.6 3.6z" />
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden>
+          <path d="M22.54 6.42a2.78 2.78 0 0 0-1.95-1.96C18.88 4 12 4 12 4s-6.88 0-8.59.46A2.78 2.78 0 0 0 1.46 6.42 29 29 0 0 0 1 12a29 29 0 0 0 .46 5.58 2.78 2.78 0 0 0 1.95 1.96C5.12 20 12 20 12 20s6.88 0 8.59-.46a2.78 2.78 0 0 0 1.95-1.96A29 29 0 0 0 23 12a29 29 0 0 0-.46-5.58z" />
+          <polygon points="9.75 15.02 15.5 12 9.75 8.98 9.75 15.02" fill="#fff" />
         </svg>
       </a>
+
       <a
         href="https://tiktok.com/@makeray"
         target="_blank"
         rel="noopener noreferrer"
-        className={btn}
         aria-label="TikTok de Makeray"
+        style={linkBaseStyle}
+        onMouseEnter={onEnter}
+        onMouseLeave={onLeave}
       >
         <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden>
-          <path d="M19.6 3h-3v10.3c0 1.5-1.2 2.7-2.7 2.7s-2.7-1.2-2.7-2.7 1.2-2.7 2.7-2.7c.3 0 .5 0 .8.1V7.3c-.2 0-.5-.1-.8-.1-3.1 0-5.7 2.6-5.7 5.7S10.8 18.6 13.9 18.6s5.7-2.6 5.7-5.7V8.1c1 .7 2.3 1.1 3.6 1.1V6c-1.9 0-3.6-1.4-3.6-3z" />
+          <path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-2.88 2.5 2.89 2.89 0 0 1-2.89-2.89 2.89 2.89 0 0 1 2.89-2.89c.28 0 .54.04.79.1V9.01a6.33 6.33 0 0 0-.79-.05 6.34 6.34 0 0 0-6.34 6.34 6.34 6.34 0 0 0 6.34 6.34 6.34 6.34 0 0 0 6.33-6.34V8.69a8.18 8.18 0 0 0 4.78 1.52V6.75a4.85 4.85 0 0 1-1.01-.06z" />
         </svg>
       </a>
+
       <a
-        href="https://maps.google.com/?q=Patronato%2C%20Santiago%2C%20Chile"
+        href="https://maps.google.com/?q=Patronato,+Santiago,+Chile"
         target="_blank"
         rel="noopener noreferrer"
-        className={btn}
-        aria-label="Ubicación — Patronato, Santiago en Google Maps"
+        aria-label="Ver Patronato en Google Maps"
+        style={linkBaseStyle}
+        onMouseEnter={onEnter}
+        onMouseLeave={onLeave}
       >
         <svg
-          width="18"
-          height="18"
+          width="20"
+          height="20"
           viewBox="0 0 24 24"
           fill="none"
           stroke="currentColor"
@@ -145,7 +191,7 @@ function RayanaSocialLinks() {
           strokeLinejoin="round"
           aria-hidden
         >
-          <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
+          <path d="M21 10c0 7-9 13-9 13S3 17 3 10a9 9 0 0 1 18 0z" />
           <circle cx="12" cy="10" r="3" />
         </svg>
       </a>
