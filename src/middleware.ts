@@ -25,6 +25,17 @@ export async function middleware(request: NextRequest) {
     return NextResponse.next();
   }
 
+  if (pathname === "/proveedores") {
+    return NextResponse.redirect(new URL("/directorio", request.url), {
+      status: 308,
+    });
+  }
+  if (pathname.startsWith("/proveedores/")) {
+    const url = request.nextUrl.clone();
+    url.pathname = `/directorio${pathname.slice("/proveedores".length)}`;
+    return NextResponse.redirect(url, { status: 308 });
+  }
+
   let supabaseResponse = NextResponse.next({
     request,
   });
@@ -132,6 +143,8 @@ export async function middleware(request: NextRequest) {
     pathname.startsWith("/hub/") ||
     pathname === "/proveedores" ||
     pathname.startsWith("/proveedores/") ||
+    pathname === "/directorio" ||
+    pathname.startsWith("/directorio/") ||
     pathname === "/fabricantes" ||
     pathname.startsWith("/fabricantes/") ||
     pathname === "/cursos" ||

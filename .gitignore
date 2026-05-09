@@ -15,6 +15,10 @@
 /playwright-report/
 /test-results/
 /blob-report/
+e2e/.auth/
+
+# Playwright E2E credentials (copy from .env.test.local.example)
+.env.test.local
 
 # next.js
 /.next/
@@ -36,6 +40,7 @@ yarn-error.log*
 # env files (can opt-in for committing if needed)
 .env*
 !.env.example
+!.env.test.local.example
 
 # vercel
 .vercel

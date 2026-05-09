@@ -1,8 +1,9 @@
 "use client";
 
+import { useReveal } from "@/hooks/useReveal";
 import Image from "next/image";
 import Link from "next/link";
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 
 const FAQ_ITEMS = [
   {
@@ -37,93 +38,138 @@ const FAQ_ITEMS = [
   },
 ] as const;
 
+const LANDING_CATS = [
+  { icon: "👗", name: "Moda Femenina", count: "38 proveedores" },
+  { icon: "💍", name: "Joyas", count: "6 proveedores" },
+  { icon: "🏠", name: "Deco Hogar", count: "5 proveedores" },
+  { icon: "👖", name: "Jeans", count: "5 proveedores" },
+  { icon: "💄", name: "Cosméticos", count: "3 proveedores" },
+  { icon: "👜", name: "Accesorios", count: "4 proveedores" },
+  { icon: "👶", name: "Infantil", count: "2 proveedores" },
+  { icon: "🏭", name: "Importadoras", count: "2 proveedores" },
+] as const;
+
+function revealStep(i: number): string {
+  if (i === 0) return "reveal-delay-1";
+  if (i === 1) return "reveal-delay-2";
+  return "reveal-delay-3";
+}
+
+function revealStagger(i: number): string {
+  if (i % 3 === 0) return "reveal-delay-1";
+  if (i % 3 === 1) return "reveal-delay-2";
+  return "reveal-delay-3";
+}
+
+function Logo({ light }: { light?: boolean }) {
+  return (
+    <span
+      className={`font-display text-xl font-bold tracking-tight md:text-2xl ${light ? "text-white" : "text-primary"}`}
+    >
+      Make<span className="text-accent">ray</span>
+    </span>
+  );
+}
+
+function WaGlyph({ className }: { className?: string }) {
+  return (
+    <svg
+      className={className}
+      width="14"
+      height="14"
+      viewBox="0 0 24 24"
+      fill="currentColor"
+      aria-hidden
+    >
+      <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51l-.57-.01c-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.71.306 1.263.489 1.694.626.712.226 1.36.194 1.872.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413" />
+    </svg>
+  );
+}
+
 export default function LandingClient() {
+  useReveal();
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [navScrolled, setNavScrolled] = useState(false);
+  const [faqOpen, setFaqOpen] = useState<string | null>(FAQ_ITEMS[0]?.id ?? null);
 
   const closeMobile = useCallback(() => setMobileOpen(false), []);
 
+  useEffect(() => {
+    const onScroll = () => setNavScrolled(window.scrollY > 20);
+    onScroll();
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
+
   return (
-    <div className="bg-cream text-ink min-h-screen">
+    <div className="min-h-screen bg-off text-navy">
       <header
-        className="fixed top-0 inset-x-0 z-50 border-b border-black/5"
+        className={`sticky top-0 z-50 border-b border-primary/10 transition-shadow duration-300 ${
+          navScrolled ? "shadow-md shadow-primary/8" : ""
+        }`}
         style={{
-          backdropFilter: "blur(16px) saturate(180%)",
-          WebkitBackdropFilter: "blur(16px) saturate(180%)",
-          background: "rgba(251,245,236,0.85)",
+          background: "rgba(253,251,253,0.88)",
+          backdropFilter: "blur(16px)",
+          WebkitBackdropFilter: "blur(16px)",
         }}
       >
-        <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-5">
-          <Link
-            href="/"
-            className="text-xl font-black tracking-tight"
-            onClick={closeMobile}
-          >
-            Makeray
+        <div className="mx-auto flex h-[68px] max-w-6xl items-center justify-between gap-6 px-5">
+          <Link href="/" onClick={closeMobile}>
+            <Logo />
           </Link>
-          <nav className="hidden items-center gap-1 text-[14px] font-medium text-ink/55 md:flex">
-            <a
-              href="#incluye"
-              className="rounded-lg px-3 py-2 transition-colors hover:bg-black/5 hover:text-ink"
-            >
-              ¿Qué incluye?
-            </a>
-            <a
-              href="#categorias"
-              className="rounded-lg px-3 py-2 transition-colors hover:bg-black/5 hover:text-ink"
-            >
-              Categorías
-            </a>
-            <a
-              href="#precio"
-              className="rounded-lg px-3 py-2 transition-colors hover:bg-black/5 hover:text-ink"
-            >
-              Precio
-            </a>
-            <a
-              href="#faq"
-              className="rounded-lg px-3 py-2 transition-colors hover:bg-black/5 hover:text-ink"
-            >
-              FAQ
-            </a>
-          </nav>
-          <div className="flex items-center gap-3">
+          <nav className="hidden items-center gap-8 md:flex">
+            {[
+              ["¿Qué incluye?", "#incluye"],
+              ["Categorías", "#categorias"],
+              ["Precio", "#precio"],
+              ["FAQ", "#faq"],
+            ].map(([label, href]) => (
+              <a
+                key={href}
+                href={href}
+                className="text-[11px] font-semibold uppercase tracking-[0.08em] text-navy/55 transition-colors hover:text-accent"
+              >
+                {label}
+              </a>
+            ))}
             <Link
               href="/login"
-              className="btn-primary hidden rounded-full px-5 py-2.5 text-sm font-bold text-white sm:flex"
+              className="rounded-full bg-accent px-5 py-2.5 text-sm font-bold text-white shadow-sm transition hover:-translate-y-0.5 hover:shadow-lg hover:shadow-accent/35"
             >
-              Suscribirme
+              Suscribirme — $19.990/mes
             </Link>
-            <button
-              type="button"
-              className="flex h-9 w-9 flex-col items-center justify-center gap-1.5 md:hidden"
-              aria-expanded={mobileOpen}
-              aria-label="Abrir menú"
-              onClick={() => setMobileOpen((v) => !v)}
-            >
-              <span className="h-0.5 w-5 rounded-full bg-ink" />
-              <span className="h-0.5 w-5 rounded-full bg-ink" />
-              <span className="h-0.5 w-5 rounded-full bg-ink" />
-            </button>
-          </div>
+          </nav>
+          <button
+            type="button"
+            className="flex h-10 w-10 items-center justify-center rounded-lg text-navy md:hidden"
+            aria-expanded={mobileOpen}
+            aria-label="Abrir menú"
+            onClick={() => setMobileOpen((v) => !v)}
+          >
+            <span className="text-2xl">☰</span>
+          </button>
         </div>
         <div
-          className={`flex flex-col gap-1 border-t border-black/5 bg-cream/95 px-5 py-4 text-[15px] font-medium md:hidden ${mobileOpen ? "" : "hidden"}`}
+          className={`flex flex-col gap-1 border-t border-primary/10 px-5 py-3 md:hidden ${mobileOpen ? "" : "hidden"}`}
         >
-          <a href="#incluye" className="border-b border-black/5 py-3" onClick={closeMobile}>
-            ¿Qué incluye?
-          </a>
-          <a href="#categorias" className="border-b border-black/5 py-3" onClick={closeMobile}>
-            Categorías
-          </a>
-          <a href="#precio" className="border-b border-black/5 py-3" onClick={closeMobile}>
-            Precio
-          </a>
-          <a href="#faq" className="py-3" onClick={closeMobile}>
-            FAQ
-          </a>
+          {[
+            ["¿Qué incluye?", "#incluye"],
+            ["Categorías", "#categorias"],
+            ["Precio", "#precio"],
+            ["FAQ", "#faq"],
+          ].map(([label, href]) => (
+            <a
+              key={href}
+              href={href}
+              className="rounded-xl px-3 py-3 font-semibold text-navy hover:bg-soft"
+              onClick={closeMobile}
+            >
+              {label}
+            </a>
+          ))}
           <Link
             href="/login"
-            className="btn-primary mt-2 rounded-2xl py-3 text-center font-bold text-white"
+            className="mt-2 rounded-xl bg-accent py-3 text-center font-bold text-white"
             onClick={closeMobile}
           >
             Suscribirme — $19.990/mes
@@ -131,286 +177,160 @@ export default function LandingClient() {
         </div>
       </header>
 
-      <section
-        className="overflow-hidden pb-16 pt-28 lg:pb-24 lg:pt-32"
-        style={{
-          background:
-            "radial-gradient(ellipse 120% 60% at 70% -10%,#FBE9D6 0%,#FBF5EC 55%)",
-        }}
-      >
-        <div className="mx-auto grid max-w-6xl items-center gap-12 px-5 lg:grid-cols-2 lg:gap-8">
+      {/* HERO */}
+      <section className="px-5 pb-16 pt-10 md:pb-20 md:pt-14">
+        <div className="mx-auto grid max-w-6xl items-center gap-12 lg:grid-cols-2 lg:gap-16">
           <div className="order-2 lg:order-1">
-            <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-brand/20 bg-white px-3 py-1.5 text-[12.5px] font-semibold text-brand2 shadow-sm">
-              <span className="flex h-4 w-4 items-center justify-center rounded-full bg-brand/15 text-[8px]">
-                ✦
-              </span>
-              por Rayana · @makeray.youtube
-            </div>
-            <h1 className="text-[46px] font-black leading-[1.0] tracking-tight sm:text-[58px] lg:text-[66px]">
+            <p className="mb-6 text-xs font-semibold tracking-wide text-navy/50">
+              ✦ por Rayana · @makeray.youtube
+            </p>
+            <h1 className="font-display text-[2.6rem] font-bold leading-[1.12] tracking-[-0.03em] text-navy md:text-[clamp(2.6rem,5vw,4rem)]">
               Los proveedores
               <br />
-              que <span className="grad-text">cambiarán</span>
+              que cambiarán
               <br />
-              tu negocio.
+              tu <em className="italic text-accent">negocio.</em>
             </h1>
-            <p className="mt-6 max-w-lg text-[17px] leading-relaxed text-ink/55">
-              <strong className="font-semibold text-ink">
-                +75 proveedores mayoristas
-              </strong>{" "}
-              verificados por Rayana. Contacto directo por WhatsApp desde tu
-              celular. Sin intermediarios.
+            <p className="mt-6 max-w-lg text-[1.05rem] leading-relaxed text-navy/55">
+              <strong className="font-semibold text-primary">+75 proveedores mayoristas</strong>{" "}
+              verificados por Rayana. Contacto directo por WhatsApp desde tu celular. Sin
+              intermediarios.
             </p>
-            <div className="mt-4 inline-flex items-center gap-2 rounded-full bg-brand/10 px-4 py-2 text-[15px] font-bold text-brand2">
-              $19.990 CLP / mes
-              <span className="text-[12px] font-medium text-brand2/55">
-                · cancela cuando quieras
-              </span>
-            </div>
-            <div className="mt-7 flex flex-col gap-3 sm:flex-row">
+            <div className="mt-8 flex flex-wrap items-center gap-3">
               <Link
                 href="/login"
-                className="btn-primary flex items-center justify-center gap-2 rounded-2xl px-7 py-4 text-[16px] font-bold text-white"
+                className="inline-flex items-center gap-2 rounded-[14px] bg-accent px-7 py-3.5 text-base font-bold text-white shadow-md transition hover:-translate-y-1 hover:shadow-xl hover:shadow-accent/35"
               >
-                Acceder ahora
-                <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden>
-                  <path
-                    d="M3 8H13M9 4L13 8L9 12"
-                    stroke="white"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  />
-                </svg>
+                Acceder ahora →
               </Link>
               <a
                 href="#incluye"
-                className="btn-secondary flex items-center justify-center gap-2 rounded-2xl px-6 py-4 text-[15px] font-semibold text-ink"
+                className="inline-flex rounded-[14px] border-2 border-primary/20 px-6 py-3.5 text-[15px] font-semibold text-primary transition hover:border-primary hover:bg-primary/5"
               >
                 Ver qué incluye
-                <svg width="14" height="14" viewBox="0 0 16 16" fill="none" aria-hidden>
-                  <path
-                    d="M4 6L8 10L12 6"
-                    stroke="#1A1208"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                  />
-                </svg>
               </a>
             </div>
-            <div className="mt-10 flex items-center gap-3">
-              <div className="flex -space-x-2">
-                <span
-                  className="h-8 w-8 rounded-full ring-2 ring-cream"
-                  style={{
-                    background: "linear-gradient(135deg,#E8A88E,#C4763E)",
-                  }}
-                />
-                <span
-                  className="h-8 w-8 rounded-full ring-2 ring-cream"
-                  style={{
-                    background: "linear-gradient(135deg,#D4A373,#B98852)",
-                  }}
-                />
-                <span
-                  className="h-8 w-8 rounded-full ring-2 ring-cream"
-                  style={{
-                    background: "linear-gradient(135deg,#F2C7B0,#D88A6A)",
-                  }}
-                />
-                <span className="flex h-8 w-8 items-center justify-center rounded-full bg-white text-[9px] font-black text-brand2 ring-2 ring-cream">
-                  +500
-                </span>
-              </div>
-              <span className="text-[13px] font-medium text-ink/45">
-                Emprendedoras ya dentro
+            <p className="mt-6 flex items-center gap-2 text-sm text-navy/50">
+              <span aria-hidden>🔒</span>
+              <span>
+                <strong className="font-semibold text-primary">$19.990 CLP</strong> / mes · cancela
+                cuando quieras
               </span>
+            </p>
+            <div className="mt-8 flex items-center gap-3">
+              <div className="flex -space-x-2">
+                {[
+                  "linear-gradient(135deg,#592f92,#ff108a)",
+                  "linear-gradient(135deg,#1a0633,#592f92)",
+                  "linear-gradient(135deg,#7c52b8,#ff6eb4)",
+                  "linear-gradient(135deg,#ff108a,#f5a623)",
+                ].map((bg, i) => (
+                  <span
+                    key={i}
+                    className="h-8 w-8 rounded-full border-2 border-off"
+                    style={{ background: bg }}
+                  />
+                ))}
+              </div>
+              <span className="text-sm font-medium text-navy/50">+500 emprendedoras ya dentro</span>
             </div>
           </div>
 
-          <div className="relative order-1 lg:order-2">
-            <div className="relative mx-auto max-w-[480px]">
+          <div className="relative order-1 flex justify-center lg:order-2">
+            <div className="relative w-[280px]">
               <div
-                className="photo-box relative aspect-[4/5] overflow-hidden rounded-[28px]"
+                className="pointer-events-none absolute inset-[-40px] rounded-full opacity-70"
                 style={{
-                  boxShadow: "0 32px 64px -16px rgba(120,72,30,.25)",
+                  background:
+                    "radial-gradient(ellipse at center, rgba(89,47,146,.25) 0%, transparent 70%)",
                 }}
-              >
-                <Image
-                  src="/landing/foto-hero.jpg"
-                  alt="Rayana — directorio Makeray"
-                  fill
-                  className="object-cover"
-                  sizes="(max-width: 1024px) 100vw, 480px"
-                  priority
-                />
-              </div>
-              <div className="f1 absolute -left-4 top-12 hidden items-center gap-2.5 whitespace-nowrap rounded-lg px-3.5 py-2.5 text-[13px] font-semibold sm:flex card">
-                <span
-                  className="flex h-7 w-7 items-center justify-center rounded-full text-[10px] text-white"
+              />
+              <div className="animate-makeray-float relative z-[2]">
+                <div
+                  className="absolute right-[-52px] top-10 z-[3] hidden max-w-[140px] rounded-2xl bg-white px-3 py-2.5 text-xs font-semibold shadow-lg sm:block"
+                  style={{ animation: "makeray-float 3s ease-in-out infinite 0.5s" }}
+                >
+                  <span className="font-display text-lg font-bold text-primary">75+</span>
+                  <div className="text-[10px] text-navy/50">Proveedores</div>
+                  <div className="text-[11px]">verificados ✓</div>
+                </div>
+                <div
+                  className="absolute bottom-24 left-[-56px] z-[3] hidden max-w-[130px] rounded-2xl bg-white px-3 py-2.5 text-xs font-semibold shadow-lg sm:block"
+                  style={{ animation: "makeray-float 3s ease-in-out infinite 1.2s" }}
+                >
+                  <div className="flex items-center gap-2">
+                    <WaGlyph className="text-wa" />
+                    <div>
+                      <div className="text-[11px]">1 tap a</div>
+                      <div className="text-[10px] text-navy/50">WhatsApp</div>
+                    </div>
+                  </div>
+                </div>
+                <div
+                  className="rounded-[40px] p-3 shadow-2xl"
                   style={{
-                    background: "linear-gradient(135deg,#C4763E,#A35E2A)",
+                    background: "linear-gradient(145deg, #1a0633, #2d1157)",
+                    boxShadow: "0 40px 80px rgba(26,6,51,.45), 0 0 0 1px rgba(255,255,255,.08)",
                   }}
                 >
-                  ✓
-                </span>
-                Verificada por Rayana
-              </div>
-              <div className="f2 absolute -right-4 bottom-24 hidden items-center gap-2.5 whitespace-nowrap rounded-lg px-3.5 py-2.5 text-[13px] font-semibold sm:flex card">
-                <span
-                  className="flex h-7 w-7 items-center justify-center rounded-full"
-                  style={{ background: "#25D366" }}
-                >
-                  <svg width="13" height="13" viewBox="0 0 24 24" fill="white" aria-hidden>
-                    <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51l-.57-.01c-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.71.306 1.263.489 1.694.626.712.226 1.36.194 1.872.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413" />
-                  </svg>
-                </span>
-                1 tap a WhatsApp
-              </div>
-              <div className="absolute -bottom-10 -right-6 w-[160px] sm:-right-10 sm:w-[190px]">
-                <div className="phone-outer">
-                  <div
-                    className="phone-inner overflow-hidden"
-                    style={{ aspectRatio: "9 / 19.5" }}
-                  >
-                    <div className="notch" />
-                    <div className="flex justify-between px-3 pt-2 text-[9px] font-bold">
-                      <span>9:41</span>
-                      <span>●●●</span>
+                  <div className="flex h-[500px] flex-col overflow-hidden rounded-[30px] bg-white">
+                    <div className="bg-primary px-4 pb-3 pt-4 text-white">
+                      <div className="mb-3 flex justify-between text-[10px] opacity-80">
+                        <span>9:41</span>
+                        <span>●●●</span>
+                      </div>
+                      <h3 className="text-base font-bold">Directorio Makeray</h3>
+                      <p className="text-[11px] opacity-70">+75 proveedores verificados</p>
                     </div>
-                    <div className="px-2.5 pt-3">
-                      <div className="mb-1 font-black text-[12px]">Directorio</div>
-                      <div className="mb-1.5 flex h-6 items-center gap-1 rounded-full bg-black/5 px-2 text-[9px] text-ink/40">
-                        <svg width="8" height="8" viewBox="0 0 16 16" fill="none" aria-hidden>
-                          <circle cx="7" cy="7" r="5" stroke="#1A1208" strokeWidth="2" opacity=".4" />
-                          <path d="M11 11L14 14" stroke="#1A1208" strokeWidth="2" strokeLinecap="round" opacity=".4" />
-                        </svg>
-                        Buscar #47…
-                      </div>
-                      <div className="mb-2 flex flex-wrap gap-1">
-                        {["👗 Moda", "💍 Joyas", "🏠 Deco"].map((label) => (
-                          <span
-                            key={label}
-                            className="rounded-full border border-brand/12 bg-cream px-1.5 py-px text-[6.5px] font-semibold text-ink/70"
-                          >
-                            {label}
-                          </span>
-                        ))}
-                      </div>
-                      <div className="card mb-1.5 rounded-xl p-2 shadow-sm">
-                        <div className="mb-1.5">
-                          <span
-                            className="inline-block rounded-md px-1.5 py-0.5 text-[8px] font-black text-white"
-                            style={{
-                              background: "linear-gradient(135deg,#D88A6A,#C4763E)",
-                            }}
-                          >
-                            #47
-                          </span>
-                        </div>
-                        <div className="mb-1.5 flex items-start gap-1.5">
+                    <div className="mx-3 mt-3 flex items-center gap-2 rounded-[10px] bg-soft px-3 py-2 text-[12px] text-navy/50">
+                      <span className="text-xs">🔍</span>
+                      Buscar por código #47…
+                    </div>
+                    <div className="mt-2 flex gap-1.5 overflow-hidden px-3">
+                      {["👗 Moda", "💍 Joyas", "🏠 Deco"].map((t, i) => (
+                        <span
+                          key={t}
+                          className={`shrink-0 rounded-full px-2.5 py-1 text-[10px] font-semibold ${
+                            i === 0 ? "bg-accent text-white" : "bg-soft text-primary"
+                          }`}
+                        >
+                          {t}
+                        </span>
+                      ))}
+                    </div>
+                    <div className="mt-2 flex flex-1 flex-col gap-2 overflow-hidden px-3 pb-3">
+                      {[
+                        { code: "#47", name: "Atelier Rosé", cat: "Moda Femenina", grad: "linear-gradient(135deg,#592f92,#ff108a)" },
+                        { code: "#48", name: "Joyería Maipú", cat: "Joyas", grad: "linear-gradient(135deg,#1a0633,#592f92)" },
+                        { code: "#49", name: "Deco Lo Espejo", cat: "Deco Hogar", grad: "linear-gradient(135deg,#ff108a,#ff6eb4)" },
+                      ].map((row) => (
+                        <div
+                          key={row.code}
+                          className="flex items-center gap-2.5 rounded-xl border border-primary/12 bg-white p-2.5 shadow-sm"
+                        >
                           <div
-                            className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-[7px] font-black text-white"
-                            style={{
-                              background: "linear-gradient(135deg,#E8A88E,#C4763E)",
-                            }}
+                            className="flex h-[38px] w-[38px] shrink-0 items-center justify-center rounded-[10px] text-[10px] font-extrabold text-white"
+                            style={{ background: row.grad }}
                           >
-                            AR
+                            {row.code}
                           </div>
                           <div className="min-w-0 flex-1">
-                            <div className="font-bold text-[9px] leading-tight text-ink">
-                              Atelier Rosé
+                            <div className="text-[10px] font-semibold text-navy/50">
+                              {row.code} · {row.cat}
                             </div>
-                            <span className="mt-0.5 inline-block rounded-full border border-brand/15 bg-cream px-1.5 py-px text-[6px] font-semibold text-brand2">
-                              Moda femenina
+                            <div className="truncate text-[12px] font-bold text-navy">{row.name}</div>
+                            <span className="mt-0.5 inline-block rounded border border-gold/30 bg-gold/10 px-1.5 py-px text-[9px] font-bold text-[#a06900]">
+                              ✓ Verificado
                             </span>
                           </div>
+                          <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-wa text-white">
+                            <WaGlyph className="text-white" />
+                          </div>
                         </div>
-                        <div className="flex items-center justify-center gap-1">
-                          <span
-                            className="flex h-6 w-6 items-center justify-center rounded-full shadow-sm"
-                            style={{ background: "#25D366" }}
-                          >
-                            <svg width="10" height="10" viewBox="0 0 24 24" fill="white" aria-hidden>
-                              <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51l-.57-.01c-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.71.306 1.263.489 1.694.626.712.226 1.36.194 1.872.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413" />
-                            </svg>
-                          </span>
-                          <span
-                            className="flex h-6 w-6 items-center justify-center rounded-full shadow-sm"
-                            style={{
-                              background: "linear-gradient(45deg,#f09433,#dc2743)",
-                            }}
-                          >
-                            <svg width="10" height="10" viewBox="0 0 24 24" fill="white" aria-hidden>
-                              <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z" />
-                            </svg>
-                          </span>
-                          <span
-                            className="flex h-6 w-6 items-center justify-center rounded-full shadow-sm"
-                            style={{ background: "#4285F4" }}
-                          >
-                            <svg width="10" height="10" viewBox="0 0 24 24" fill="white" aria-hidden>
-                              <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z" />
-                            </svg>
-                          </span>
-                        </div>
-                      </div>
-                      <div className="card mb-1 flex items-center gap-1.5 rounded-lg p-1.5 shadow-sm">
-                        <span
-                          className="shrink-0 rounded px-1 py-px text-[7px] font-black text-white"
-                          style={{
-                            background: "linear-gradient(135deg,#D88A6A,#C4763E)",
-                          }}
-                        >
-                          #48
-                        </span>
-                        <div
-                          className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-[6px] font-bold text-white"
-                          style={{
-                            background: "linear-gradient(135deg,#B8C8A8,#5A7A3C)",
-                          }}
-                        >
-                          JM
-                        </div>
-                        <span className="min-w-0 flex-1 truncate text-[8px] font-semibold text-ink">
-                          Joyería Maipú
-                        </span>
-                        <span
-                          className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full"
-                          style={{ background: "#25D366" }}
-                        >
-                          <svg width="9" height="9" viewBox="0 0 24 24" fill="white" aria-hidden>
-                            <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51l-.57-.01c-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.71.306 1.263.489 1.694.626.712.226 1.36.194 1.872.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413" />
-                          </svg>
-                        </span>
-                      </div>
-                      <div className="card flex items-center gap-1.5 rounded-lg p-1.5 shadow-sm">
-                        <span
-                          className="shrink-0 rounded px-1 py-px text-[7px] font-black text-white"
-                          style={{
-                            background: "linear-gradient(135deg,#D88A6A,#C4763E)",
-                          }}
-                        >
-                          #49
-                        </span>
-                        <div
-                          className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-[6px] font-bold text-white"
-                          style={{
-                            background: "linear-gradient(135deg,#C8C0A8,#8B7A3C)",
-                          }}
-                        >
-                          DL
-                        </div>
-                        <span className="min-w-0 flex-1 truncate text-[8px] font-semibold text-ink">
-                          Deco Lo Espejo
-                        </span>
-                        <span
-                          className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full"
-                          style={{ background: "#25D366" }}
-                        >
-                          <svg width="9" height="9" viewBox="0 0 24 24" fill="white" aria-hidden>
-                            <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51l-.57-.01c-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.71.306 1.263.489 1.694.626.712.226 1.36.194 1.872.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413" />
-                          </svg>
-                        </span>
+                      ))}
+                      <div className="relative flex items-center gap-2 rounded-xl border border-primary/10 p-2.5 opacity-60">
+                        <div className="h-9 flex-1 rounded-lg bg-navy/10 blur-[2px]" />
+                        <span className="text-lg">🔒</span>
                       </div>
                     </div>
                   </div>
@@ -421,373 +341,283 @@ export default function LandingClient() {
         </div>
       </section>
 
-      <div className="bg-ink py-6 text-white">
-        <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-center gap-8 px-5 md:gap-16">
-          <div className="text-center">
-            <div className="text-3xl font-black text-brand3">75+</div>
-            <div className="mt-0.5 text-sm font-medium text-white/45">Proveedores</div>
-          </div>
-          <div className="hidden h-8 w-px bg-white/10 md:block" />
-          <div className="text-center">
-            <div className="text-3xl font-black text-brand3">8</div>
-            <div className="mt-0.5 text-sm font-medium text-white/45">Categorías</div>
-          </div>
-          <div className="hidden h-8 w-px bg-white/10 md:block" />
-          <div className="text-center">
-            <div className="text-3xl font-black text-brand3">1 tap</div>
-            <div className="mt-0.5 text-sm font-medium text-white/45">a WhatsApp</div>
-          </div>
-          <div className="hidden h-8 w-px bg-white/10 md:block" />
-          <div className="text-center">
-            <div className="text-3xl font-black text-brand3">100%</div>
-            <div className="mt-0.5 text-sm font-medium text-white/45">Verificados</div>
-          </div>
+      {/* STATS */}
+      <div className="bg-navy py-8">
+        <div className="mx-auto grid max-w-6xl grid-cols-2 gap-6 px-5 md:grid-cols-4 md:gap-8">
+          {[
+            ["75+", "Proveedores"],
+            ["8", "Categorías"],
+            ["1 tap", "a WhatsApp"],
+            ["100%", "Verificados"],
+          ].map(([n, l]) => (
+            <div key={l} className="text-center">
+              <div className="font-display text-[2rem] font-bold tracking-tight text-white">
+                {n}
+              </div>
+              <div className="mt-1 text-[11px] font-medium uppercase tracking-[0.06em] text-white/50">
+                {l}
+              </div>
+            </div>
+          ))}
         </div>
       </div>
 
-      <div className="border-b border-black/5 bg-white py-4">
-        <div className="mx-auto max-w-6xl px-5">
-          <div className="no-scroll flex items-center gap-3 overflow-x-auto">
-            <span className="shrink-0 text-[11px] font-black tracking-widest text-ink/25 uppercase">
-              CATEGORÍAS
+      {/* PROBLEMA */}
+      <section id="problema" className="scroll-mt-24 bg-white px-5 py-16 md:py-24">
+        <div className="mx-auto max-w-6xl">
+          <div className="reveal mb-14 max-w-2xl">
+            <span className="text-xs font-extrabold uppercase tracking-[0.12em] text-accent">
+              La realidad del emprendimiento
             </span>
-            <div className="h-4 w-px shrink-0 bg-black/10" />
-            <div className="flex shrink-0 gap-2">
-              {[
-                "👗 Moda Femenina",
-                "💍 Joyas",
-                "🏠 Deco Hogar",
-                "👖 Jeans",
-                "💄 Cosméticos",
-                "👜 Accesorios",
-                "👶 Infantil",
-              ].map((label) => (
-                <span
-                  key={label}
-                  className="flex shrink-0 items-center gap-1.5 rounded-full border border-brand/12 bg-cream px-3 py-1.5 text-[13px] font-medium whitespace-nowrap"
-                >
-                  {label}
-                </span>
-              ))}
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <section id="incluye" className="bg-white py-20 lg:py-28">
-        <div className="mx-auto max-w-6xl px-5">
-          <div className="mb-14 max-w-2xl">
-            <div className="mb-3 text-[11px] font-black tracking-widest text-brand uppercase">
-              QUÉ INCLUYE
-            </div>
-            <h2 className="text-[38px] font-black leading-tight tracking-tight lg:text-[52px]">
-              Todo lo que necesitas
-              <br />
-              en un solo lugar.
+            <h2 className="mt-3 font-display text-[clamp(1.8rem,3.5vw,2.8rem)] font-bold leading-tight tracking-[-0.03em] text-navy">
+              Emprender en Chile no debería ser un dolor de cabeza.
             </h2>
+            <p className="mt-4 max-w-lg text-[1.05rem] text-navy/55">
+              Sabemos lo que frena tu crecimiento — y cómo el directorio correcto lo cambia.
+            </p>
           </div>
-          <div className="grid gap-5 md:grid-cols-3">
-            <div className="card p-7 transition-shadow hover:shadow-lg">
-              <div
-                className="mb-5 flex h-12 w-12 items-center justify-center rounded-2xl text-2xl"
-                style={{ background: "linear-gradient(135deg,#F2C7B0,#C4763E)" }}
-              >
-                📋
-              </div>
-              <h3 className="mb-2 text-[20px] font-black leading-tight">
-                75+ Proveedores Verificados
-              </h3>
-              <p className="text-[15px] leading-relaxed text-ink/50">
-                Moda, joyas, deco hogar, jeans y más. Curados personalmente por
-                Rayana.
-              </p>
-            </div>
-            <div
-              className="card p-7 transition-shadow hover:shadow-lg"
-              style={{ transform: "translateY(8px)" }}
-            >
-              <div
-                className="mb-5 flex h-12 w-12 items-center justify-center rounded-2xl text-2xl"
-                style={{ background: "linear-gradient(135deg,#A8E6CF,#25D366)" }}
-              >
-                💬
-              </div>
-              <h3 className="mb-2 text-[20px] font-black leading-tight">
-                Directo a WhatsApp
-              </h3>
-              <p className="text-[15px] leading-relaxed text-ink/50">
-                Un tap y estás hablando con el proveedor con mensaje listo para
-                enviar. Sin intermediarios.
-              </p>
-            </div>
-            <div className="card p-7 transition-shadow hover:shadow-lg">
-              <div
-                className="mb-5 flex h-12 w-12 items-center justify-center rounded-2xl text-2xl"
-                style={{ background: "linear-gradient(135deg,#FBE9D6,#E8A88E)" }}
-              >
-                🔄
-              </div>
-              <h3 className="mb-2 text-[20px] font-black leading-tight">
-                Siempre Actualizado
-              </h3>
-              <p className="text-[15px] leading-relaxed text-ink/50">
-                Rayana agrega nuevos proveedores cada mes. Siempre tendrás
-                contactos frescos.
-              </p>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <section className="py-20 lg:py-28" style={{ background: "#F5EDE0" }}>
-        <div className="mx-auto max-w-6xl px-5">
-          <div className="mb-14 max-w-2xl">
-            <div className="mb-3 text-[11px] font-black tracking-widest text-brand uppercase">
-              CÓMO FUNCIONA
-            </div>
-            <h2 className="text-[38px] font-black leading-tight tracking-tight lg:text-[52px]">
-              Así de simple.
-            </h2>
-          </div>
-          <div className="relative grid gap-8 md:grid-cols-3">
-            <div
-              className="absolute top-8 right-[calc(16%+24px)] left-[calc(16%+24px)] hidden h-0.5 md:block"
-              style={{
-                background:
-                  "repeating-linear-gradient(90deg,#C4763E 0 6px,transparent 6px 14px)",
-              }}
-            />
+          <div className="grid gap-6 md:grid-cols-3">
             {[
               {
-                n: "1",
-                t: "Suscríbete",
-                d: "Elige tu plan mensual. Pago seguro con Stripe y acceso al instante.",
+                icon: "🔍",
+                t: "Pagas de más",
+                d: "Comprar a intermediarios en redes sociales está comiendo tu margen. Necesitas llegar a la fuente.",
               },
               {
-                n: "2",
-                t: "Explora el directorio",
-                d: "Busca por categoría, nombre o código. +75 proveedores a tu disposición.",
+                icon: "⏰",
+                t: "Pierdes tiempo",
+                d: "Horas en Meiggs o Patronato buscando calidad, cuando podrías estar enfocada en vender.",
               },
               {
-                n: "3",
-                t: "Contacta directo",
-                d: "Toca WhatsApp y habla con el proveedor. Mensaje pre-escrito incluido.",
+                icon: "🛡️",
+                t: "Miedo a estafas",
+                d: "Transferir a perfiles dudosos es un riesgo. Necesitas contactos verificados por alguien de confianza.",
               },
-            ].map((step) => (
-              <div key={step.n}>
-                <div
-                  className="mb-5 flex h-16 w-16 items-center justify-center rounded-full text-[28px] font-black text-white"
-                  style={{
-                    background: "linear-gradient(180deg,#D88A6A,#A35E2A)",
-                    boxShadow: "0 8px 20px -4px rgba(163,94,42,.4)",
-                  }}
-                >
-                  {step.n}
-                </div>
-                <h3 className="mb-2 text-[22px] font-black">{step.t}</h3>
-                <p className="text-[15px] leading-relaxed text-ink/50">{step.d}</p>
+            ].map((c, i) => (
+              <div
+                key={c.t}
+                className={`reveal ${revealStep(i)} rounded-3xl border border-primary/10 bg-soft p-8 transition hover:-translate-y-1 hover:shadow-lg hover:shadow-primary/8`}
+              >
+                <div className="mb-5 text-3xl">{c.icon}</div>
+                <h3 className="font-display text-xl font-bold text-navy">{c.t}</h3>
+                <p className="mt-3 text-sm leading-relaxed text-navy/55">{c.d}</p>
               </div>
             ))}
           </div>
         </div>
       </section>
 
-      <section className="bg-white py-20 lg:py-28">
-        <div className="mx-auto grid max-w-6xl items-center gap-12 px-5 lg:grid-cols-2">
-          <div>
-            <div className="mb-3 text-[11px] font-black tracking-widest text-brand uppercase">
-              EN TU BOLSILLO
-            </div>
-            <h2 className="mb-6 text-[38px] font-black leading-tight tracking-tight lg:text-[52px]">
-              Diseñado para usar
-              <br />
-              desde tu celular.
-            </h2>
-            <p className="mb-8 max-w-md text-[16px] leading-relaxed text-ink/50">
-              Estés donde estés — en una feria, revisando stock, con clientas —
-              el directorio entero cabe en tu bolsillo.
-            </p>
-            <div className="grid max-w-md grid-cols-2 gap-3">
-              {[
-                {
-                  id: "code",
-                  icon: "🔍",
-                  text: (
-                    <>
-                      Busca por código{" "}
-                      <span className="font-bold text-brand">#47</span>
-                    </>
-                  ),
-                },
-                { id: "wa", icon: "💬", text: "WhatsApp con un tap" },
-                { id: "ver", icon: "⭐", text: "Proveedores verificados" },
-                { id: "cat", icon: "📂", text: "Filtros por categoría" },
-              ].map((item) => (
-                <div key={item.id} className="card flex items-center gap-3 p-4">
-                  <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-cream text-lg">
-                    {item.icon}
-                  </span>
-                  <span className="text-[13px] font-semibold">{item.text}</span>
+      {/* QUÉ INCLUYE */}
+      <section
+        id="incluye"
+        className="scroll-mt-24 bg-navy px-5 py-16 md:py-24"
+      >
+        <div className="relative z-[2] mx-auto max-w-6xl">
+          <div className="grid items-center gap-12 lg:grid-cols-2 lg:gap-20">
+            <div className="reveal">
+              <span className="text-xs font-extrabold uppercase tracking-[0.12em] text-accent2">
+                Directorio Makeray
+              </span>
+              <h2 className="mt-3 font-display text-[clamp(1.8rem,3.5vw,2.8rem)] font-bold leading-tight tracking-[-0.03em] text-white">
+                Todo lo que necesitas en un solo lugar.
+              </h2>
+              <ul className="mt-8 flex flex-col gap-4">
+                {[
+                  ["📋", "75+ Proveedores Verificados", "Moda, joyas, deco, jeans y más. Curados personalmente por Rayana."],
+                  ["💬", "Directo a WhatsApp", "Un tap y estás hablando con el proveedor. Mensaje pre-escrito incluido."],
+                  ["🔄", "Siempre Actualizado", "Rayana agrega nuevos proveedores cada mes."],
+                  ["📱", "Diseñado para tu celular", "Úsalo en ferias, shows de moda, donde estés."],
+                ].map(([icon, title, desc]) => (
+                  <li key={title} className="flex gap-3.5 text-[15px] leading-snug text-white/80">
+                    <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-[10px] border border-white/10 bg-white/10 text-base">
+                      {icon}
+                    </span>
+                    <span>
+                      <strong className="block text-white">{title}</strong>
+                      {desc}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+              <div className="mt-10 flex flex-wrap items-center gap-4">
+                <Link
+                  href="/login"
+                  className="inline-flex items-center gap-2 rounded-[14px] bg-accent px-8 py-4 text-base font-bold text-white shadow-lg transition hover:-translate-y-1 hover:shadow-accent/40"
+                >
+                  Suscribirme ahora →
+                </Link>
+                <div className="rounded-[10px] border border-white/15 bg-white/10 px-4 py-2 text-sm text-white/70">
+                  <strong className="text-white">$19.990</strong> / mes
                 </div>
-              ))}
+              </div>
+            </div>
+            <div className="reveal reveal-delay-1">
+              <div className="overflow-hidden rounded-[28px] border border-white/10 bg-white/5">
+                <div className="flex items-start justify-between gap-4 bg-gradient-to-br from-primary/80 to-navy/95 px-7 py-7">
+                  <div>
+                    <h3 className="font-display text-2xl font-bold text-white">Directorio Makeray</h3>
+                    <p className="mt-1 text-sm text-white/60">Proveedores mayoristas de Chile</p>
+                  </div>
+                  <span className="shrink-0 rounded-full bg-accent px-3 py-1 text-[10px] font-bold uppercase tracking-wider text-white">
+                    2026
+                  </span>
+                </div>
+                <div className="relative space-y-2.5 p-5">
+                  {[
+                    { code: "#47", name: "Atelier Rosé", cat: "Moda Femenina", g: "linear-gradient(135deg,#592f92,#ff108a)" },
+                    { code: "#48", name: "Joyería Maipú", cat: "Joyas", g: "linear-gradient(135deg,#1a0633,#592f92)" },
+                    { code: "#49", name: "Deco Lo Espejo", cat: "Deco Hogar", g: "linear-gradient(135deg,#ff108a,#ff6eb4)" },
+                  ].map((r) => (
+                    <div
+                      key={r.code}
+                      className="flex items-center justify-between rounded-xl border border-white/10 bg-white/5 px-3 py-3"
+                    >
+                      <div className="flex items-center gap-2.5">
+                        <div
+                          className="flex h-9 w-9 items-center justify-center rounded-lg text-[10px] font-bold text-white"
+                          style={{ background: r.g }}
+                        >
+                          {r.code}
+                        </div>
+                        <div>
+                          <div className="text-sm font-semibold text-white">{r.name}</div>
+                          <div className="text-[11px] text-white/50">{r.cat}</div>
+                        </div>
+                      </div>
+                      <span className="rounded border border-gold/40 bg-gold/15 px-2 py-0.5 text-[10px] font-bold text-gold">
+                        ✓ Verificado
+                      </span>
+                    </div>
+                  ))}
+                  <div className="relative overflow-hidden rounded-xl border border-white/10 py-6 text-center text-sm font-semibold text-white/70">
+                    <div className="blur-sm">████ · 🔒</div>
+                    <div className="absolute inset-0 flex items-end justify-center bg-gradient-to-t from-navy from-40% to-transparent pb-4 text-xs">
+                      🔒 +70 proveedores más al suscribirte
+                    </div>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
-          <div className="flex justify-center">
-            <div className="phone-outer w-[260px]">
+        </div>
+      </section>
+
+      {/* CATEGORÍAS */}
+      <section id="categorias" className="scroll-mt-24 bg-soft px-5 py-16 md:py-24">
+        <div className="mx-auto max-w-6xl">
+          <div className="reveal mb-14 text-center">
+            <span className="text-xs font-extrabold uppercase tracking-[0.12em] text-accent">
+              Catálogo
+            </span>
+            <h2 className="mt-3 font-display text-[clamp(1.8rem,3.5vw,2.8rem)] font-bold tracking-[-0.03em] text-navy">
+              8 categorías reales en el directorio
+            </h2>
+          </div>
+          <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
+            {LANDING_CATS.map((c, i) => (
               <div
-                className="phone-inner flex flex-col overflow-hidden"
-                style={{ aspectRatio: "9 / 19.5" }}
+                key={c.name}
+                className={`reveal ${revealStagger(i)} rounded-[20px] border border-primary/12 bg-white p-6 text-center transition hover:-translate-y-1 hover:border-primary/25 hover:shadow-lg hover:shadow-primary/8`}
               >
-                <div className="notch" />
-                <div className="flex shrink-0 justify-between px-4 pt-3 text-[11px] font-bold">
-                  <span>9:41</span>
-                  <span>●●●</span>
+                <div className="text-3xl">{c.icon}</div>
+                <div className="mt-2 text-sm font-bold text-navy">{c.name}</div>
+                <div className="mt-2 inline-block rounded-full bg-primary/8 px-2.5 py-0.5 text-[11px] font-bold text-primary">
+                  {c.count}
                 </div>
-                <div className="flex min-h-0 flex-1 flex-col overflow-hidden px-4 pt-4 pb-0">
-                  <div className="mb-2 shrink-0 font-black text-[17px]">Directorio</div>
-                  <div className="mb-2 flex h-8 shrink-0 items-center gap-2 rounded-full bg-black/5 px-3 text-[11px] text-ink/35">
-                    <svg width="12" height="12" viewBox="0 0 16 16" fill="none" aria-hidden>
-                      <circle cx="7" cy="7" r="5" stroke="#1A1208" strokeWidth="2" opacity=".4" />
-                      <path d="M11 11L14 14" stroke="#1A1208" strokeWidth="2" strokeLinecap="round" opacity=".4" />
-                    </svg>
-                    Buscar por código…
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* MOBILE UX */}
+      <section className="bg-white px-5 py-16 md:py-24">
+        <div className="mx-auto grid max-w-6xl items-center gap-12 lg:grid-cols-2 lg:gap-20">
+          <div className="reveal">
+            <span className="text-xs font-extrabold uppercase tracking-[0.12em] text-accent">
+              En tu bolsillo
+            </span>
+            <h2 className="mt-3 font-display text-[clamp(1.8rem,3.5vw,2.8rem)] font-bold tracking-[-0.03em] text-navy">
+              Diseñado para usar desde tu celular.
+            </h2>
+            <p className="mt-4 max-w-md text-[1.05rem] text-navy/55">
+              En ferias, en la tienda o en la calle — el directorio completo, siempre contigo.
+            </p>
+            <ul className="mt-8 space-y-5">
+              {[
+                ["🔍", "Busca por código #47", "Códigos únicos para ir directo al proveedor."],
+                ["💬", "WhatsApp con un tap", "Mensaje listo, sin copiar números."],
+                ["⭐", "Proveedores verificados", "Curados por Rayana, con sello de confianza."],
+                ["📂", "Filtros por categoría", "Moda, joyas, deco y más en segundos."],
+              ].map(([icon, t, d]) => (
+                <li key={t} className="flex gap-4">
+                  <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-soft text-lg">
+                    {icon}
+                  </span>
+                  <div>
+                    <h4 className="font-bold text-navy">{t}</h4>
+                    <p className="mt-1 text-sm text-navy/55">{d}</p>
                   </div>
-                  <div className="mb-3 flex shrink-0 flex-wrap gap-1.5">
-                    {["👗 Moda", "💍 Joyas", "🏠 Deco"].map((label) => (
+                </li>
+              ))}
+            </ul>
+          </div>
+          <div className="reveal reveal-delay-1 flex justify-center">
+            <div className="relative w-[240px]">
+              <div
+                className="rounded-[36px] p-2.5 shadow-2xl"
+                style={{
+                  background: "linear-gradient(145deg, #1a0633, #2d1157)",
+                  boxShadow: "0 32px 72px rgba(26,6,51,.4), 0 0 0 1px rgba(255,255,255,.08)",
+                }}
+              >
+                <div className="flex h-[420px] flex-col overflow-hidden rounded-[28px] bg-white">
+                  <div className="bg-primary px-3.5 pb-3 pt-4 text-white">
+                    <div className="text-[10px] opacity-60">9:41 ● ● ●</div>
+                    <h4 className="mt-2 text-sm font-bold">Directorio</h4>
+                    <p className="text-[10px] opacity-65">Buscar #47…</p>
+                  </div>
+                  <div className="mx-2.5 mt-2 flex items-center gap-1.5 rounded-lg bg-soft px-2.5 py-2 text-[10px] text-navy/50">
+                    🔍 Buscar por código…
+                  </div>
+                  <div className="mx-2.5 mt-2 flex gap-1">
+                    {["👗 Moda", "💍 Joyas", "🏠 Deco"].map((x, j) => (
                       <span
-                        key={label}
-                        className="rounded-full border border-brand/12 bg-cream px-2 py-0.5 text-[10px] font-semibold text-ink/70"
+                        key={x}
+                        className={`rounded-full px-2 py-0.5 text-[9px] font-semibold ${
+                          j === 0 ? "bg-accent text-white" : "bg-soft text-primary"
+                        }`}
                       >
-                        {label}
+                        {x}
                       </span>
                     ))}
                   </div>
-                  <div className="min-h-0 flex-1 overflow-hidden">
-                    <div className="card mb-2 shrink-0 rounded-2xl p-3 shadow-sm">
-                      <div className="mb-2">
-                        <span
-                          className="inline-block rounded-lg px-2 py-0.5 text-[10px] font-black text-white"
-                          style={{
-                            background: "linear-gradient(135deg,#D88A6A,#C4763E)",
-                          }}
-                        >
-                          #47
-                        </span>
-                      </div>
+                  <div className="mt-2 flex flex-1 flex-col gap-1.5 overflow-hidden px-2.5 pb-2">
+                    {[
+                      ["#47", "Atelier Rosé", "Moda femenina", "linear-gradient(135deg,#592f92,#ff108a)"],
+                      ["#48", "Joyería Maipú", "Joyas", "linear-gradient(135deg,#1a0633,#7c52b8)"],
+                      ["#49", "Deco Lo Espejo", "Deco Hogar", "linear-gradient(135deg,#ff108a,#ff6eb4)"],
+                      ["#50", "Importadora Norte", "Importadoras", "linear-gradient(135deg,#592f92,#1a0633)"],
+                    ].map((row) => (
                       <div
-                        className="photo-box mb-2 flex items-center justify-center rounded-xl text-[10px] font-medium text-ink/45"
-                        style={{ height: 80 }}
+                        key={row[0]}
+                        className="flex items-center gap-2 rounded-[10px] border border-primary/10 p-2"
                       >
-                        foto
-                      </div>
-                      <div className="mb-1 text-[13px] font-bold text-ink">Atelier Rosé</div>
-                      <span className="mb-2 inline-block rounded-full border border-brand/15 bg-cream px-2 py-0.5 text-[10px] font-semibold text-brand2">
-                        Moda femenina
-                      </span>
-                      <button
-                        type="button"
-                        className="flex w-full items-center justify-center gap-1.5 rounded-xl py-2 text-[11px] font-bold text-white shadow-sm"
-                        style={{ background: "#25D366" }}
-                      >
-                        <svg width="12" height="12" viewBox="0 0 24 24" fill="white" aria-hidden>
-                          <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51l-.57-.01c-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.71.306 1.263.489 1.694.626.712.226 1.36.194 1.872.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413" />
-                        </svg>
-                        WhatsApp
-                      </button>
-                    </div>
-                    <div className="card mb-2 flex shrink-0 items-center gap-2 rounded-xl p-2.5 shadow-sm">
-                      <span
-                        className="shrink-0 rounded-md px-1.5 py-0.5 text-[9px] font-black text-white"
-                        style={{
-                          background: "linear-gradient(135deg,#D88A6A,#C4763E)",
-                        }}
-                      >
-                        #48
-                      </span>
-                      <div
-                        className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-[9px] font-bold text-white"
-                        style={{
-                          background: "linear-gradient(135deg,#B8C8A8,#5A7A3C)",
-                        }}
-                      >
-                        JM
-                      </div>
-                      <span className="min-w-0 flex-1 truncate text-[11px] font-semibold text-ink">
-                        Joyería Maipú
-                      </span>
-                      <button
-                        type="button"
-                        className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full shadow-sm"
-                        style={{ background: "#25D366" }}
-                        aria-label="WhatsApp"
-                      >
-                        <svg width="11" height="11" viewBox="0 0 24 24" fill="white" aria-hidden>
-                          <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51l-.57-.01c-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.71.306 1.263.489 1.694.626.712.226 1.36.194 1.872.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413" />
-                        </svg>
-                      </button>
-                    </div>
-                    <div className="card mb-0 flex shrink-0 items-center gap-2 rounded-xl p-2.5 shadow-sm">
-                      <span
-                        className="shrink-0 rounded-md px-1.5 py-0.5 text-[9px] font-black text-white"
-                        style={{
-                          background: "linear-gradient(135deg,#D88A6A,#C4763E)",
-                        }}
-                      >
-                        #49
-                      </span>
-                      <div
-                        className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-[9px] font-bold text-white"
-                        style={{
-                          background: "linear-gradient(135deg,#C8C0A8,#8B7A3C)",
-                        }}
-                      >
-                        DL
-                      </div>
-                      <span className="min-w-0 flex-1 truncate text-[11px] font-semibold text-ink">
-                        Deco Lo Espejo
-                      </span>
-                      <button
-                        type="button"
-                        className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full shadow-sm"
-                        style={{ background: "#25D366" }}
-                        aria-label="WhatsApp"
-                      >
-                        <svg width="11" height="11" viewBox="0 0 24 24" fill="white" aria-hidden>
-                          <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51l-.57-.01c-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.71.306 1.263.489 1.694.626.712.226 1.36.194 1.872.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413" />
-                        </svg>
-                      </button>
-                    </div>
-                    <div className="relative mt-1 h-11 shrink-0 overflow-hidden">
-                      <div className="card absolute inset-x-0 top-0 flex items-center gap-2 rounded-xl border border-black/5 p-2.5 shadow-md">
-                        <span
-                          className="shrink-0 rounded-md px-1.5 py-0.5 text-[9px] font-black text-white"
-                          style={{
-                            background: "linear-gradient(135deg,#D88A6A,#C4763E)",
-                          }}
-                        >
-                          #50
-                        </span>
                         <div
-                          className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-[9px] font-bold text-white"
-                          style={{
-                            background: "linear-gradient(135deg,#A89888,#5C4A3C)",
-                          }}
+                          className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-[9px] font-extrabold text-white"
+                          style={{ background: row[3] }}
                         >
-                          IN
+                          {row[0]}
                         </div>
-                        <span className="min-w-0 flex-1 truncate text-[11px] font-semibold text-ink">
-                          Importadora Norte
-                        </span>
-                        <span
-                          className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full opacity-40"
-                          style={{ background: "#25D366" }}
-                        >
-                          <svg width="11" height="11" viewBox="0 0 24 24" fill="white" aria-hidden>
-                            <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51l-.57-.01c-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.71.306 1.263.489 1.694.626.712.226 1.36.194 1.872.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413" />
-                          </svg>
-                        </span>
+                        <div className="min-w-0 flex-1">
+                          <div className="truncate text-[11px] font-bold text-navy">{row[1]}</div>
+                          <div className="text-[9px] text-navy/50">{row[2]}</div>
+                        </div>
+                        <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-md bg-wa text-white">
+                          <WaGlyph className="h-3 w-3 text-white" />
+                        </div>
                       </div>
-                    </div>
+                    ))}
                   </div>
                 </div>
               </div>
@@ -796,351 +626,219 @@ export default function LandingClient() {
         </div>
       </section>
 
-      <section id="categorias" className="py-20 lg:py-28" style={{ background: "#F5EDE0" }}>
-        <div className="mx-auto max-w-6xl px-5">
-          <div className="mb-14 max-w-2xl">
-            <div className="mb-3 text-[11px] font-black tracking-widest text-brand uppercase">
-              CATEGORÍAS
-            </div>
-            <h2 className="text-[38px] font-black leading-tight tracking-tight lg:text-[52px]">
-              ¿Qué tipo de proveedores encontrarás?
-            </h2>
-          </div>
-          <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
-            {[
-              { icon: "👗", name: "Moda Femenina", n: "38", sub: "38 proveedores" },
-              { icon: "💍", name: "Joyas", n: "6", sub: "6 proveedores" },
-              { icon: "🏠", name: "Deco Hogar", n: "5", sub: "5 proveedores" },
-              { icon: "👖", name: "Jeans", n: "5", sub: "5 proveedores" },
-              { icon: "💄", name: "Cosméticos", n: "3", sub: "3 proveedores" },
-              { icon: "👜", name: "Accesorios", n: "4", sub: "4 proveedores" },
-              { icon: "👶", name: "Infantil", n: "2", sub: "2 proveedores" },
-              { icon: "🏭", name: "Importadoras", n: "2", sub: "2 proveedores" },
-            ].map((c) => (
-              <div key={c.name} className="card flex flex-col gap-3 p-5 transition-shadow hover:shadow-lg">
-                <div className="flex items-center justify-between">
-                  <span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-cream text-2xl">
-                    {c.icon}
-                  </span>
-                  <span className="text-[11px] font-black text-brand">{c.n}</span>
-                </div>
-                <div>
-                  <div className="text-[16px] font-bold">{c.name}</div>
-                  <div className="mt-0.5 text-[12px] text-ink/35">{c.sub}</div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      <section className="bg-ink py-20 text-white lg:py-28">
-        <div className="mx-auto grid max-w-6xl items-center gap-12 px-5 lg:grid-cols-2 lg:gap-16">
-          <div className="relative">
-            <div
-              className="photo-box relative aspect-[4/5] overflow-hidden rounded-[24px]"
-              style={{
-                background: "#2A1F14",
-                border: "1px solid rgba(255,255,255,0.06)",
-              }}
-            >
-              <Image
-                src="/landing/foto-rayana.jpg"
-                alt="Rayana"
-                fill
-                className="object-cover"
-                sizes="(max-width: 1024px) 100vw, 50vw"
-              />
-            </div>
-            <div
-              className="absolute -bottom-4 left-4 flex items-center gap-3 rounded-2xl px-4 py-3"
-              style={{
-                background: "#1F1510",
-                border: "1px solid rgba(255,255,255,0.08)",
-              }}
-            >
+      {/* RAYANA */}
+      <section className="bg-soft px-5 py-16 md:py-24">
+        <div className="mx-auto max-w-6xl">
+          <div className="reveal grid items-center gap-10 rounded-[32px] border border-primary/10 bg-white p-8 md:grid-cols-[auto_1fr] md:gap-12 md:p-12">
+            <div className="relative mx-auto w-[180px] shrink-0 md:mx-0">
               <div
-                className="flex h-9 w-9 items-center justify-center rounded-xl"
+                className="absolute inset-[-8px] rounded-full"
                 style={{
-                  background: "linear-gradient(135deg,#FF3B3B,#C4763E)",
+                  background:
+                    "linear-gradient(#fff,#fff) padding-box, linear-gradient(135deg, var(--color-primary), var(--color-accent)) border-box",
+                  border: "3px solid transparent",
                 }}
-              >
-                <svg width="14" height="10" viewBox="0 0 16 12" fill="white" aria-hidden>
-                  <path d="M15.5 2.4c-.2-.7-.7-1.2-1.4-1.4C12.8.7 8 .7 8 .7s-4.8 0-6.1.3C1.2 1.2.7 1.7.5 2.4.2 3.6.2 6 .2 6s0 2.4.3 3.6c.2.7.7 1.2 1.4 1.4 1.3.3 6.1.3 6.1.3s4.8 0 6.1-.3c.7-.2 1.2-.7 1.4-1.4.3-1.2.3-3.6.3-3.6s0-2.4-.3-3.6zM6.4 8.3V3.7L10.4 6 6.4 8.3z" />
-                </svg>
+              />
+              <div className="relative z-[2] overflow-hidden rounded-full border-4 border-white shadow-lg">
+                <Image
+                  src="/landing/foto-rayana.jpg"
+                  alt="Rayana"
+                  width={180}
+                  height={180}
+                  className="aspect-square object-cover"
+                />
               </div>
-              <div>
-                <div className="text-[10px] text-white/35">YouTube</div>
-                <div className="text-[13px] font-bold">@makeray.youtube</div>
+              <div className="absolute bottom-1 right-[-6px] z-[3] flex items-center gap-1 rounded-[10px] bg-[#ff0000] px-2.5 py-1.5 text-[10px] font-bold text-white shadow-md">
+                ▶ @makeray.youtube
               </div>
             </div>
-            <div
-              className="absolute -top-4 right-4 rounded-2xl px-4 py-3 text-center"
-              style={{
-                background: "#1F1510",
-                border: "1px solid rgba(255,255,255,0.08)",
-              }}
-            >
-              <div className="text-[10px] text-white/35">curados por mí</div>
-              <div className="text-[24px] font-black text-brand3">75+</div>
-            </div>
-          </div>
-          <div>
-            <div className="mb-4 text-[11px] font-black tracking-widest text-brand3 uppercase">
-              ✦ LA CURADORA
-            </div>
-            <h2 className="mb-6 text-[44px] font-black leading-tight tracking-tight lg:text-[60px]">
-              Soy Rayana.
-            </h2>
-            <div className="max-w-xl space-y-4 text-[17px] leading-relaxed text-white/55">
-              <p>
-                Llevo{" "}
-                <strong className="font-semibold text-white">
-                  años construyendo relaciones
-                </strong>{" "}
-                con proveedores mayoristas en Chile. Este directorio es el
-                resultado de ese trabajo.
+            <div className="text-center md:text-left">
+              <p className="text-xs font-extrabold uppercase tracking-[0.1em] text-accent">
+                ✦ La curadora
               </p>
-              <p>
-                Cada contacto está verificado{" "}
-                <strong className="font-semibold text-white">
-                  personalmente por mí
-                </strong>{" "}
-                — para que tú no pierdas tiempo buscando, ni te quemes con
-                proveedores que no responden.
+              <h3 className="mt-2 font-display text-4xl font-bold tracking-tight text-navy">
+                Soy Rayana.
+              </h3>
+              <p className="mt-4 text-[15px] leading-relaxed text-navy/55">
+                Llevo <strong className="text-navy">años construyendo relaciones</strong> con
+                proveedores mayoristas en Chile. Cada contacto está verificado{" "}
+                <strong className="text-navy">personalmente por mí</strong> — para que tú no pierdas
+                tiempo buscando, ni te quemes con proveedores que no responden.
               </p>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <section id="precio" className="bg-white py-20 lg:py-28">
-        <div className="mx-auto max-w-6xl px-5">
-          <div className="mx-auto mb-14 max-w-2xl text-center">
-            <div className="mb-3 text-[11px] font-black tracking-widest text-brand uppercase">
-              PRECIO
-            </div>
-            <h2 className="text-[38px] font-black leading-tight tracking-tight lg:text-[52px]">
-              Acceso completo.
-            </h2>
-          </div>
-          <div className="mx-auto max-w-md">
-            <div className="card p-8 lg:p-10">
-              <div className="mb-3 text-[12px] font-black tracking-widest text-ink/35 uppercase">
-                Directorio Makeray
-              </div>
-              <div className="mb-6 flex items-baseline gap-1">
-                <span className="text-[52px] font-black leading-none">$19.990</span>
-                <span className="text-[17px] font-medium text-ink/35">/mes</span>
-              </div>
-              <div className="mb-8 space-y-3">
+              <div className="mt-6 flex justify-center gap-2 md:justify-start">
                 {[
-                  "Acceso a +75 proveedores",
-                  "Contacto directo por WhatsApp",
-                  "Filtros por categoría y búsqueda por código",
-                  "Proveedores verificados por Rayana",
-                  "Actualizaciones mensuales incluidas",
-                  "Cancela cuando quieras",
-                ].map((line) => (
-                  <div key={line} className="flex items-center gap-3 text-[15px]">
-                    <span
-                      className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full text-[10px] font-bold text-white"
-                      style={{
-                        background: "linear-gradient(135deg,#D88A6A,#C4763E)",
-                      }}
-                    >
-                      ✓
-                    </span>
-                    {line}
-                  </div>
+                  ["Instagram", "https://instagram.com/"],
+                  ["YouTube", "https://youtube.com/"],
+                  ["TikTok", "https://tiktok.com/"],
+                ].map(([label, href]) => (
+                  <a
+                    key={label}
+                    href={href}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex h-10 w-10 items-center justify-center rounded-xl border border-primary/15 text-primary transition hover:border-accent hover:bg-accent hover:text-white"
+                    aria-label={label}
+                  >
+                    {label[0]}
+                  </a>
                 ))}
               </div>
-              <Link
-                href="/login"
-                className="btn-primary flex w-full items-center justify-center gap-2 rounded-2xl py-4 text-[16px] font-bold text-white"
-              >
-                Suscribirme ahora
-                <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden>
-                  <path
-                    d="M3 8H13M9 4L13 8L9 12"
-                    stroke="white"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  />
-                </svg>
-              </Link>
-              <p className="mt-4 text-center text-[12px] text-ink/35">
-                Sin reembolsos. Al suscribirte mantienes el acceso hasta el fin
-                del período pagado. Pago seguro con Stripe.
-              </p>
             </div>
           </div>
         </div>
       </section>
 
-      <section id="faq" className="py-20 lg:py-28" style={{ background: "#F5EDE0" }}>
-        <div className="mx-auto max-w-6xl px-5">
-          <div className="mb-14 max-w-2xl">
-            <div className="mb-3 text-[11px] font-black tracking-widest text-brand uppercase">
-              FAQ
-            </div>
-            <h2 className="text-[38px] font-black leading-tight tracking-tight lg:text-[52px]">
-              Preguntas frecuentes.
+      {/* PRECIO */}
+      <section id="precio" className="scroll-mt-24 bg-white px-5 py-16 md:py-24">
+        <div className="mx-auto max-w-6xl text-center">
+          <div className="reveal mb-10">
+            <span className="text-xs font-extrabold uppercase tracking-[0.12em] text-accent">
+              Acceso completo
+            </span>
+            <h2 className="mt-3 font-display text-[clamp(1.8rem,3.5vw,2.8rem)] font-bold tracking-[-0.03em] text-navy">
+              Un solo precio. Todo incluido.
             </h2>
           </div>
-          <div className="max-w-3xl space-y-3">
-            {FAQ_ITEMS.map((item) => (
-              <details
-                key={item.id}
-                name="faq"
-                className="faq-item card overflow-hidden"
-              >
-                <summary className="flex items-center justify-between gap-4 px-6 py-5">
-                  <span className="text-[16px] font-bold">{item.q}</span>
-                  <span className="chev flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-cream">
-                    <svg width="14" height="14" viewBox="0 0 16 16" fill="none" aria-hidden>
-                      <path
-                        d="M4 6L8 10L12 6"
-                        stroke="#C4763E"
-                        strokeWidth="2"
-                        strokeLinecap="round"
-                      />
-                    </svg>
-                  </span>
-                </summary>
-                <div className="border-t border-black/5 px-6 pt-4 pb-5 text-[15px] leading-relaxed text-ink/50">
-                  {item.a}
-                </div>
-              </details>
-            ))}
-          </div>
-          <div className="mt-8 max-w-3xl text-[14px] text-ink/40">
-            ¿Tienes otra pregunta?{" "}
-            <a href="mailto:hola@makeray.cl" className="font-semibold text-brand hover:underline">
-              hola@makeray.cl
-            </a>
-          </div>
-        </div>
-      </section>
-
-      <section className="bg-white py-16 lg:py-24">
-        <div className="mx-auto max-w-6xl px-5">
-          <div
-            className="relative overflow-hidden rounded-[28px] p-10 lg:p-16"
-            style={{
-              background:
-                "linear-gradient(135deg,#1A1208 0%,#2A1F14 50%,#1A1208 100%)",
-            }}
-          >
-            <div
-              className="absolute inset-0 opacity-10"
-              style={{
-                background:
-                  "radial-gradient(ellipse 80% 60% at 80% 50%,#E8A88E,transparent)",
-              }}
-            />
-            <div className="relative max-w-2xl">
-              <div className="mb-5 inline-flex items-center gap-2 rounded-full border border-white/10 px-3 py-1.5 text-[12px] font-semibold text-white/60">
-                <span className="h-1.5 w-1.5 rounded-full bg-green-400" />
-                Acceso inmediato
-              </div>
-              <h2 className="mb-5 text-[42px] font-black leading-tight tracking-tight text-white lg:text-[62px]">
-                Tu negocio
-                <br />
-                empieza aquí.
-              </h2>
-              <p className="mb-8 max-w-lg text-[17px] leading-relaxed text-white/50">
-                Únete a cientos de emprendedoras que ya tienen acceso a los
-                mejores proveedores mayoristas de Chile.
-              </p>
-              <div className="flex flex-col items-stretch gap-4 sm:flex-row sm:items-center">
-                <Link
-                  href="/login"
-                  className="btn-primary flex items-center justify-center gap-2 rounded-2xl px-8 py-4 text-[16px] font-bold text-white"
-                >
-                  Suscribirme — $19.990/mes
-                  <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden>
-                    <path
-                      d="M3 8H13M9 4L13 8L9 12"
-                      stroke="white"
-                      strokeWidth="2"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    />
-                  </svg>
-                </Link>
-                <span className="text-center text-[13px] text-white/30 sm:text-left">
-                  cancela cuando quieras · pago seguro
-                </span>
-              </div>
+          <div className="reveal reveal-delay-1 mx-auto max-w-[460px] overflow-hidden rounded-[28px] bg-gradient-to-br from-navy to-[#2d1157] p-10 text-left shadow-2xl shadow-navy/25">
+            <div className="flex items-start justify-between gap-4">
+              <h3 className="font-display text-2xl font-bold text-white">Directorio Makeray</h3>
+              <span className="shrink-0 rounded-full border border-white/15 bg-white/10 px-3 py-1 text-[10px] font-bold uppercase tracking-wider text-white/80">
+                Edición 2026
+              </span>
             </div>
-          </div>
-        </div>
-      </section>
-
-      <footer className="border-t border-white/5 bg-ink py-14 text-white/45">
-        <div className="mx-auto grid max-w-6xl gap-10 px-5 md:grid-cols-4">
-          <div className="md:col-span-2">
-            <div className="mb-3 text-[22px] font-black text-white">Makeray</div>
-            <p className="max-w-sm text-[14px] leading-relaxed">
-              El directorio de proveedores mayoristas de Rayana. Hecho en Chile,
-              para emprendedoras chilenas.
+            <div className="mt-8">
+              <div className="font-display text-5xl font-bold text-white">$19.990</div>
+              <p className="mt-2 text-sm text-white/50">CLP / mes · cancela cuando quieras</p>
+            </div>
+            <ul className="mt-8 space-y-3">
+              {[
+                "Acceso a +75 proveedores",
+                "Contacto directo por WhatsApp",
+                "Filtros por categoría y búsqueda por código",
+                "Proveedores verificados por Rayana",
+                "Actualizaciones mensuales incluidas",
+                "Cancela cuando quieras",
+              ].map((line) => (
+                <li key={line} className="flex items-center gap-2.5 text-sm text-white/85">
+                  <span className="text-accent">✓</span>
+                  {line}
+                </li>
+              ))}
+            </ul>
+            <Link
+              href="/login"
+              className="mt-8 flex w-full items-center justify-center rounded-[14px] bg-accent py-4 text-center text-base font-bold text-white transition hover:-translate-y-0.5 hover:shadow-lg hover:shadow-accent/40"
+            >
+              Suscribirme ahora
+            </Link>
+            <p className="mt-4 text-center text-[11px] text-white/40">
+              Sin reembolsos. Al suscribirte mantienes el acceso hasta el fin del período pagado.
+              Pago seguro con Stripe.
             </p>
           </div>
-          <div>
-            <div className="mb-4 text-[11px] font-black tracking-widest text-white/25 uppercase">
-              Producto
-            </div>
-            <ul className="space-y-2.5 text-[14px]">
-              <li>
-                <a href="#incluye" className="transition-colors hover:text-white">
-                  ¿Qué incluye?
-                </a>
-              </li>
-              <li>
-                <a href="#categorias" className="transition-colors hover:text-white">
-                  Categorías
-                </a>
-              </li>
-              <li>
-                <a href="#precio" className="transition-colors hover:text-white">
-                  Precio
-                </a>
-              </li>
-              <li>
-                <a href="#faq" className="transition-colors hover:text-white">
-                  FAQ
-                </a>
-              </li>
-            </ul>
-          </div>
-          <div>
-            <div className="mb-4 text-[11px] font-black tracking-widest text-white/25 uppercase">
-              Legal
-            </div>
-            <ul className="space-y-2.5 text-[14px]">
-              <li>
-                <a href="#" className="transition-colors hover:text-white">
-                  Términos
-                </a>
-              </li>
-              <li>
-                <a href="#" className="transition-colors hover:text-white">
-                  Privacidad
-                </a>
-              </li>
-              <li>
-                <a href="mailto:hola@makeray.cl" className="transition-colors hover:text-white">
-                  Contacto
-                </a>
-              </li>
-            </ul>
-          </div>
         </div>
-        <div className="mx-auto mt-10 flex max-w-6xl flex-col items-center justify-between gap-3 border-t border-white/5 px-5 pt-6 text-[13px] sm:flex-row">
-          <span>© 2026 Makeray. Todos los derechos reservados.</span>
-          <span className="text-white/15">hecho en Santiago de Chile</span>
+      </section>
+
+      {/* FAQ */}
+      <section id="faq" className="scroll-mt-24 bg-soft px-5 py-16 md:py-24">
+        <div className="mx-auto max-w-6xl">
+          <div className="reveal mb-12 text-center">
+            <span className="text-xs font-extrabold uppercase tracking-[0.12em] text-accent">
+              FAQ
+            </span>
+            <h2 className="mt-3 font-display text-[clamp(1.8rem,3.5vw,2.8rem)] font-bold tracking-[-0.03em] text-navy">
+              Preguntas frecuentes
+            </h2>
+          </div>
+          <div className="mx-auto max-w-3xl space-y-3">
+            {FAQ_ITEMS.map((item, i) => {
+              const open = faqOpen === item.id;
+              return (
+                <div
+                  key={item.id}
+                  className={`reveal ${revealStagger(i)} overflow-hidden rounded-2xl border border-primary/10 bg-white`}
+                >
+                  <button
+                    type="button"
+                    className="flex w-full items-center justify-between gap-4 px-5 py-5 text-left font-bold text-navy transition hover:text-primary md:px-6"
+                    onClick={() => setFaqOpen(open ? null : item.id)}
+                    aria-expanded={open}
+                  >
+                    {item.q}
+                    <span
+                      className={`text-navy/40 transition-transform ${open ? "rotate-180" : ""}`}
+                    >
+                      ⌄
+                    </span>
+                  </button>
+                  <div
+                    className={`grid transition-[grid-template-rows] duration-300 ${open ? "grid-rows-[1fr]" : "grid-rows-[0fr]"}`}
+                  >
+                    <div className="min-h-0 overflow-hidden">
+                      <p className="border-t border-primary/5 px-5 pb-5 text-sm leading-relaxed text-navy/55 md:px-6">
+                        {item.a}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+          <p className="mt-8 text-center text-sm text-navy/50">
+            ¿Tienes otra pregunta?{" "}
+            <a href="mailto:hola@makeray.cl" className="font-semibold text-primary hover:underline">
+              hola@makeray.cl
+            </a>
+          </p>
+        </div>
+      </section>
+
+      {/* CTA FINAL */}
+      <section className="relative overflow-hidden bg-navy px-5 py-20 text-center">
+        <div
+          className="pointer-events-none absolute left-1/2 top-1/2 h-[400px] w-[800px] -translate-x-1/2 -translate-y-1/2 rounded-full opacity-100"
+          style={{
+            background: "radial-gradient(ellipse, rgba(255,16,138,.12) 0%, transparent 70%)",
+          }}
+        />
+        <div className="relative z-[2] mx-auto max-w-3xl">
+          <h2 className="font-display text-[clamp(2rem,4vw,3.2rem)] font-bold leading-tight tracking-[-0.03em] text-white">
+            Tu negocio empieza aquí.
+          </h2>
+          <Link
+            href="/login"
+            className="mt-8 inline-flex items-center gap-2 rounded-[14px] bg-accent px-8 py-4 text-base font-bold text-white shadow-lg transition hover:-translate-y-1 hover:shadow-accent/40"
+          >
+            Suscribirme — $19.990/mes →
+          </Link>
+          <p className="mt-4 text-sm text-white/40">cancela cuando quieras · pago seguro</p>
+        </div>
+      </section>
+
+      {/* FOOTER */}
+      <footer className="border-t border-white/10 bg-navy px-5 py-12">
+        <div className="mx-auto max-w-6xl">
+          <div className="flex flex-col gap-8 border-b border-white/10 pb-10 md:flex-row md:items-center md:justify-between">
+            <Logo light />
+            <div className="flex flex-wrap gap-6 text-sm">
+              <a href="#" className="text-white/45 transition hover:text-accent">
+                Términos
+              </a>
+              <a href="#" className="text-white/45 transition hover:text-accent">
+                Privacidad
+              </a>
+              <a href="mailto:hola@makeray.cl" className="text-white/45 transition hover:text-accent">
+                Contacto
+              </a>
+            </div>
+          </div>
+          <div className="mt-8 flex flex-col gap-3 text-[12px] text-white/30 md:flex-row md:justify-between">
+            <span>© 2026 Makeray</span>
+            <span className="max-w-md md:text-right">
+              El directorio de proveedores mayoristas de Rayana. Hecho en Chile, para
+              emprendedoras chilenas.
+            </span>
+          </div>
         </div>
       </footer>
     </div>

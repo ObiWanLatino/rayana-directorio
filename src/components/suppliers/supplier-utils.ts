@@ -4,6 +4,23 @@ const UNCATEGORIZED = "__sin_categoria__";
 
 export { UNCATEGORIZED };
 
+const CATEGORY_EMOJI: Record<string, string> = {
+  "Moda Femenina": "👗",
+  Joyas: "💍",
+  "Deco Hogar": "🏠",
+  Jeans: "👖",
+  Cosméticos: "💄",
+  Accesorios: "👜",
+  Infantil: "👶",
+  Importadoras: "🏭",
+};
+
+/** Emoji for directory sidebar / marketing grids keyed by DB category label. */
+export function categorySidebarEmoji(categoryKey: string): string {
+  if (categoryKey === UNCATEGORIZED) return "📁";
+  return CATEGORY_EMOJI[categoryKey] ?? "📦";
+}
+
 export function hueFromString(s: string): number {
   let h = 0;
   for (let i = 0; i < s.length; i++) {

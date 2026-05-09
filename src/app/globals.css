@@ -40,9 +40,20 @@
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-sans-stack);
+  --font-sans: var(--font-body), var(--font-sans-stack);
+  --font-serif: var(--font-display), ui-serif, Georgia, serif;
   --font-mono: var(--font-mono-stack);
-  /* Makeray landing */
+  /* Makeray — luxury palette */
+  --color-navy: #1a0633;
+  --color-primary: #592f92;
+  --color-plum: #7c52b8;
+  --color-accent: #ff108a;
+  --color-accent2: #ff6eb4;
+  --color-gold: #f5a623;
+  --color-off: #fdfbfd;
+  --color-soft: #f3eff8;
+  --color-wa: #25d366;
+  /* Legacy tokens (admin / older screens) */
   --color-brand: #c4763e;
   --color-brand2: #a35e2a;
   --color-brand3: #e8a88e;
@@ -58,9 +69,12 @@
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: var(--font-sans-stack);
+  background: var(--color-off);
+  color: var(--color-navy);
+}
+
+.font-display {
+  font-family: var(--font-serif);
 }
 
 /* Rayana directory — clay / soft 3D utilities (fase 8) */
@@ -316,4 +330,44 @@ body {
   .pt-safe {
     padding-top: max(0.5rem, env(safe-area-inset-top));
   }
+}
+
+/* Landing — motion */
+@keyframes makeray-float {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-14px);
+  }
+}
+
+.animate-makeray-float {
+  animation: makeray-float 5s ease-in-out infinite;
+}
+
+.reveal {
+  opacity: 0;
+  transform: translateY(24px);
+  transition:
+    opacity 0.6s ease,
+    transform 0.6s ease;
+}
+
+.reveal.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.reveal-delay-1 {
+  transition-delay: 0.1s;
+}
+
+.reveal-delay-2 {
+  transition-delay: 0.2s;
+}
+
+.reveal-delay-3 {
+  transition-delay: 0.3s;
 }

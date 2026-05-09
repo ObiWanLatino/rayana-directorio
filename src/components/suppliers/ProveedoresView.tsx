@@ -1,79 +1,55 @@
 "use client";
 
-import { ProveedoresEmptyState } from "@/components/suppliers/ProveedoresEmptyState";
+import { SignOutButton } from "@/components/auth/SignOutButton";
 import {
-  IconClose,
-  IconSearch,
-} from "@/components/suppliers/directory-icons";
-import { SectionDivider } from "@/components/suppliers/SectionDivider";
-import { SupplierCard } from "@/components/suppliers/SupplierCard";
-import { VerifiedCarousel } from "@/components/suppliers/VerifiedCarousel";
-import { SupplierListSkeleton } from "@/components/suppliers/SupplierListSkeleton";
+  CATEGORY_SIDEBAR_ALL,
+  CategorySidebar,
+} from "@/components/CategorySidebar";
+import {
+  ProviderCard,
+  type ProviderCardProvider,
+} from "@/components/ProviderCard";
+import { ProviderSkeleton } from "@/components/ProviderSkeleton";
+import { SearchBar } from "@/components/SearchBar";
+import { ProveedoresEmptyState } from "@/components/suppliers/ProveedoresEmptyState";
+import { WA_MESSAGE } from "@/components/suppliers/SupplierActionButton";
 import {
   UNCATEGORIZED,
   buildCategoryOptions,
   categoryPillLabel,
+  categorySidebarEmoji,
   matchesCategoryFilter,
   matchesSearch,
 } from "@/components/suppliers/supplier-utils";
 import { useSuppliers } from "@/hooks/useSuppliers";
 import { createBrowserSupabaseClient } from "@/lib/supabase/client";
+import type { Supplier } from "@/types";
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 
-function DirectorySearch({
-  query,
-  setQuery,
-  searchFocused,
-  setSearchFocused,
-  id,
-}: {
-  query: string;
-  setQuery: (q: string) => void;
-  searchFocused: boolean;
-  setSearchFocused: (v: boolean) => void;
-  id: string;
-}) {
-  return (
-    <div
-      className={`clay-input flex items-center gap-2.5 px-3.5 py-3 transition-[box-shadow] duration-[250ms] ${
-        searchFocused ? "clay-input-focus" : ""
-      }`}
-    >
-      <IconSearch />
-      <input
-        id={id}
-        type="search"
-        autoComplete="off"
-        placeholder="Buscar por código, nombre o categoría..."
-        value={query}
-        onChange={(e) => setQuery(e.target.value)}
-        onFocus={() => setSearchFocused(true)}
-        onBlur={() => setSearchFocused(false)}
-        className="min-w-0 flex-1 border-0 bg-transparent text-[15px] outline-none"
-        style={{ color: "#2B2B2B", fontFamily: "inherit" }}
-      />
-      {query ? (
-        <button
-          type="button"
-          aria-label="Limpiar búsqueda"
-          className="flex h-[22px] w-[22px] shrink-0 items-center justify-center rounded-full border-0 p-0"
-          style={{ background: "rgba(0,0,0,.08)" }}
-          onClick={() => setQuery("")}
-        >
-          <IconClose />
-        </button>
-      ) : null}
-    </div>
-  );
+function supplierToCardProvider(s: Supplier): ProviderCardProvider {
+  const raw = s.whatsapp?.replace(/\D/g, "") ?? "";
+  const whatsappUrl =
+    raw !== "" ? `https://wa.me/${raw}?text=${WA_MESSAGE}` : "";
+  const cat = s.categoria?.trim();
+  return {
+    id: s.id,
+    code: `#${s.codigo}`,
+    name: s.tienda,
+    category: cat ? cat : "Sin categoría",
+    subcategory: s.tipo?.trim() || undefined,
+    location: s.direccion?.trim() || undefined,
+    whatsappUrl,
+    photoUrl: s.logo_url ?? undefined,
+    verified: s.verificado,
+  };
 }
 
 export function ProveedoresView() {
   const { suppliers, loading, error, retry } = useSuppliers();
   const [query, setQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
-  const [searchFocusedMobile, setSearchFocusedMobile] = useState(false);
-  const [searchFocusedDesktop, setSearchFocusedDesktop] = useState(false);
+  const [filterOpen, setFilterOpen] = useState(false);
   const [userMark, setUserMark] = useState("");
   const [userEmail, setUserEmail] = useState("");
 
@@ -112,10 +88,17 @@ export function ProveedoresView() {
     }));
   }, [suppliers]);
 
-  const categories = useMemo(
-    () => buildCategoryOptions(suppliers),
-    [suppliers],
+  const sidebarCategories = useMemo(
+    () =>
+      categoryRows.map((row) => ({
+        name: row.label,
+        emoji: categorySidebarEmoji(row.key),
+        count: row.count,
+      })),
+    [categoryRows],
   );
+
+  const categoryKeys = useMemo(() => categoryRows.map((r) => r.key), [categoryRows]);
 
   const filtered = useMemo(() => {
     return suppliers
@@ -127,15 +110,12 @@ export function ProveedoresView() {
       .sort((a, b) => a.codigo - b.codigo);
   }, [suppliers, query, selectedCategory]);
 
-  const featured = useMemo(
-    () => suppliers.filter((s) => s.destacado && s.activo),
-    [suppliers],
-  );
+  const activeSidebarKey =
+    selectedCategory === null ? CATEGORY_SIDEBAR_ALL : selectedCategory;
 
-  const regular = useMemo(() => filtered, [filtered]);
-
-  function toggleCategory(cat: string) {
-    setSelectedCategory((prev) => (prev === cat ? null : cat));
+  function onSidebarSelect(cat: string) {
+    setFilterOpen(false);
+    setSelectedCategory(cat === CATEGORY_SIDEBAR_ALL ? null : cat);
   }
 
   function clearFilters() {
@@ -144,330 +124,152 @@ export function ProveedoresView() {
   }
 
   const showFilterEmpty =
-    !loading &&
-    !error &&
-    suppliers.length > 0 &&
-    filtered.length === 0;
+    !loading && !error && suppliers.length > 0 && filtered.length === 0;
 
-  const userBubble = (
-    <div
-      className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-[13px] font-bold text-white"
-      style={{
-        background: "linear-gradient(135deg, #E8A88E, #C4763E)",
-        boxShadow:
-          "0 3px 8px rgba(196,118,62,.3), inset 0 1px 0 rgba(255,255,255,.35)",
-      }}
-      aria-hidden
-    >
-      {userMark}
+  const userFooter = (
+    <div className="flex items-center gap-3">
+      <div
+        className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-accent/25 text-sm font-bold text-white"
+        aria-hidden
+      >
+        {userMark}
+      </div>
+      <div className="min-w-0 flex-1">
+        <p className="truncate text-[11px] text-white/50">Sesión</p>
+        <p className="truncate text-xs font-medium text-white/90">{userEmail}</p>
+      </div>
+      <SignOutButton className="shrink-0 rounded-lg border border-white/20 bg-white/5 px-2.5 py-1.5 text-[11px] font-semibold text-white hover:bg-white/10 disabled:opacity-50" />
     </div>
   );
 
+  const sidebarInner = (
+    <CategorySidebar
+      categories={sidebarCategories}
+      keys={categoryKeys}
+      active={activeSidebarKey}
+      onSelect={onSidebarSelect}
+      totalCount={suppliers.length}
+      footer={userFooter}
+    />
+  );
+
   return (
-    <div className="min-h-screen lg:bg-[radial-gradient(ellipse_at_top,#F2E9D8_0%,#E8DBC8_100%)] lg:p-8">
+    <div className="flex min-h-screen bg-off">
+      {/* Desktop sidebar */}
+      <aside className="sticky top-0 hidden h-screen w-[240px] shrink-0 flex-col bg-navy lg:flex">
+        <div className="flex h-full flex-col px-4 py-6">{sidebarInner}</div>
+      </aside>
+
+      {/* Mobile filter drawer */}
       <div
-        className="rayana-dir-bg flex min-h-screen flex-col lg:mx-auto lg:max-w-[1200px] lg:min-h-[calc(100vh-4rem)] lg:overflow-hidden lg:rounded-[28px] lg:shadow-[0_30px_60px_rgba(120,90,60,0.18),0_12px_24px_rgba(120,90,60,0.08)]"
-        style={{ color: "#2B2B2B" }}
+        className={`fixed inset-0 z-40 bg-navy/50 transition-opacity lg:hidden ${
+          filterOpen ? "pointer-events-auto opacity-100" : "pointer-events-none opacity-0"
+        }`}
+        aria-hidden={!filterOpen}
+        onClick={() => setFilterOpen(false)}
+      />
+      <aside
+        className={`fixed left-0 top-0 z-50 flex h-full w-[min(88vw,280px)] flex-col bg-navy shadow-2xl transition-transform duration-200 lg:hidden ${
+          filterOpen ? "translate-x-0" : "-translate-x-full"
+        }`}
       >
-        {userEmail ? (
-          <div
-            style={{
-              position: "fixed",
-              inset: 0,
-              pointerEvents: "none",
-              zIndex: 9999,
-              overflow: "hidden",
-              opacity: 0.06,
-            }}
-            aria-hidden
-          >
-            {Array.from({ length: 20 }).map((_, i) => (
-              <div
-                key={i}
-                style={{
-                  position: "absolute",
-                  left: `${(i % 4) * 30}%`,
-                  top: `${Math.floor(i / 4) * 25}%`,
-                  transform: "rotate(-30deg)",
-                  fontSize: "13px",
-                  fontWeight: 600,
-                  color: "#1A1208",
-                  whiteSpace: "nowrap",
-                  userSelect: "none",
-                }}
-              >
-                {userEmail}
-              </div>
-            ))}
-          </div>
-        ) : null}
-        {!loading && !error && featured.length > 0 ? (
-          <VerifiedCarousel suppliers={featured} />
-        ) : null}
+        <div className="flex flex-col px-4 py-6">{sidebarInner}</div>
+      </aside>
 
-        {/* Mobile header */}
-        <header className="clay-header px-5 pb-2.5 pt-safe lg:hidden">
-          <Link
-            href="/hub"
-            className="text-[13px] font-medium underline decoration-[#A89878]/60 underline-offset-2"
-            style={{ color: "#7A7A7A" }}
-          >
-            ← Hub
-          </Link>
-          <div className="mt-2 flex items-start justify-between gap-3">
-            <div className="min-w-0 flex-1">
-              <h1 className="truncate text-[17px] font-extrabold tracking-tight text-[#2B2B2B]">
-                Directorio de Proveedores
-              </h1>
-              <p className="mt-0.5 text-[11.5px] font-medium text-[#A89878]">
-                por{" "}
-                <span className="font-bold text-[#B98852]">Rayana</span>
-              </p>
-            </div>
-            {userBubble}
-          </div>
-          <label className="sr-only" htmlFor="proveedores-buscar-mobile">
-            Buscar proveedores
-          </label>
-          <div className="mt-3">
-            <DirectorySearch
-              id="proveedores-buscar-mobile"
-              query={query}
-              setQuery={setQuery}
-              searchFocused={searchFocusedMobile}
-              setSearchFocused={setSearchFocusedMobile}
-            />
-          </div>
-        </header>
-
-        {/* Desktop top bar */}
-        <div
-          className="hidden items-center justify-between gap-4 border-b px-8 py-5 lg:flex"
-          style={{
-            borderColor: "rgba(120,90,60,.08)",
-            background: "rgba(255,255,255,.5)",
-            backdropFilter: "blur(10px)",
-          }}
-        >
-          <div className="flex min-w-0 flex-1 items-center gap-6">
+      <div className="flex min-w-0 flex-1 flex-col">
+        <header className="border-b border-primary/10 bg-white px-4 py-4 md:px-8 md:py-6">
+          <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
             <Link
               href="/hub"
-              className="shrink-0 text-[13px] font-medium underline decoration-[#A89878]/60 underline-offset-2"
-              style={{ color: "#7A7A7A" }}
+              className="text-xs font-medium text-primary underline-offset-2 hover:underline"
             >
               ← Hub
             </Link>
-            <div className="min-w-0">
-              <h1 className="text-xl font-extrabold tracking-tight text-[#2B2B2B]">
-                Directorio de Proveedores
-              </h1>
-              <p className="mt-0.5 text-xs font-medium text-[#A89878]">
-                por{" "}
-                <span className="font-bold text-[#B98852]">Rayana</span>
-              </p>
-            </div>
-          </div>
-          {userBubble}
-        </div>
-
-        <div className="grid flex-1 grid-cols-1 lg:grid-cols-[240px_1fr] lg:overflow-hidden">
-          {/* Desktop sidebar categories */}
-          <aside
-            className="hidden border-r px-5 py-6 lg:block"
-            style={{ borderColor: "rgba(120,90,60,.08)" }}
-          >
-            <div className="mb-3 text-[11px] font-bold uppercase tracking-[0.1em] text-[#A89878]">
-              Categorías
-            </div>
-            <div className="flex flex-col gap-1">
-              <button
-                type="button"
-                onClick={() => setSelectedCategory(null)}
-                className="flex cursor-pointer items-center justify-between rounded-xl border-0 px-3.5 py-2.5 text-left text-[13px] font-inherit transition-all"
-                style={
-                  selectedCategory === null
-                    ? {
-                        background:
-                          "linear-gradient(180deg, #FFFFFF 0%, #FBF5EC 100%)",
-                        boxShadow:
-                          "3px 3px 7px rgba(120,90,60,.07), -2px -2px 6px rgba(255,255,255,.9)",
-                        color: "#5A4A3A",
-                        fontWeight: 700,
-                      }
-                    : {
-                        background: "transparent",
-                        color: "#7A7A7A",
-                        fontWeight: 500,
-                      }
-                }
-              >
-                <span>Todos</span>
-                <span className="opacity-50">{suppliers.length}</span>
-              </button>
-              {categoryRows.map((row) => {
-                const active = selectedCategory === row.key;
-                return (
-                  <button
-                    key={row.key}
-                    type="button"
-                    onClick={() => toggleCategory(row.key)}
-                    className="flex cursor-pointer items-center justify-between rounded-xl border-0 px-3.5 py-2.5 text-left text-[13px] font-inherit transition-all"
-                    style={
-                      active
-                        ? {
-                            background:
-                              "linear-gradient(180deg, #FFFFFF 0%, #FBF5EC 100%)",
-                            boxShadow:
-                              "3px 3px 7px rgba(120,90,60,.07), -2px -2px 6px rgba(255,255,255,.9)",
-                            color: "#5A4A3A",
-                            fontWeight: 700,
-                          }
-                        : {
-                            background: "transparent",
-                            color: "#7A7A7A",
-                            fontWeight: 500,
-                          }
-                    }
-                  >
-                    <span className="min-w-0 truncate">{row.label}</span>
-                    <span className="shrink-0 opacity-50">{row.count}</span>
-                  </button>
-                );
-              })}
-            </div>
-          </aside>
-
-          <div className="flex min-h-0 min-w-0 flex-col lg:overflow-hidden">
-            {/* Mobile horizontal pills */}
-            <div
-              className="rayana-pills-scroll flex-shrink-0 overflow-x-auto py-3 lg:hidden"
-              style={{ WebkitOverflowScrolling: "touch" }}
+            <button
+              type="button"
+              className="rounded-lg border border-primary/20 px-3 py-1.5 text-xs font-bold text-primary lg:hidden"
+              onClick={() => setFilterOpen(true)}
             >
-              <div className="flex w-max gap-2 px-5">
-                <button
-                  type="button"
-                  onClick={() => setSelectedCategory(null)}
-                  className={`h-9 shrink-0 cursor-pointer rounded-full border-0 px-4 text-[13px] font-semibold font-inherit whitespace-nowrap transition-all duration-[250ms] ${
-                    selectedCategory == null ? "clay-pill-active" : "clay-pill"
-                  }`}
-                  style={
-                    selectedCategory == null
-                      ? { color: "#FFFFFF" }
-                      : { color: "#5A4A3A" }
-                  }
-                >
-                  Todos
-                </button>
-                {categories.map((cat) => {
-                  const active = selectedCategory === cat;
-                  return (
-                    <button
-                      key={cat}
-                      type="button"
-                      onClick={() => toggleCategory(cat)}
-                      className={`h-9 shrink-0 cursor-pointer rounded-full border-0 px-4 text-[13px] font-semibold font-inherit whitespace-nowrap transition-all duration-[250ms] ${
-                        active ? "clay-pill-active" : "clay-pill"
-                      }`}
-                      style={
-                        active ? { color: "#FFFFFF" } : { color: "#5A4A3A" }
-                      }
-                    >
-                      {categoryPillLabel(cat)}
-                    </button>
-                  );
-                })}
-              </div>
+              ☰ Filtrar
+            </button>
+          </div>
+          <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+            <div>
+              <h1 className="font-display text-2xl font-bold tracking-tight text-navy md:text-[26px]">
+                Directorio Makeray
+              </h1>
+              {!loading && !error && suppliers.length > 0 ? (
+                <p className="mt-1 text-sm text-navy/50">
+                  {filtered.length}{" "}
+                  {filtered.length === 1
+                    ? "proveedor encontrado"
+                    : "proveedores encontrados"}
+                </p>
+              ) : null}
             </div>
-
-            {/* Desktop search */}
-            <div className="hidden max-w-[600px] px-8 pt-6 lg:block">
-              <label className="sr-only" htmlFor="proveedores-buscar-desktop">
+            <div className="w-full max-w-md lg:shrink-0">
+              <label className="sr-only" htmlFor="dir-buscar">
                 Buscar proveedores
               </label>
-              <DirectorySearch
-                id="proveedores-buscar-desktop"
-                query={query}
-                setQuery={setQuery}
-                searchFocused={searchFocusedDesktop}
-                setSearchFocused={setSearchFocusedDesktop}
-              />
-            </div>
-
-            {!loading && !error && suppliers.length > 0 && regular.length > 0 ? (
-              <div
-                className="flex-shrink-0 px-5 py-2 text-xs font-medium text-[#A89878] lg:px-8"
-              >
-                {regular.length}{" "}
-                {regular.length === 1 ? "proveedor" : "proveedores"}
-                {selectedCategory !== null ? (
-                  <span>
-                    {" "}
-                    en{" "}
-                    <strong style={{ color: "#5A4A3A" }}>
-                      {categoryPillLabel(selectedCategory)}
-                    </strong>
-                  </span>
-                ) : null}
-              </div>
-            ) : null}
-
-            <div className="min-h-0 flex-1 overflow-y-auto px-[18px] pb-8 lg:px-8">
-              {loading ? <SupplierListSkeleton /> : null}
-
-              {!loading && error ? (
-                <div
-                  className="clay-card p-6 text-center"
-                  role="alert"
-                >
-                  <p className="text-sm" style={{ color: "#5A4A3A" }}>
-                    {error}
-                  </p>
-                  <button
-                    type="button"
-                    onClick={() => retry()}
-                    className="clay-pill-active mt-4 cursor-pointer rounded-full border-0 px-5 py-2 text-sm font-semibold"
-                  >
-                    Reintentar
-                  </button>
-                </div>
-              ) : null}
-
-              {!loading && !error && suppliers.length === 0 ? (
-                <div className="clay-card p-10 text-center">
-                  <p className="font-semibold text-[#2B2B2B]">
-                    Aún no hay proveedores
-                  </p>
-                  <p className="mt-2 text-sm" style={{ color: "#7A7A7A" }}>
-                    Cuando el equipo cargue el directorio, aparecerán aquí.
-                  </p>
-                </div>
-              ) : null}
-
-              {showFilterEmpty ? (
-                <ProveedoresEmptyState onClear={clearFilters} />
-              ) : null}
-
-              {!loading &&
-              !error &&
-              featured.length > 0 &&
-              regular.length > 0 ? (
-                <div className="mb-3">
-                  <SectionDivider />
-                </div>
-              ) : null}
-
-              {!loading && !error && regular.length > 0 ? (
-                <ul className="flex flex-col gap-3 lg:grid lg:grid-cols-2 lg:gap-3.5 lg:content-start">
-                  {regular.map((s) => (
-                    <li key={s.id} className="lg:min-w-0">
-                      <SupplierCard supplier={s} />
-                    </li>
-                  ))}
-                </ul>
-              ) : null}
+              <SearchBar id="dir-buscar" value={query} onChange={setQuery} />
             </div>
           </div>
-        </div>
+        </header>
+
+        <main className="flex-1 px-4 py-6 md:px-8">
+          {loading ? (
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
+              {Array.from({ length: 6 }).map((_, i) => (
+                <ProviderSkeleton key={i} />
+              ))}
+            </div>
+          ) : null}
+
+          {!loading && error ? (
+            <div
+              className="rounded-[20px] border border-primary/15 bg-white p-8 text-center"
+              role="alert"
+            >
+              <p className="text-sm text-navy/70">{error}</p>
+              <button
+                type="button"
+                onClick={() => retry()}
+                className="mt-4 rounded-xl bg-accent px-5 py-2 text-sm font-bold text-white"
+              >
+                Reintentar
+              </button>
+            </div>
+          ) : null}
+
+          {!loading && !error && suppliers.length === 0 ? (
+            <div className="rounded-[20px] border border-primary/10 bg-white p-10 text-center">
+              <p className="font-semibold text-navy">Aún no hay proveedores</p>
+              <p className="mt-2 text-sm text-navy/55">
+                Cuando el equipo cargue el directorio, aparecerán aquí.
+              </p>
+            </div>
+          ) : null}
+
+          {showFilterEmpty ? (
+            <ProveedoresEmptyState
+              onClear={clearFilters}
+              query={query.trim() || undefined}
+            />
+          ) : null}
+
+          {!loading && !error && filtered.length > 0 ? (
+            <div
+              className="grid grid-cols-1 gap-4"
+              style={{
+                gridTemplateColumns: "repeat(auto-fill, minmax(300px, 1fr))",
+              }}
+            >
+              {filtered.map((s) => (
+                <ProviderCard key={s.id} provider={supplierToCardProvider(s)} />
+              ))}
+            </div>
+          ) : null}
+        </main>
       </div>
     </div>
   );

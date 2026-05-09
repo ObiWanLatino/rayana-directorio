@@ -14,7 +14,7 @@ const modules = [
   {
     title: "Proveedores Chile",
     description: "Directorio de proveedores",
-    href: "/proveedores",
+    href: "/directorio",
     available: true,
   },
   {
