@@ -1,6 +1,6 @@
 "use client";
 
-import Link from "next/link";
+import { MakerayLogo } from "@/components/MakerayLogo";
 
 export const CATEGORY_SIDEBAR_ALL = "__all__";
 
@@ -30,7 +30,7 @@ export function CategorySidebar({
 }: CategorySidebarProps) {
   return (
     <div className="flex h-full flex-col">
-      <LinkBrand />
+      <MakerayLogo href="/hub" variant="sidebar" />
       <p className="mb-3 mt-6 text-[10px] font-bold uppercase tracking-[0.12em] text-white/45">
         Categorías
       </p>
@@ -78,13 +78,5 @@ export function CategorySidebar({
       </div>
       {footer ? <div className="mt-auto border-t border-white/10 pt-4">{footer}</div> : null}
     </div>
-  );
-}
-
-function LinkBrand() {
-  return (
-    <Link href="/hub" className="font-display text-xl font-bold tracking-tight text-white">
-      Make<span className="text-accent">ray</span>
-    </Link>
   );
 }

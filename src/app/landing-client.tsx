@@ -1,5 +1,6 @@
 "use client";
 
+import { MakerayLogo } from "@/components/MakerayLogo";
 import { useReveal } from "@/hooks/useReveal";
 import Image from "next/image";
 import Link from "next/link";
@@ -61,13 +62,94 @@ function revealStagger(i: number): string {
   return "reveal-delay-3";
 }
 
-function Logo({ light }: { light?: boolean }) {
+function SparkleIcon({ className }: { className?: string }) {
   return (
-    <span
-      className={`font-display text-xl font-bold tracking-tight md:text-2xl ${light ? "text-white" : "text-primary"}`}
+    <svg
+      className={className}
+      width="14"
+      height="14"
+      viewBox="0 0 24 24"
+      fill="currentColor"
+      aria-hidden
     >
-      Make<span className="text-accent">ray</span>
-    </span>
+      <path d="M12 2l2.4 7.4H22l-6.2 4.5 2.4 7.4L12 17l-6.2 4.3 2.4-7.4L2 9.4h7.6z" />
+    </svg>
+  );
+}
+
+function RayanaSocialLinks() {
+  const btn =
+    "flex h-10 w-10 items-center justify-center rounded-xl border border-primary/20 text-primary transition-colors hover:border-accent hover:bg-accent hover:text-white";
+  return (
+    <div className="mt-6 flex flex-wrap justify-center gap-2 md:justify-start">
+      <a
+        href="https://instagram.com/makeray"
+        target="_blank"
+        rel="noopener noreferrer"
+        className={btn}
+        aria-label="Instagram de Makeray"
+      >
+        <svg
+          width="18"
+          height="18"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          aria-hidden
+        >
+          <rect x="2" y="2" width="20" height="20" rx="5" ry="5" />
+          <circle cx="12" cy="12" r="4" />
+          <circle cx="17.5" cy="6.5" r="1" fill="currentColor" stroke="none" />
+        </svg>
+      </a>
+      <a
+        href="https://youtube.com/@makeray.youtube"
+        target="_blank"
+        rel="noopener noreferrer"
+        className={btn}
+        aria-label="YouTube de Makeray"
+      >
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden>
+          <path d="M23 7s-.3-2-1.2-2.7c-1.1-1.2-2.4-1.2-3-1.3C16.2 3 12 3 12 3s-4.2 0-6.8.1c-.6.1-1.9.1-3 1.3C1.3 5 1 7 1 7S.7 9.1.7 11.3v2c0 2.1.3 4.3.3 4.3s.3 2 1.2 2.7c1.1 1.2 2.6 1.1 3.3 1.2C7.3 21.7 12 21.7 12 21.7s4.2 0 6.8-.2c.6-.1 1.9-.1 3-1.3.9-.7 1.2-2.7 1.2-2.7s.3-2.1.3-4.3v-2C23.3 9.1 23 7 23 7zM9.7 15.5V8.2l6.6 3.7-6.6 3.6z" />
+        </svg>
+      </a>
+      <a
+        href="https://tiktok.com/@makeray"
+        target="_blank"
+        rel="noopener noreferrer"
+        className={btn}
+        aria-label="TikTok de Makeray"
+      >
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden>
+          <path d="M19.6 3h-3v10.3c0 1.5-1.2 2.7-2.7 2.7s-2.7-1.2-2.7-2.7 1.2-2.7 2.7-2.7c.3 0 .5 0 .8.1V7.3c-.2 0-.5-.1-.8-.1-3.1 0-5.7 2.6-5.7 5.7S10.8 18.6 13.9 18.6s5.7-2.6 5.7-5.7V8.1c1 .7 2.3 1.1 3.6 1.1V6c-1.9 0-3.6-1.4-3.6-3z" />
+        </svg>
+      </a>
+      <a
+        href="https://maps.google.com/?q=Patronato%2C%20Santiago%2C%20Chile"
+        target="_blank"
+        rel="noopener noreferrer"
+        className={btn}
+        aria-label="Ubicación — Patronato, Santiago en Google Maps"
+      >
+        <svg
+          width="18"
+          height="18"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          aria-hidden
+        >
+          <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
+          <circle cx="12" cy="10" r="3" />
+        </svg>
+      </a>
+    </div>
   );
 }
 
@@ -114,9 +196,7 @@ export default function LandingClient() {
         }}
       >
         <div className="mx-auto flex h-[68px] max-w-6xl items-center justify-between gap-6 px-5">
-          <Link href="/" onClick={closeMobile}>
-            <Logo />
-          </Link>
+          <MakerayLogo href="/" variant="nav" priority onClick={closeMobile} />
           <nav className="hidden items-center gap-8 md:flex">
             {[
               ["¿Qué incluye?", "#incluye"],
@@ -181,8 +261,9 @@ export default function LandingClient() {
       <section className="px-5 pb-16 pt-10 md:pb-20 md:pt-14">
         <div className="mx-auto grid max-w-6xl items-center gap-12 lg:grid-cols-2 lg:gap-16">
           <div className="order-2 lg:order-1">
-            <p className="mb-6 text-xs font-semibold tracking-wide text-navy/50">
-              ✦ por Rayana · @makeray.youtube
+            <p className="mb-6 flex items-center gap-1.5 text-xs font-semibold tracking-wide text-navy/50">
+              <SparkleIcon className="shrink-0 text-accent" />
+              <span>por Rayana · @makeray.youtube</span>
             </p>
             <h1 className="font-display text-[2.6rem] font-bold leading-[1.12] tracking-[-0.03em] text-navy md:text-[clamp(2.6rem,5vw,4rem)]">
               Los proveedores
@@ -653,8 +734,9 @@ export default function LandingClient() {
               </div>
             </div>
             <div className="text-center md:text-left">
-              <p className="text-xs font-extrabold uppercase tracking-[0.1em] text-accent">
-                ✦ La curadora
+              <p className="flex items-center gap-1.5 text-xs font-extrabold uppercase tracking-[0.1em] text-accent">
+                <SparkleIcon className="shrink-0" />
+                <span>La curadora</span>
               </p>
               <h3 className="mt-2 font-display text-4xl font-bold tracking-tight text-navy">
                 Soy Rayana.
@@ -665,24 +747,7 @@ export default function LandingClient() {
                 <strong className="text-navy">personalmente por mí</strong> — para que tú no pierdas
                 tiempo buscando, ni te quemes con proveedores que no responden.
               </p>
-              <div className="mt-6 flex justify-center gap-2 md:justify-start">
-                {[
-                  ["Instagram", "https://instagram.com/"],
-                  ["YouTube", "https://youtube.com/"],
-                  ["TikTok", "https://tiktok.com/"],
-                ].map(([label, href]) => (
-                  <a
-                    key={label}
-                    href={href}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="flex h-10 w-10 items-center justify-center rounded-xl border border-primary/15 text-primary transition hover:border-accent hover:bg-accent hover:text-white"
-                    aria-label={label}
-                  >
-                    {label[0]}
-                  </a>
-                ))}
-              </div>
+              <RayanaSocialLinks />
             </div>
           </div>
         </div>
@@ -819,7 +884,7 @@ export default function LandingClient() {
       <footer className="border-t border-white/10 bg-navy px-5 py-12">
         <div className="mx-auto max-w-6xl">
           <div className="flex flex-col gap-8 border-b border-white/10 pb-10 md:flex-row md:items-center md:justify-between">
-            <Logo light />
+            <MakerayLogo href="/" variant="footer" />
             <div className="flex flex-wrap gap-6 text-sm">
               <a href="#" className="text-white/45 transition hover:text-accent">
                 Términos

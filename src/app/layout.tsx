@@ -18,8 +18,13 @@ const body = Plus_Jakarta_Sans({
 });
 
 export const metadata: Metadata = {
-  title: "Rayana",
-  description: "Plataforma Rayana — Directorio de Proveedores y más.",
+  title: "Makeray — Los proveedores que cambiarán tu negocio",
+  description:
+    "Directorio de proveedores mayoristas verificados por Rayana. +75 proveedores. Contacto directo por WhatsApp.",
+  icons: {
+    icon: "/favicon.png",
+    apple: "/logo.png",
+  },
 };
 
 export const viewport: Viewport = {
