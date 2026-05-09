@@ -4,13 +4,7 @@ import { MakerayLogo } from "@/components/MakerayLogo";
 import { useReveal } from "@/hooks/useReveal";
 import Image from "next/image";
 import Link from "next/link";
-import {
-  useCallback,
-  useEffect,
-  useState,
-  type CSSProperties,
-  type MouseEvent,
-} from "react";
+import { useCallback, useEffect, useState } from "react";
 
 const FAQ_ITEMS = [
   {
@@ -84,53 +78,34 @@ function SparkleIcon({ className }: { className?: string }) {
 }
 
 function RayanaSocialLinks() {
-  const linkBaseStyle: CSSProperties = {
-    width: 44,
-    height: 44,
-    borderRadius: 12,
-    border: "1.5px solid rgba(89,47,146,0.2)",
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    color: "var(--color-primary)",
-    textDecoration: "none",
-    transition: "background 0.2s, color 0.2s, border-color 0.2s",
-  };
-
-  const onEnter = (e: MouseEvent<HTMLAnchorElement>) => {
-    const el = e.currentTarget;
-    el.style.background = "var(--color-accent)";
-    el.style.color = "#fff";
-    el.style.borderColor = "var(--color-accent)";
-  };
-
-  const onLeave = (e: MouseEvent<HTMLAnchorElement>) => {
-    const el = e.currentTarget;
-    el.style.background = "transparent";
-    el.style.color = "var(--color-primary)";
-    el.style.borderColor = "rgba(89,47,146,0.2)";
-  };
-
   return (
-    <div
-      className="flex flex-wrap justify-center md:justify-start"
-      style={{ display: "flex", gap: 10, flexWrap: "wrap", marginTop: 20 }}
-    >
+    <div style={{ display: "flex", gap: "12px", marginTop: "24px", flexWrap: "wrap" }}>
+      {/* Instagram */}
       <a
         href="https://instagram.com/makeray"
         target="_blank"
         rel="noopener noreferrer"
-        aria-label="Instagram de Makeray"
-        style={linkBaseStyle}
-        onMouseEnter={onEnter}
-        onMouseLeave={onLeave}
+        aria-label="Instagram"
+        style={{
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          width: "48px",
+          height: "48px",
+          borderRadius: "14px",
+          backgroundColor: "#f3eff8",
+          border: "1.5px solid rgba(89,47,146,0.15)",
+          textDecoration: "none",
+          flexShrink: 0,
+        }}
       >
         <svg
-          width="20"
-          height="20"
+          xmlns="http://www.w3.org/2000/svg"
+          width="22"
+          height="22"
           viewBox="0 0 24 24"
           fill="none"
-          stroke="currentColor"
+          stroke="#592f92"
           strokeWidth="2"
           strokeLinecap="round"
           strokeLinejoin="round"
@@ -142,50 +117,95 @@ function RayanaSocialLinks() {
         </svg>
       </a>
 
-      <a
-        href="https://youtube.com/@makeray.youtube"
-        target="_blank"
-        rel="noopener noreferrer"
-        aria-label="YouTube de Makeray"
-        style={linkBaseStyle}
-        onMouseEnter={onEnter}
-        onMouseLeave={onLeave}
-      >
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden>
-          <path d="M22.54 6.42a2.78 2.78 0 0 0-1.95-1.96C18.88 4 12 4 12 4s-6.88 0-8.59.46A2.78 2.78 0 0 0 1.46 6.42 29 29 0 0 0 1 12a29 29 0 0 0 .46 5.58 2.78 2.78 0 0 0 1.95 1.96C5.12 20 12 20 12 20s6.88 0 8.59-.46a2.78 2.78 0 0 0 1.95-1.96A29 29 0 0 0 23 12a29 29 0 0 0-.46-5.58z" />
-          <polygon points="9.75 15.02 15.5 12 9.75 8.98 9.75 15.02" fill="#fff" />
-        </svg>
-      </a>
-
+      {/* TikTok */}
       <a
         href="https://tiktok.com/@makeray"
         target="_blank"
         rel="noopener noreferrer"
-        aria-label="TikTok de Makeray"
-        style={linkBaseStyle}
-        onMouseEnter={onEnter}
-        onMouseLeave={onLeave}
+        aria-label="TikTok"
+        style={{
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          width: "48px",
+          height: "48px",
+          borderRadius: "14px",
+          backgroundColor: "#f3eff8",
+          border: "1.5px solid rgba(89,47,146,0.15)",
+          textDecoration: "none",
+          flexShrink: 0,
+        }}
       >
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden>
-          <path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-2.88 2.5 2.89 2.89 0 0 1-2.89-2.89 2.89 2.89 0 0 1 2.89-2.89c.28 0 .54.04.79.1V9.01a6.33 6.33 0 0 0-.79-.05 6.34 6.34 0 0 0-6.34 6.34 6.34 6.34 0 0 0 6.34 6.34 6.34 6.34 0 0 0 6.33-6.34V8.69a8.18 8.18 0 0 0 4.78 1.52V6.75a4.85 4.85 0 0 1-1.01-.06z" />
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          width="22"
+          height="22"
+          viewBox="0 0 24 24"
+          fill="#592f92"
+          aria-hidden
+        >
+          <path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-2.88 2.5 2.89 2.89 0 0 1-2.89-2.89 2.89 2.89 0 0 1 2.89-2.89c.28 0 .54.04.79.1V9.01a6.27 6.27 0 0 0-.79-.05 6.34 6.34 0 0 0-6.34 6.34 6.34 6.34 0 0 0 6.34 6.34 6.34 6.34 0 0 0 6.33-6.34V8.69a8.18 8.18 0 0 0 4.78 1.52V6.75a4.85 4.85 0 0 1-1.01-.06z" />
         </svg>
       </a>
 
+      {/* YouTube */}
+      <a
+        href="https://youtube.com/@makeray.youtube"
+        target="_blank"
+        rel="noopener noreferrer"
+        aria-label="YouTube"
+        style={{
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          width: "48px",
+          height: "48px",
+          borderRadius: "14px",
+          backgroundColor: "#f3eff8",
+          border: "1.5px solid rgba(89,47,146,0.15)",
+          textDecoration: "none",
+          flexShrink: 0,
+        }}
+      >
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          width="22"
+          height="22"
+          viewBox="0 0 24 24"
+          fill="#592f92"
+          aria-hidden
+        >
+          <path d="M22.54 6.42a2.78 2.78 0 0 0-1.95-1.96C18.88 4 12 4 12 4s-6.88 0-8.59.46A2.78 2.78 0 0 0 1.46 6.42 29 29 0 0 0 1 12a29 29 0 0 0 .46 5.58 2.78 2.78 0 0 0 1.95 1.96C5.12 20 12 20 12 20s6.88 0 8.59-.46a2.78 2.78 0 0 0 1.95-1.96A29 29 0 0 0 23 12a29 29 0 0 0-.46-5.58z" />
+          <polygon points="9.75 15.02 15.5 12 9.75 8.98 9.75 15.02" fill="white" />
+        </svg>
+      </a>
+
+      {/* Google Maps */}
       <a
         href="https://maps.google.com/?q=Patronato,+Santiago,+Chile"
         target="_blank"
         rel="noopener noreferrer"
-        aria-label="Ver Patronato en Google Maps"
-        style={linkBaseStyle}
-        onMouseEnter={onEnter}
-        onMouseLeave={onLeave}
+        aria-label="Ver en Google Maps"
+        style={{
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          width: "48px",
+          height: "48px",
+          borderRadius: "14px",
+          backgroundColor: "#f3eff8",
+          border: "1.5px solid rgba(89,47,146,0.15)",
+          textDecoration: "none",
+          flexShrink: 0,
+        }}
       >
         <svg
-          width="20"
-          height="20"
+          xmlns="http://www.w3.org/2000/svg"
+          width="22"
+          height="22"
           viewBox="0 0 24 24"
           fill="none"
-          stroke="currentColor"
+          stroke="#592f92"
           strokeWidth="2"
           strokeLinecap="round"
           strokeLinejoin="round"
