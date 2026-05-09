@@ -81,7 +81,38 @@ export function matchesSearch(s: Supplier, q: string): boolean {
     (s.tipo?.toLowerCase().includes(query) ?? false) ||
     (s.direccion?.toLowerCase().includes(query) ?? false) ||
     (s.observacion?.toLowerCase().includes(query) ?? false) ||
+    (s.instagram_url?.toLowerCase().includes(query) ?? false) ||
+    (s.tiktok_url?.toLowerCase().includes(query) ?? false) ||
+    (s.maps_url?.toLowerCase().includes(query) ?? false) ||
     String(s.codigo) === qNum ||
     (qNum.length > 0 && String(s.codigo).includes(qNum))
   );
+}
+
+/** Instagram link for directory card: explicit URL or legacy handle column. */
+export function supplierInstagramHref(s: Supplier): string | undefined {
+  const direct = s.instagram_url?.trim();
+  if (direct && /^https?:\/\//i.test(direct)) return direct;
+  const ig = s.instagram?.trim();
+  if (!ig) return undefined;
+  let h = ig.replace(/^@/, "");
+  h = h.replace(/^https?:\/\/(www\.)?instagram\.com\//i, "");
+  h = h.replace(/\/$/, "");
+  if (!h) return undefined;
+  return `https://instagram.com/${h}`;
+}
+
+export function supplierTiktokHref(s: Supplier): string | undefined {
+  const u = s.tiktok_url?.trim();
+  if (u && /^https?:\/\//i.test(u)) return u;
+  return undefined;
+}
+
+/** Maps link: explicit URL or Google search from dirección. */
+export function supplierMapsHref(s: Supplier): string | undefined {
+  const direct = s.maps_url?.trim();
+  if (direct && /^https?:\/\//i.test(direct)) return direct;
+  const dir = s.direccion?.trim();
+  if (!dir) return undefined;
+  return `https://maps.google.com/?q=${encodeURIComponent(dir)}`;
 }

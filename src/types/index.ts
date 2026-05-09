@@ -35,6 +35,9 @@ export type Supplier = {
   codigo: number;
   tienda: string;
   instagram: string | null;
+  instagram_url: string | null;
+  tiktok_url: string | null;
+  maps_url: string | null;
   categoria: string | null;
   direccion: string | null;
   tipo: string | null;

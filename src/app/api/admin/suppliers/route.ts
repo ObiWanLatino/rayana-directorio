@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { getAdminUser } from "@/lib/auth/require-admin";
 import {
   sanitizeCategoria,
+  sanitizeHttpUrl,
   sanitizeInstagram,
   sanitizeOptionalText,
   sanitizeTienda,
@@ -51,6 +52,9 @@ type PostBody = {
   codigo: number;
   tienda: string;
   instagram?: string | null;
+  instagram_url?: string | null;
+  tiktok_url?: string | null;
+  maps_url?: string | null;
   categoria?: string | null;
   direccion?: string | null;
   tipo: string;
@@ -115,6 +119,9 @@ export async function POST(request: Request) {
     codigo,
     tienda,
     instagram: sanitizeInstagram(body.instagram),
+    instagram_url: sanitizeHttpUrl(body.instagram_url),
+    tiktok_url: sanitizeHttpUrl(body.tiktok_url),
+    maps_url: sanitizeHttpUrl(body.maps_url),
     categoria: sanitizeCategoria(body.categoria),
     direccion: sanitizeOptionalText(body.direccion),
     tipo: tipoSan,
@@ -143,6 +150,9 @@ type PatchBody = {
   codigo: number;
   tienda?: string;
   instagram?: string | null;
+  instagram_url?: string | null;
+  tiktok_url?: string | null;
+  maps_url?: string | null;
   categoria?: string | null;
   direccion?: string | null;
   tipo?: string | null;
@@ -188,6 +198,20 @@ export async function PATCH(request: Request) {
       body.instagram === null
         ? null
         : sanitizeInstagram(body.instagram);
+  }
+  if (body.instagram_url !== undefined) {
+    patch.instagram_url =
+      body.instagram_url === null
+        ? null
+        : sanitizeHttpUrl(body.instagram_url);
+  }
+  if (body.tiktok_url !== undefined) {
+    patch.tiktok_url =
+      body.tiktok_url === null ? null : sanitizeHttpUrl(body.tiktok_url);
+  }
+  if (body.maps_url !== undefined) {
+    patch.maps_url =
+      body.maps_url === null ? null : sanitizeHttpUrl(body.maps_url);
   }
   if (body.categoria !== undefined) {
     patch.categoria =

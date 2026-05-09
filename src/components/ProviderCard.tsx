@@ -10,6 +10,9 @@ export interface ProviderCardProvider {
   subcategory?: string;
   location?: string;
   whatsappUrl: string;
+  instagramUrl?: string;
+  tiktokUrl?: string;
+  mapsUrl?: string;
   photoUrl?: string;
   verified: boolean;
 }
@@ -28,6 +31,11 @@ export function ProviderCard({ provider }: { provider: ProviderCardProvider }) {
     .join(" · ");
 
   const initials = supplierInitial(provider.name);
+
+  const hasInstagram = Boolean(provider.instagramUrl);
+  const hasTiktok = Boolean(provider.tiktokUrl);
+  const hasMaps = Boolean(provider.mapsUrl);
+  const hasSocialLinks = hasInstagram || hasTiktok || hasMaps;
 
   return (
     <article
@@ -82,6 +90,125 @@ export function ProviderCard({ provider }: { provider: ProviderCardProvider }) {
       </div>
 
       <div className="mt-4 h-px bg-primary/10" />
+
+      {hasSocialLinks ? (
+        <div
+          style={{
+            display: "flex",
+            gap: "8px",
+            paddingTop: "4px",
+            marginTop: "12px",
+            flexWrap: "wrap",
+          }}
+        >
+          {hasInstagram ? (
+            <a
+              href={provider.instagramUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label="Instagram del proveedor"
+              style={{
+                width: "36px",
+                height: "36px",
+                borderRadius: "10px",
+                backgroundColor: "#f3eff8",
+                border: "1px solid rgba(89,47,146,0.15)",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                textDecoration: "none",
+                flexShrink: 0,
+              }}
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="18"
+                height="18"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="#592f92"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                aria-hidden
+              >
+                <rect x="2" y="2" width="20" height="20" rx="5" ry="5" />
+                <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z" />
+                <line x1="17.5" y1="6.5" x2="17.51" y2="6.5" />
+              </svg>
+            </a>
+          ) : null}
+
+          {hasTiktok ? (
+            <a
+              href={provider.tiktokUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label="TikTok del proveedor"
+              style={{
+                width: "36px",
+                height: "36px",
+                borderRadius: "10px",
+                backgroundColor: "#f3eff8",
+                border: "1px solid rgba(89,47,146,0.15)",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                textDecoration: "none",
+                flexShrink: 0,
+              }}
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="#592f92"
+                aria-hidden
+              >
+                <path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-2.88 2.5 2.89 2.89 0 0 1-2.89-2.89 2.89 2.89 0 0 1 2.89-2.89c.28 0 .54.04.79.1V9.01a6.27 6.27 0 0 0-.79-.05 6.34 6.34 0 0 0-6.34 6.34 6.34 6.34 0 0 0 6.34 6.34 6.34 6.34 0 0 0 6.33-6.34V8.69a8.18 8.18 0 0 0 4.78 1.52V6.75a4.85 4.85 0 0 1-1.01-.06z" />
+              </svg>
+            </a>
+          ) : null}
+
+          {hasMaps ? (
+            <a
+              href={provider.mapsUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label="Ver ubicación en Maps"
+              style={{
+                width: "36px",
+                height: "36px",
+                borderRadius: "10px",
+                backgroundColor: "#f3eff8",
+                border: "1px solid rgba(89,47,146,0.15)",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                textDecoration: "none",
+                flexShrink: 0,
+              }}
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="18"
+                height="18"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="#592f92"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                aria-hidden
+              >
+                <path d="M21 10c0 7-9 13-9 13S3 17 3 10a9 9 0 0 1 18 0z" />
+                <circle cx="12" cy="10" r="3" />
+              </svg>
+            </a>
+          ) : null}
+        </div>
+      ) : null}
 
       {provider.whatsappUrl ? (
         <a

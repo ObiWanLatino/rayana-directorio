@@ -19,6 +19,9 @@ export function SupplierAdminForm(props: Props) {
   );
   const [tienda, setTienda] = useState(s?.tienda ?? "");
   const [instagram, setInstagram] = useState(s?.instagram ?? "");
+  const [instagramUrl, setInstagramUrl] = useState(s?.instagram_url ?? "");
+  const [tiktokUrl, setTiktokUrl] = useState(s?.tiktok_url ?? "");
+  const [mapsUrl, setMapsUrl] = useState(s?.maps_url ?? "");
   const [categoria, setCategoria] = useState(s?.categoria ?? "");
   const [direccion, setDireccion] = useState(s?.direccion ?? "");
   const [tipo, setTipo] = useState(s?.tipo ?? "");
@@ -102,6 +105,9 @@ export function SupplierAdminForm(props: Props) {
           body: JSON.stringify({
             tienda,
             instagram: instagram.trim() === "" ? null : instagram,
+            instagram_url: instagramUrl.trim() === "" ? null : instagramUrl,
+            tiktok_url: tiktokUrl.trim() === "" ? null : tiktokUrl,
+            maps_url: mapsUrl.trim() === "" ? null : mapsUrl,
             categoria: categoria.trim() === "" ? null : categoria,
             direccion: direccion.trim() === "" ? null : direccion,
             tipo,
@@ -136,6 +142,9 @@ export function SupplierAdminForm(props: Props) {
           codigo: codigoNum,
           tienda,
           instagram: instagram.trim() === "" ? null : instagram,
+          instagram_url: instagramUrl.trim() === "" ? null : instagramUrl,
+          tiktok_url: tiktokUrl.trim() === "" ? null : tiktokUrl,
+          maps_url: mapsUrl.trim() === "" ? null : mapsUrl,
           categoria: categoria.trim() === "" ? null : categoria,
           direccion: direccion.trim() === "" ? null : direccion,
           tipo,
@@ -254,6 +263,64 @@ export function SupplierAdminForm(props: Props) {
           />
           <p className="mt-1 text-xs text-zinc-500">
             Se guarda sin @; se quita la arroba automáticamente.
+          </p>
+        </div>
+
+        <div>
+          <label
+            className="block text-sm font-medium text-zinc-700"
+            htmlFor="instagram_url"
+          >
+            URL Instagram (opcional)
+          </label>
+          <input
+            id="instagram_url"
+            type="url"
+            value={instagramUrl}
+            onChange={(e) => setInstagramUrl(e.target.value)}
+            placeholder="https://instagram.com/…"
+            className={inputClass}
+          />
+          <p className="mt-1 text-xs text-zinc-500">
+            Si está vacío, el directorio arma el enlace con el usuario de
+            Instagram de arriba.
+          </p>
+        </div>
+
+        <div>
+          <label
+            className="block text-sm font-medium text-zinc-700"
+            htmlFor="tiktok_url"
+          >
+            URL TikTok (opcional)
+          </label>
+          <input
+            id="tiktok_url"
+            type="url"
+            value={tiktokUrl}
+            onChange={(e) => setTiktokUrl(e.target.value)}
+            placeholder="https://www.tiktok.com/@…"
+            className={inputClass}
+          />
+        </div>
+
+        <div>
+          <label
+            className="block text-sm font-medium text-zinc-700"
+            htmlFor="maps_url"
+          >
+            URL Google Maps (opcional)
+          </label>
+          <input
+            id="maps_url"
+            type="url"
+            value={mapsUrl}
+            onChange={(e) => setMapsUrl(e.target.value)}
+            placeholder="https://maps.google.com/…"
+            className={inputClass}
+          />
+          <p className="mt-1 text-xs text-zinc-500">
+            Si está vacío, el directorio puede usar la dirección para abrir Maps.
           </p>
         </div>
 

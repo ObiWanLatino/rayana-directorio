@@ -20,6 +20,9 @@ import {
   categorySidebarEmoji,
   matchesCategoryFilter,
   matchesSearch,
+  supplierInstagramHref,
+  supplierMapsHref,
+  supplierTiktokHref,
 } from "@/components/suppliers/supplier-utils";
 import { useSuppliers } from "@/hooks/useSuppliers";
 import { createBrowserSupabaseClient } from "@/lib/supabase/client";
@@ -40,6 +43,9 @@ function supplierToCardProvider(s: Supplier): ProviderCardProvider {
     subcategory: s.tipo?.trim() || undefined,
     location: s.direccion?.trim() || undefined,
     whatsappUrl,
+    instagramUrl: supplierInstagramHref(s),
+    tiktokUrl: supplierTiktokHref(s),
+    mapsUrl: supplierMapsHref(s),
     photoUrl: s.logo_url ?? undefined,
     verified: s.verificado,
   };

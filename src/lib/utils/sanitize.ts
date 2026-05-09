@@ -57,3 +57,20 @@ export function sanitizeTienda(
 ): string {
   return String(raw ?? "").trim();
 }
+
+/** Full http(s) URL for supplier social/map links; null if invalid or empty. */
+export function sanitizeHttpUrl(
+  raw: string | number | null | undefined,
+): string | null {
+  if (raw == null || raw === "") return null;
+  const t = String(raw).trim();
+  if (!t) return null;
+  let url: URL;
+  try {
+    url = new URL(t);
+  } catch {
+    return null;
+  }
+  if (url.protocol !== "http:" && url.protocol !== "https:") return null;
+  return url.toString();
+}
