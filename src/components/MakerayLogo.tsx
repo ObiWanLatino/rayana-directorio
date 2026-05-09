@@ -1,51 +1,68 @@
 import Image from "next/image";
 import Link from "next/link";
 
+type MakerayLogoSize = "sm" | "md" | "lg";
+
 type MakerayLogoProps = {
+  size?: MakerayLogoSize;
+  /** true sobre fondo navy (footer, sidebar) */
+  invert?: boolean;
   href?: string;
-  /** nav: claro | footer/sidebar: invertido sobre navy */
-  variant: "nav" | "footer" | "sidebar";
-  className?: string;
-  priority?: boolean;
   onClick?: () => void;
+  className?: string;
+  /** Solo el logo del nav landing suele necesitar priority (LCP) */
+  priority?: boolean;
+};
+
+const sizeConfig: Record<
+  MakerayLogoSize,
+  { height: number; className: string }
+> = {
+  sm: { height: 40, className: "h-10" },
+  md: { height: 48, className: "h-12" },
+  lg: { height: 56, className: "h-14" },
 };
 
 export function MakerayLogo({
-  href = "/",
-  variant,
+  size = "md",
+  invert = false,
+  href,
+  onClick,
   className = "",
   priority = false,
-  onClick,
 }: MakerayLogoProps) {
-  const imgClass =
-    variant === "footer"
-      ? "h-12 w-auto max-w-[140px] object-contain brightness-0 invert opacity-90"
-      : variant === "sidebar"
-        ? "h-9 w-auto max-w-[120px] object-contain brightness-0 invert"
-        : "h-10 w-auto max-w-[120px] object-contain";
+  const cfg = sizeConfig[size];
 
   const img = (
     <Image
       src="/logo.png"
       alt="Makeray"
-      width={160}
-      height={96}
-      className={imgClass}
+      width={200}
+      height={cfg.height}
+      className={[
+        "w-auto object-contain",
+        cfg.className,
+        invert ? "brightness-0 invert opacity-90" : "",
+      ]
+        .filter(Boolean)
+        .join(" ")}
       priority={priority}
     />
   );
 
-  if (!href) {
-    return <span className={`inline-flex items-center ${className}`}>{img}</span>;
+  const wrapClass = `inline-flex items-center ${onClick ? "cursor-pointer" : ""} ${className}`.trim();
+
+  if (href) {
+    return (
+      <Link href={href} className={wrapClass} onClick={onClick}>
+        {img}
+      </Link>
+    );
   }
 
   return (
-    <Link
-      href={href}
-      className={`inline-flex items-center ${className}`}
-      onClick={onClick}
-    >
+    <span className={wrapClass} onClick={onClick} role={onClick ? "button" : undefined}>
       {img}
-    </Link>
+    </span>
   );
 }

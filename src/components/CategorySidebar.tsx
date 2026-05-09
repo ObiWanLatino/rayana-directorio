@@ -30,7 +30,7 @@ export function CategorySidebar({
 }: CategorySidebarProps) {
   return (
     <div className="flex h-full flex-col">
-      <MakerayLogo href="/hub" variant="sidebar" />
+      <MakerayLogo size="sm" invert href="/hub" />
       <p className="mb-3 mt-6 text-[10px] font-bold uppercase tracking-[0.12em] text-white/45">
         Categorías
       </p>
