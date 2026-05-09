@@ -1,10 +1,8 @@
 import Image from "next/image";
 import Link from "next/link";
 
-type MakerayLogoSize = "sm" | "md" | "lg";
-
 type MakerayLogoProps = {
-  size?: MakerayLogoSize;
+  size?: "sm" | "md" | "lg";
   /** true sobre fondo navy (footer, sidebar) */
   invert?: boolean;
   href?: string;
@@ -14,54 +12,59 @@ type MakerayLogoProps = {
   priority?: boolean;
 };
 
-const sizeConfig: Record<
-  MakerayLogoSize,
-  { height: number; className: string }
-> = {
-  sm: { height: 40, className: "h-10" },
-  md: { height: 48, className: "h-12" },
-  lg: { height: 56, className: "h-14" },
-};
+const heightMap = { sm: 40, md: 52, lg: 64 } as const;
 
 export function MakerayLogo({
   size = "md",
   invert = false,
   href,
   onClick,
-  className = "",
+  className,
   priority = false,
 }: MakerayLogoProps) {
-  const cfg = sizeConfig[size];
+  const h = heightMap[size];
 
   const img = (
     <Image
       src="/logo.png"
       alt="Makeray"
-      width={200}
-      height={cfg.height}
-      className={[
-        "w-auto object-contain",
-        cfg.className,
-        invert ? "brightness-0 invert opacity-90" : "",
-      ]
-        .filter(Boolean)
-        .join(" ")}
+      width={300}
+      height={h}
       priority={priority}
+      style={{
+        height: `${h}px`,
+        width: "auto",
+        objectFit: "contain",
+        display: "block",
+        filter: invert ? "brightness(0) invert(1)" : "none",
+      }}
     />
   );
 
-  const wrapClass = `inline-flex items-center ${onClick ? "cursor-pointer" : ""} ${className}`.trim();
-
   if (href) {
     return (
-      <Link href={href} className={wrapClass} onClick={onClick}>
+      <Link
+        href={href}
+        onClick={onClick}
+        className={className}
+        style={{ display: "inline-flex", alignItems: "center" }}
+      >
         {img}
       </Link>
     );
   }
 
   return (
-    <span className={wrapClass} onClick={onClick} role={onClick ? "button" : undefined}>
+    <span
+      className={className}
+      onClick={onClick}
+      style={{
+        display: "inline-flex",
+        alignItems: "center",
+        cursor: onClick ? "pointer" : "default",
+      }}
+      role={onClick ? "button" : undefined}
+    >
       {img}
     </span>
   );
