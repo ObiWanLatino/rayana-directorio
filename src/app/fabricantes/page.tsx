@@ -11,7 +11,7 @@ export default function FabricantesPlaceholderPage() {
           ← Hub
         </Link>
         <h1 className="mt-6 text-2xl font-semibold text-zinc-900">
-          Fabricantes Brasil
+          Fabricantes
         </h1>
         <p className="mt-2 text-sm text-zinc-600">Módulo disponible próximamente.</p>
       </div>

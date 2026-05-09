@@ -4,9 +4,10 @@ import { useState } from "react";
 
 type BillingPortalButtonProps = {
   disabled?: boolean;
+  className?: string;
 };
 
-export function BillingPortalButton({ disabled }: BillingPortalButtonProps) {
+export function BillingPortalButton({ disabled, className }: BillingPortalButtonProps) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -38,7 +39,10 @@ export function BillingPortalButton({ disabled }: BillingPortalButtonProps) {
         type="button"
         onClick={() => void openPortal()}
         disabled={disabled || loading}
-        className="rounded-lg border border-zinc-200 bg-white px-3 py-1.5 text-sm text-zinc-800 hover:bg-zinc-50 disabled:opacity-50"
+        className={
+          className ??
+          "rounded-lg border border-zinc-200 bg-white px-3 py-1.5 text-sm text-zinc-800 hover:bg-zinc-50 disabled:opacity-50"
+        }
       >
         {loading ? "Abriendo…" : "Gestionar suscripción"}
       </button>

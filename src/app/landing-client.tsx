@@ -219,6 +219,22 @@ export default function LandingClient() {
             ))}
             <Link
               href="/login"
+              style={{
+                padding: "9px 20px",
+                borderRadius: "999px",
+                border: "1.5px solid rgba(89,47,146,0.25)",
+                fontSize: "0.85rem",
+                fontWeight: 600,
+                color: "var(--color-primary)",
+                textDecoration: "none",
+                transition: "border-color 0.2s, background 0.2s",
+                whiteSpace: "nowrap",
+              }}
+            >
+              Iniciar sesión
+            </Link>
+            <Link
+              href="/login"
               className="rounded-full bg-accent px-5 py-2.5 text-sm font-bold text-white shadow-sm transition hover:-translate-y-0.5 hover:shadow-lg hover:shadow-accent/35"
             >
               Suscribirme — $19.990/mes
@@ -252,6 +268,20 @@ export default function LandingClient() {
               {label}
             </a>
           ))}
+          <Link
+            href="/login"
+            onClick={closeMobile}
+            style={{
+              padding: "12px 16px",
+              borderRadius: "12px",
+              fontWeight: 600,
+              color: "var(--color-primary)",
+              textDecoration: "none",
+              display: "block",
+            }}
+          >
+            Iniciar sesión
+          </Link>
           <Link
             href="/login"
             className="mt-2 rounded-xl bg-accent py-3 text-center font-bold text-white"
