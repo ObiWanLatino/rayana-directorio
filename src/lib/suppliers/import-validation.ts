@@ -45,19 +45,3 @@ export function validateImportableRows(rows: ExcelSupplierRow[]): {
 
   return { ok: true };
 }
-
-export function rowsToRpcPayload(rows: ExcelSupplierRow[]): Record<
-  string,
-  unknown
->[] {
-  return rows.map((r) => ({
-    codigo: r.codigo,
-    tienda: r.tienda,
-    instagram: r.instagram ?? "",
-    categoria: r.categoria ?? "",
-    direccion: r.direccion ?? "",
-    tipo: r.tipo,
-    observacion: r.observacion ?? "",
-    whatsapp: r.whatsapp ?? "",
-  }));
-}

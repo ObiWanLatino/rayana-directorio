@@ -41,9 +41,11 @@ export function supplierDataMatchesDb(
 export function computeImportPreview(
   rows: ExcelSupplierRow[],
   dbSuppliers: Supplier[],
+  paisCodigo: string,
 ): ImportPreview {
+  const scoped = dbSuppliers.filter((s) => s.pais_codigo === paisCodigo);
   const byCodigo = new Map<number, Supplier>();
-  for (const s of dbSuppliers) {
+  for (const s of scoped) {
     byCodigo.set(s.codigo, s);
   }
 
@@ -66,7 +68,7 @@ export function computeImportPreview(
   }
 
   const deactivatedCodes: number[] = [];
-  for (const s of dbSuppliers) {
+  for (const s of scoped) {
     if (s.activo && !excelCodes.has(s.codigo)) {
       deactivatedCodes.push(s.codigo);
     }

@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { getAdminUser } from "@/lib/auth/require-admin";
 import { computeImportPreview } from "@/lib/suppliers/excel-import";
+import { readPaisCodigoFromFormData } from "@/lib/suppliers/pais-codigo-form";
 import { needsLowVolumeConfirmation } from "@/lib/suppliers/import-validation";
 import { createAdminSupabaseClient } from "@/lib/supabase/admin";
 import type { Supplier } from "@/types";
@@ -15,6 +16,12 @@ export async function POST(request: Request) {
   }
 
   const form = await request.formData();
+  const paisParsed = readPaisCodigoFromFormData(form);
+  if (!paisParsed.ok) {
+    return NextResponse.json({ error: paisParsed.message }, { status: 400 });
+  }
+  const pais_codigo = paisParsed.value;
+
   const file = form.get("file");
   if (!(file instanceof File)) {
     return NextResponse.json({ error: "Falta el archivo" }, { status: 400 });
@@ -36,14 +43,15 @@ export async function POST(request: Request) {
   const admin = createAdminSupabaseClient();
   const { data: dbRows, error: dbErr } = await admin
     .from("suppliers")
-    .select("*");
+    .select("*")
+    .eq("pais_codigo", pais_codigo);
 
   if (dbErr) {
     return NextResponse.json({ error: dbErr.message }, { status: 500 });
   }
 
   const dbSuppliers = (dbRows ?? []) as Supplier[];
-  const preview = computeImportPreview(parsed.rows, dbSuppliers);
+  const preview = computeImportPreview(parsed.rows, dbSuppliers, pais_codigo);
   const activeDbCount = dbSuppliers.filter((s) => s.activo).length;
   const lowVolumeWarning = needsLowVolumeConfirmation(
     parsed.rows.length,

@@ -32,10 +32,13 @@ export type ExcelParseSuccess = {
 
 export type ExcelParseResult = ExcelParseFailure | ExcelParseSuccess;
 
+const DEFAULT_TIPO_SIN_COLUMNA = "Proveedor";
+
 /** Normalizado sin tildes ni espacios laterales → clave canónica de columna. */
 const COLUMN_MAP: Record<string, keyof ColIndexShape> = {
   codigo: "codigo",
   código: "codigo",
+  contacto: "tienda",
   tienda: "tienda",
   instagram: "instagram",
   categoria: "categoria",
@@ -72,6 +75,15 @@ function normalizeHeaderLabel(value: string): string {
     .toLowerCase()
     .normalize("NFD")
     .replace(/\p{M}/gu, "");
+}
+
+function pickSheetName(sheetNames: string[]): string | null {
+  if (!sheetNames.length) return null;
+  const idx = sheetNames.findIndex(
+    (n) => normalizeHeaderLabel(n) === "contactos",
+  );
+  if (idx >= 0) return sheetNames[idx];
+  return sheetNames[0];
 }
 
 function parseCodigo(cell: unknown): number | null {
@@ -129,7 +141,7 @@ export function parseSupplierExcel(buffer: ArrayBuffer): ExcelParseResult {
     return { ok: false, error: "No se pudo leer el archivo." };
   }
 
-  const sheetName = workbook.SheetNames[0];
+  const sheetName = pickSheetName(workbook.SheetNames);
   if (!sheetName) {
     return { ok: false, error: "El archivo no tiene hojas." };
   }
@@ -158,7 +170,12 @@ export function parseSupplierExcel(buffer: ArrayBuffer): ExcelParseResult {
     colIndex[canonical] = i;
   }
 
+  const tipoColumnPresent = colIndex.tipo !== undefined;
+
   for (const key of REQUIRED_CANONICAL) {
+    if (key === "tipo" && !tipoColumnPresent) {
+      continue;
+    }
     if (colIndex[key] === undefined) {
       return {
         ok: false,
@@ -178,8 +195,12 @@ export function parseSupplierExcel(buffer: ArrayBuffer): ExcelParseResult {
     const rawCodigo = line[colIndex.codigo!];
     const codigo = parseCodigo(rawCodigo);
     const tienda = sanitizeTienda(cellValue(line, colIndex.tienda));
-    const tipoRaw = cellValue(line, colIndex.tipo);
-    const tipo = sanitizeTienda(tipoRaw);
+    const tipoRaw = tipoColumnPresent
+      ? cellValue(line, colIndex.tipo)
+      : DEFAULT_TIPO_SIN_COLUMNA;
+    const tipo = tipoColumnPresent
+      ? sanitizeTienda(tipoRaw)
+      : DEFAULT_TIPO_SIN_COLUMNA;
 
     if (codigo == null || !tienda) {
       return {
@@ -188,7 +209,7 @@ export function parseSupplierExcel(buffer: ArrayBuffer): ExcelParseResult {
       };
     }
 
-    if (!tipo) {
+    if (tipoColumnPresent && !tipo) {
       return {
         ok: false,
         error: `Fila ${r + 1}: "Tipo" es obligatorio y no puede estar vacío.`,

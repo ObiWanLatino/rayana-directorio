@@ -4,10 +4,10 @@ import { NextResponse, type NextRequest } from "next/server";
 import {
   fetchSubscriptionAccessRow,
   hasSubscriptionAccess,
-  isAdminEmail,
+  parseAdminEmails,
 } from "@/lib/auth/entitlements";
 
-export async function middleware(request: NextRequest) {
+export async function proxy(request: NextRequest) {
   const pathname = request.nextUrl.pathname;
 
   const isStripeWebhookPublic =
@@ -174,11 +174,10 @@ export async function middleware(request: NextRequest) {
       url.searchParams.set("next", pathname);
       return NextResponse.redirect(url);
     }
-    if (!isAdminEmail(user.email)) {
-      const url = request.nextUrl.clone();
-      url.pathname = "/hub";
-      url.search = "";
-      return NextResponse.redirect(url);
+    const adminEmails = parseAdminEmails();
+    const email = session?.user?.email?.trim().toLowerCase() ?? "";
+    if (!email || !adminEmails.includes(email)) {
+      return NextResponse.redirect(new URL("/hub", request.url));
     }
     return supabaseResponse;
   }

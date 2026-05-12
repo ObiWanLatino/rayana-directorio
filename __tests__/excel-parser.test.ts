@@ -86,6 +86,26 @@ describe("parseSupplierExcel", () => {
     expect(r.rows[0].whatsapp).toBeNull();
   });
 
+  test("prioriza hoja Contactos y mapea columnas Brasil sin Tipo", () => {
+    const wb = XLSX.utils.book_new();
+    const other = XLSX.utils.aoa_to_sheet([[1, 2]]);
+    XLSX.utils.book_append_sheet(wb, other, "Otra");
+    const contactos = XLSX.utils.aoa_to_sheet([
+      ["Código", "Contacto", "Instagram", "Whatsapp", "Categoría"],
+      [1, "Loja A", "@loja", "+5511999999999", "Bebidas"],
+    ]);
+    XLSX.utils.book_append_sheet(wb, contactos, "Contactos");
+    const buf = XLSX.write(wb, { type: "array", bookType: "xlsx" }) as ArrayBuffer;
+    const r = parseSupplierExcel(buf);
+    expect(r.ok).toBe(true);
+    if (!r.ok) return;
+    expect(r.sheetName).toBe("Contactos");
+    expect(r.rows).toHaveLength(1);
+    expect(r.rows[0].tienda).toBe("Loja A");
+    expect(r.rows[0].tipo).toBe("Proveedor");
+    expect(r.rows[0].codigo).toBe(1);
+  });
+
   test("parsea 76 filas de datos", () => {
     const headers = [
       "Código",

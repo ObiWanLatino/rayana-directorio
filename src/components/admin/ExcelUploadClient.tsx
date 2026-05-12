@@ -23,6 +23,7 @@ export function ExcelUploadClient() {
   const [downloadError, setDownloadError] = useState<string | null>(null);
 
   const [file, setFile] = useState<File | null>(null);
+  const [paisCodigo, setPaisCodigo] = useState("56");
   const [previewData, setPreviewData] = useState<PreviewResponse | null>(null);
   const [loading, setLoading] = useState(false);
   const [applyLoading, setApplyLoading] = useState(false);
@@ -65,13 +66,14 @@ export function ExcelUploadClient() {
     }
   }
 
-  async function runPreview(selected: File) {
+  async function runPreview(selected: File, countryCode: string = paisCodigo) {
     setError(null);
     setPreviewData(null);
     setLoading(true);
     try {
       const fd = new FormData();
       fd.set("file", selected);
+      fd.set("pais_codigo", countryCode);
       const res = await fetch("/api/admin/upload-excel", {
         method: "POST",
         body: fd,
@@ -100,6 +102,7 @@ export function ExcelUploadClient() {
     try {
       const fd = new FormData();
       fd.set("file", file);
+      fd.set("pais_codigo", paisCodigo);
       if (excludeIncomplete) fd.set("exclude_incomplete", "1");
       if (confirmBulkDeactivate) fd.set("confirm_bulk_deactivate", "1");
       if (confirmLowVolume) fd.set("confirm_low_volume", "1");
@@ -231,10 +234,46 @@ export function ExcelUploadClient() {
             </button>
           </div>
           <p className="text-sm text-zinc-600">
-            Primera hoja, columnas: Código, Tienda, Instagram, Categoría,
-            Dirección, Tipo, Observación, WhatsApp (nombres sin distinguir
-            mayúsculas).
+            Chile: primera hoja con Código, Tienda, Instagram, Categoría,
+            Dirección, Tipo, Observación, WhatsApp. Brasil: hoja{" "}
+            <strong>Contactos</strong> con Código, Contacto, Instagram, WhatsApp,
+            Categoría (sin columna Tipo se usa &quot;Proveedor&quot;).
           </p>
+          <div className="rounded-2xl border border-zinc-200 bg-zinc-50/80 p-4 shadow-sm">
+            <p className="text-sm font-medium text-zinc-800">
+              País del directorio
+            </p>
+            <div className="mt-3 flex flex-wrap gap-2">
+              <button
+                type="button"
+                onClick={() => {
+                  setPaisCodigo("56");
+                  if (file) void runPreview(file, "56");
+                }}
+                className={`rounded-xl border px-4 py-2 text-sm font-medium transition ${
+                  paisCodigo === "56"
+                    ? "border-emerald-700 bg-emerald-700 text-white"
+                    : "border-zinc-300 bg-white text-zinc-800 hover:border-zinc-400"
+                }`}
+              >
+                🇨🇱 Chile (56)
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setPaisCodigo("55");
+                  if (file) void runPreview(file, "55");
+                }}
+                className={`rounded-xl border px-4 py-2 text-sm font-medium transition ${
+                  paisCodigo === "55"
+                    ? "border-emerald-700 bg-emerald-700 text-white"
+                    : "border-zinc-300 bg-white text-zinc-800 hover:border-zinc-400"
+                }`}
+              >
+                🇧🇷 Brasil (55)
+              </button>
+            </div>
+          </div>
           <div className="rounded-2xl border border-zinc-200 bg-white p-6 shadow-sm">
             <label className="block text-sm font-medium text-zinc-700">
               Archivo .xlsx
@@ -248,7 +287,7 @@ export function ExcelUploadClient() {
                 setFile(f ?? null);
                 setPreviewData(null);
                 setError(null);
-                if (f) void runPreview(f);
+                if (f) void runPreview(f, paisCodigo);
               }}
             />
             {loading ? (

@@ -52,25 +52,55 @@ function dbSupplier(codigo: number, activo = true): Supplier {
   };
 }
 
-const rpc = vi.fn();
+const upsertMock = vi.fn().mockResolvedValue({ error: null });
+const updateInMock = vi.fn().mockResolvedValue({ error: null });
 const uploadInsert = vi.fn();
 
 beforeEach(() => {
   vi.resetAllMocks();
-  rpc.mockResolvedValue({ error: null });
+  upsertMock.mockResolvedValue({ error: null });
+  updateInMock.mockResolvedValue({ error: null });
   uploadInsert.mockResolvedValue({ error: null });
 });
+
+function mockSuppliersTable(rows: Supplier[]) {
+  const activePick = rows.filter((s) => s.activo).map((s) => ({
+    id: s.id,
+    codigo: s.codigo,
+  }));
+  return {
+    select: vi.fn((cols?: string) => {
+      if (cols && cols.includes("id") && cols.includes("codigo")) {
+        return {
+          eq: vi.fn(() => ({
+            eq: vi.fn(() => ({
+              data: activePick,
+              error: null,
+            })),
+          })),
+        };
+      }
+      return {
+        eq: vi.fn(() => ({
+          data: rows,
+          error: null,
+        })),
+      };
+    }),
+    upsert: upsertMock,
+    update: vi.fn(() => ({
+      in: updateInMock,
+    })),
+  };
+}
 
 vi.mock("@/lib/supabase/admin", () => ({
   createAdminSupabaseClient: () => ({
     from: (table: string) => {
       if (table === "suppliers") {
-        return {
-          select: () => ({
-            data: Array.from({ length: 76 }, (_, i) => dbSupplier(i + 1)),
-            error: null,
-          }),
-        };
+        return mockSuppliersTable(
+          Array.from({ length: 76 }, (_, i) => dbSupplier(i + 1)),
+        );
       }
       if (table === "upload_logs") {
         return {
@@ -79,11 +109,10 @@ vi.mock("@/lib/supabase/admin", () => ({
       }
       return {};
     },
-    rpc,
   }),
 }));
 
-describe("applyExcelImport (upsert + soft delete)", () => {
+describe("applyExcelImport (upsert + soft delete por país)", () => {
   test("exige confirmación de bajo volumen", async () => {
     const rows = Array.from({ length: 30 }, (_, i) => excelRow(i + 1));
     await expect(
@@ -91,12 +120,13 @@ describe("applyExcelImport (upsert + soft delete)", () => {
         rows,
         adminEmail: "a@b.c",
         filename: "f.xlsx",
+        pais_codigo: "56",
         excludeIncomplete: false,
         confirmBulkDeactivate: true,
         confirmLowVolume: false,
       }),
     ).rejects.toBeInstanceOf(LowVolumeConfirmationError);
-    expect(rpc).not.toHaveBeenCalled();
+    expect(upsertMock).not.toHaveBeenCalled();
   });
 
   test("exige confirmación de desactivación masiva", async () => {
@@ -106,28 +136,33 @@ describe("applyExcelImport (upsert + soft delete)", () => {
         rows,
         adminEmail: "a@b.c",
         filename: "f.xlsx",
+        pais_codigo: "56",
         excludeIncomplete: false,
         confirmBulkDeactivate: false,
         confirmLowVolume: true,
       }),
     ).rejects.toBeInstanceOf(BulkDeactivateConfirmationError);
-    expect(rpc).not.toHaveBeenCalled();
+    expect(upsertMock).not.toHaveBeenCalled();
   });
 
-  test("con confirmaciones llama merge_suppliers_from_excel", async () => {
+  test("con confirmaciones hace upsert con onConflict codigo,pais_codigo", async () => {
     const rows = Array.from({ length: 76 }, (_, i) => excelRow(i + 1));
     const out = await applyExcelImport({
       rows,
       adminEmail: "a@b.c",
       filename: "f.xlsx",
+      pais_codigo: "56",
       excludeIncomplete: false,
       confirmBulkDeactivate: false,
       confirmLowVolume: false,
     });
-    expect(rpc).toHaveBeenCalledWith("merge_suppliers_from_excel", {
-      p_rows: expect.any(Array),
-    });
-    expect(out.created + out.updated + out.deactivated).toBeGreaterThanOrEqual(0);
+    expect(upsertMock).toHaveBeenCalled();
+    expect(upsertMock.mock.calls[0][1]).toEqual(
+      expect.objectContaining({ onConflict: "codigo,pais_codigo" }),
+    );
+    expect(out.created + out.updated + out.deactivated).toBeGreaterThanOrEqual(
+      0,
+    );
   });
 
   test("70 filas con BD 76: desactiva 6 al confirmar todo", async () => {
@@ -136,26 +171,44 @@ describe("applyExcelImport (upsert + soft delete)", () => {
       rows,
       adminEmail: "a@b.c",
       filename: "f.xlsx",
+      pais_codigo: "56",
       excludeIncomplete: false,
       confirmBulkDeactivate: false,
       confirmLowVolume: false,
     });
     expect(out.deactivated).toBe(6);
-    const payload = rpc.mock.calls[0][1].p_rows as { codigo: number }[];
+    const payload = upsertMock.mock.calls[0][0] as { codigo: number }[];
     expect(payload).toHaveLength(70);
   });
 
-  test("0 filas rechaza antes de RPC", async () => {
+  test("0 filas rechaza antes de upsert", async () => {
     await expect(
       applyExcelImport({
         rows: [],
         adminEmail: "a@b.c",
         filename: "f.xlsx",
+        pais_codigo: "56",
         excludeIncomplete: false,
         confirmBulkDeactivate: true,
         confirmLowVolume: true,
       }),
     ).rejects.toThrow(/no tiene filas/i);
-    expect(rpc).not.toHaveBeenCalled();
+    expect(upsertMock).not.toHaveBeenCalled();
+  });
+
+  test("registra pais_codigo en upload_logs", async () => {
+    const rows = Array.from({ length: 76 }, (_, i) => excelRow(i + 1));
+    await applyExcelImport({
+      rows,
+      adminEmail: "admin@test.com",
+      filename: "br.xlsx",
+      pais_codigo: "55",
+      excludeIncomplete: false,
+      confirmBulkDeactivate: false,
+      confirmLowVolume: false,
+    });
+    expect(uploadInsert).toHaveBeenCalledWith(
+      expect.objectContaining({ pais_codigo: "55" }),
+    );
   });
 });

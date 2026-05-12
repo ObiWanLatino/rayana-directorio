@@ -64,5 +64,6 @@ export type UploadLog = {
   updated: number;
   deactivated: number;
   skipped_warnings: number;
+  pais_codigo: string;
   created_at: string;
 };

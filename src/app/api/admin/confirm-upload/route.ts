@@ -5,6 +5,7 @@ import {
   BulkDeactivateConfirmationError,
   LowVolumeConfirmationError,
 } from "@/lib/suppliers/apply-excel-import";
+import { readPaisCodigoFromFormData } from "@/lib/suppliers/pais-codigo-form";
 import { parseSupplierExcel } from "@/lib/utils/excel-parser";
 
 export const dynamic = "force-dynamic";
@@ -16,6 +17,12 @@ export async function POST(request: Request) {
   }
 
   const form = await request.formData();
+  const paisParsed = readPaisCodigoFromFormData(form);
+  if (!paisParsed.ok) {
+    return NextResponse.json({ error: paisParsed.message }, { status: 400 });
+  }
+  const pais_codigo = paisParsed.value;
+
   const file = form.get("file");
   if (!(file instanceof File)) {
     return NextResponse.json({ error: "Falta el archivo" }, { status: 400 });
@@ -49,6 +56,7 @@ export async function POST(request: Request) {
       rows: parsed.rows,
       adminEmail: user.email,
       filename: file.name,
+      pais_codigo,
       excludeIncomplete,
       confirmBulkDeactivate,
       confirmLowVolume,

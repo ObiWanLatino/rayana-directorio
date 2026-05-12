@@ -4,12 +4,14 @@ import {
 } from "@/lib/suppliers/excel-import";
 import {
   needsLowVolumeConfirmation,
-  rowsToRpcPayload,
   validateImportableRows,
 } from "@/lib/suppliers/import-validation";
 import type { ExcelSupplierRow } from "@/lib/utils/excel-parser";
 import { createAdminSupabaseClient } from "@/lib/supabase/admin";
 import type { Supplier } from "@/types";
+
+const UPSERT_CHUNK = 200;
+const DEACTIVATE_CHUNK = 200;
 
 export class BulkDeactivateConfirmationError extends Error {
   constructor() {
@@ -25,10 +27,53 @@ export class LowVolumeConfirmationError extends Error {
   }
 }
 
+function chunk<T>(arr: T[], size: number): T[][] {
+  const out: T[][] = [];
+  for (let i = 0; i < arr.length; i += size) {
+    out.push(arr.slice(i, i + size));
+  }
+  return out;
+}
+
+type SupplierImportUpsert = {
+  codigo: number;
+  tienda: string;
+  instagram: string | null;
+  categoria: string | null;
+  direccion: string | null;
+  tipo: string;
+  observacion: string | null;
+  whatsapp: string | null;
+  activo: boolean;
+  pais_codigo: string;
+  updated_at: string;
+};
+
+function buildUpsertRows(
+  rows: ExcelSupplierRow[],
+  pais_codigo: string,
+  updated_at: string,
+): SupplierImportUpsert[] {
+  return rows.map((r) => ({
+    codigo: r.codigo,
+    tienda: r.tienda,
+    instagram: r.instagram,
+    categoria: r.categoria,
+    direccion: r.direccion,
+    tipo: r.tipo,
+    observacion: r.observacion,
+    whatsapp: r.whatsapp,
+    activo: true,
+    pais_codigo,
+    updated_at,
+  }));
+}
+
 export async function applyExcelImport(params: {
   rows: ExcelSupplierRow[];
   adminEmail: string;
   filename: string;
+  pais_codigo: string;
   excludeIncomplete: boolean;
   confirmBulkDeactivate: boolean;
   confirmLowVolume: boolean;
@@ -42,6 +87,7 @@ export async function applyExcelImport(params: {
     rows: allRows,
     adminEmail,
     filename,
+    pais_codigo,
     excludeIncomplete,
     confirmBulkDeactivate,
     confirmLowVolume,
@@ -61,7 +107,8 @@ export async function applyExcelImport(params: {
   const admin = createAdminSupabaseClient();
   const { data: dbRows, error: loadErr } = await admin
     .from("suppliers")
-    .select("*");
+    .select("*")
+    .eq("pais_codigo", pais_codigo);
 
   if (loadErr) {
     throw new Error(loadErr.message);
@@ -77,19 +124,48 @@ export async function applyExcelImport(params: {
     throw new LowVolumeConfirmationError();
   }
 
-  const preview = computeImportPreview(rows, dbSuppliers);
+  const preview = computeImportPreview(rows, dbSuppliers, pais_codigo);
 
   if (preview.needsBulkDeactivateConfirm && !confirmBulkDeactivate) {
     throw new BulkDeactivateConfirmationError();
   }
 
-  const payload = rowsToRpcPayload(rows);
-  const { error: rpcErr } = await admin.rpc("merge_suppliers_from_excel", {
-    p_rows: payload,
-  });
+  const updatedAt = new Date().toISOString();
+  const upsertPayload = buildUpsertRows(rows, pais_codigo, updatedAt);
 
-  if (rpcErr) {
-    throw new Error(rpcErr.message);
+  for (const part of chunk(upsertPayload, UPSERT_CHUNK)) {
+    const { error: upErr } = await admin.from("suppliers").upsert(part, {
+      onConflict: "codigo,pais_codigo",
+    });
+    if (upErr) {
+      throw new Error(upErr.message);
+    }
+  }
+
+  const excelCodes = new Set(rows.map((r) => r.codigo));
+  const { data: activeRows, error: activeErr } = await admin
+    .from("suppliers")
+    .select("id, codigo")
+    .eq("pais_codigo", pais_codigo)
+    .eq("activo", true);
+
+  if (activeErr) {
+    throw new Error(activeErr.message);
+  }
+
+  const idsToDeactivate = (activeRows ?? [])
+    .filter((row) => !excelCodes.has(row.codigo))
+    .map((row) => row.id);
+
+  for (const idPart of chunk(idsToDeactivate, DEACTIVATE_CHUNK)) {
+    if (idPart.length === 0) continue;
+    const { error: deactErr } = await admin
+      .from("suppliers")
+      .update({ activo: false, updated_at: updatedAt })
+      .in("id", idPart);
+    if (deactErr) {
+      throw new Error(deactErr.message);
+    }
   }
 
   const { error: logErr } = await admin.from("upload_logs").insert({
@@ -100,6 +176,7 @@ export async function applyExcelImport(params: {
     updated: preview.updatedCount,
     deactivated: preview.deactivatedCount,
     skipped_warnings,
+    pais_codigo,
   });
 
   if (logErr) {

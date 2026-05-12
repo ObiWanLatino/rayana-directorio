@@ -5,7 +5,7 @@ import { BillingPortalButton } from "@/components/stripe/BillingPortalButton";
 import {
   fetchSubscriptionAccessRow,
   hasSubscriptionAccess,
-  isAdminEmail,
+  parseAdminEmails,
 } from "@/lib/auth/entitlements";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import type { User } from "@supabase/supabase-js";
@@ -58,7 +58,13 @@ export default async function HubPage({
     .maybeSingle();
 
   const canUseBillingPortal = Boolean(billingRow?.stripe_customer_id);
-  const isAdmin = isAdminEmail(user.email);
+  const {
+    data: { session },
+  } = await supabase.auth.getSession();
+
+  const adminEmails = parseAdminEmails();
+  const userEmail = session?.user?.email?.trim().toLowerCase() ?? "";
+  const isAdmin = adminEmails.includes(userEmail);
 
   const rawName = user.user_metadata?.full_name;
   const fullName = typeof rawName === "string" ? rawName : undefined;
