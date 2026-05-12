@@ -11,6 +11,11 @@ import {
 } from "@/components/ProviderCard";
 import { ProviderSkeleton } from "@/components/ProviderSkeleton";
 import { SearchBar } from "@/components/SearchBar";
+import {
+  DirectorioCountryTabs,
+  directorioPaisCodigo,
+  directorioPaisFromSearchParam,
+} from "@/components/suppliers/DirectorioCountryTabs";
 import { ProveedoresEmptyState } from "@/components/suppliers/ProveedoresEmptyState";
 import { WA_MESSAGE } from "@/components/suppliers/SupplierActionButton";
 import {
@@ -28,6 +33,7 @@ import { useSuppliers } from "@/hooks/useSuppliers";
 import { createBrowserSupabaseClient } from "@/lib/supabase/client";
 import type { Supplier } from "@/types";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 
 function supplierToCardProvider(s: Supplier): ProviderCardProvider {
@@ -52,12 +58,20 @@ function supplierToCardProvider(s: Supplier): ProviderCardProvider {
 }
 
 export function ProveedoresView() {
-  const { suppliers, loading, error, retry } = useSuppliers();
+  const searchParams = useSearchParams();
+  const paisTab = directorioPaisFromSearchParam(searchParams.get("pais"));
+  const paisCodigo = directorioPaisCodigo(paisTab);
+  const { suppliers, loading, error, retry } = useSuppliers(paisCodigo);
   const [query, setQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [filterOpen, setFilterOpen] = useState(false);
   const [userMark, setUserMark] = useState("");
   const [userEmail, setUserEmail] = useState("");
+
+  useEffect(() => {
+    setQuery("");
+    setSelectedCategory(null);
+  }, [paisTab]);
 
   useEffect(() => {
     let cancel = false;
@@ -199,6 +213,7 @@ export function ProveedoresView() {
               ☰ Filtrar
             </button>
           </div>
+          <DirectorioCountryTabs />
           <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
             <div>
               <h1 className="font-display text-2xl font-bold tracking-tight text-navy md:text-[26px]">

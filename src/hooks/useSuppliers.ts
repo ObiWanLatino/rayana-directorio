@@ -3,7 +3,7 @@
 import type { Supplier } from "@/types";
 import { useCallback, useEffect, useRef, useState } from "react";
 
-export function useSuppliers() {
+export function useSuppliers(paisCodigo: "55" | "56") {
   const [suppliers, setSuppliers] = useState<Supplier[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -22,7 +22,8 @@ export function useSuppliers() {
       setLoading(true);
       setError(null);
       try {
-        const res = await fetch("/api/suppliers");
+        const qs = new URLSearchParams({ pais_codigo: paisCodigo });
+        const res = await fetch(`/api/suppliers?${qs.toString()}`);
         const data: { suppliers?: Supplier[]; error?: string } =
           await res.json();
         if (!res.ok) {
@@ -43,7 +44,7 @@ export function useSuppliers() {
     }
 
     void load();
-  }, [attempt]);
+  }, [attempt, paisCodigo]);
 
   return { suppliers, loading, error, retry };
 }

@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+import { NextResponse, type NextRequest } from "next/server";
 import {
   fetchSubscriptionAccessRow,
   hasSubscriptionAccess,
@@ -8,7 +8,13 @@ import type { Supplier } from "@/types";
 
 export const dynamic = "force-dynamic";
 
-export async function GET() {
+function resolvePaisCodigo(searchParams: URLSearchParams): string {
+  const raw = searchParams.get("pais_codigo")?.trim();
+  if (raw === "55" || raw === "56") return raw;
+  return "56";
+}
+
+export async function GET(request: NextRequest) {
   const supabase = await createServerSupabaseClient();
   const {
     data: { user },
@@ -23,10 +29,13 @@ export async function GET() {
     return NextResponse.json({ error: "Suscripción requerida" }, { status: 403 });
   }
 
+  const pais_codigo = resolvePaisCodigo(request.nextUrl.searchParams);
+
   const { data, error } = await supabase
     .from("suppliers")
     .select("*")
     .eq("activo", true)
+    .eq("pais_codigo", pais_codigo)
     .order("codigo", { ascending: true });
 
   if (error) {

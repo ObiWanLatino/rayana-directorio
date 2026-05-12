@@ -1,5 +1,5 @@
-import { ProveedoresView } from "@/components/suppliers/ProveedoresView";
+import { DirectorioViewShell } from "@/components/suppliers/DirectorioViewShell";
 
 export default function DirectorioPage() {
-  return <ProveedoresView />;
+  return <DirectorioViewShell />;
 }
