@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+import { NextResponse, type NextRequest } from "next/server";
 import * as XLSX from "xlsx";
 import { getAdminUser } from "@/lib/auth/require-admin";
 import { createAdminSupabaseClient } from "@/lib/supabase/admin";
@@ -6,16 +6,21 @@ import type { Supplier } from "@/types";
 
 export const dynamic = "force-dynamic";
 
-export async function GET() {
+export async function GET(request: NextRequest) {
   const user = await getAdminUser();
   if (!user) {
     return NextResponse.json({ error: "No autorizado" }, { status: 403 });
   }
 
+  const raw = request.nextUrl.searchParams.get("pais_codigo");
+  const pais_codigo =
+    typeof raw === "string" && raw.trim() !== "" ? raw.trim() : "56";
+
   const admin = createAdminSupabaseClient();
   const { data, error } = await admin
     .from("suppliers")
     .select("*")
+    .eq("pais_codigo", pais_codigo)
     .order("codigo", { ascending: true });
 
   if (error) {
@@ -59,7 +64,7 @@ export async function GET() {
   const body = new Uint8Array(buf);
 
   const date = new Date().toISOString().slice(0, 10);
-  const filename = `proveedores_backup_${date}.xlsx`;
+  const filename = `proveedores_backup_${pais_codigo}_${date}.xlsx`;
 
   return new NextResponse(body, {
     headers: {
