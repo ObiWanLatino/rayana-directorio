@@ -20,6 +20,12 @@ export type Subscription = {
   user_id: string;
   stripe_customer_id: string | null;
   stripe_subscription_id: string | null;
+  payment_processor: string | null;
+  lemon_squeezy_customer_id: string | null;
+  lemon_squeezy_subscription_id: string | null;
+  lemon_squeezy_order_id: string | null;
+  lemon_squeezy_variant_id: string | null;
+  customer_portal_url: string | null;
   status: SubscriptionStatus;
   current_period_end: string | null;
   cancel_at_period_end: boolean;

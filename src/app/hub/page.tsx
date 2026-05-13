@@ -53,11 +53,13 @@ export default async function HubPage({
 
   const { data: billingRow } = await supabase
     .from("subscriptions")
-    .select("stripe_customer_id")
+    .select("stripe_customer_id, customer_portal_url")
     .eq("user_id", user.id)
     .maybeSingle();
 
-  const canUseBillingPortal = Boolean(billingRow?.stripe_customer_id);
+  const canUseBillingPortal = Boolean(
+    billingRow?.stripe_customer_id || billingRow?.customer_portal_url,
+  );
   const {
     data: { session },
   } = await supabase.auth.getSession();

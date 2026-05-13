@@ -174,10 +174,12 @@ export function ProveedoresView() {
   );
 
   return (
-    <div className="flex min-h-screen bg-off">
+    <div className="flex h-screen min-h-0 overflow-hidden bg-off">
       {/* Desktop sidebar */}
-      <aside className="sticky top-0 hidden h-screen w-[240px] shrink-0 flex-col bg-navy lg:flex">
-        <div className="flex h-full flex-col px-4 py-6">{sidebarInner}</div>
+      <aside className="hidden min-h-0 w-[240px] shrink-0 flex-col overflow-hidden bg-navy lg:flex">
+        <div className="flex min-h-0 flex-1 flex-col overflow-hidden px-4 py-6">
+          {sidebarInner}
+        </div>
       </aside>
 
       {/* Mobile filter drawer */}
@@ -189,15 +191,17 @@ export function ProveedoresView() {
         onClick={() => setFilterOpen(false)}
       />
       <aside
-        className={`fixed left-0 top-0 z-50 flex h-full w-[min(88vw,280px)] flex-col bg-navy shadow-2xl transition-transform duration-200 lg:hidden ${
+        className={`fixed left-0 top-0 z-50 flex h-[100dvh] max-h-[100dvh] min-h-0 w-[min(88vw,280px)] flex-col overflow-hidden bg-navy shadow-2xl transition-transform duration-200 lg:hidden ${
           filterOpen ? "translate-x-0" : "-translate-x-full"
         }`}
       >
-        <div className="flex flex-col px-4 py-6">{sidebarInner}</div>
+        <div className="flex min-h-0 flex-1 flex-col overflow-hidden px-4 py-6">
+          {sidebarInner}
+        </div>
       </aside>
 
-      <div className="flex min-w-0 flex-1 flex-col">
-        <header className="border-b border-primary/10 bg-white px-4 py-4 md:px-8 md:py-6">
+      <div className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden">
+        <header className="shrink-0 border-b border-primary/10 bg-white px-4 py-4 md:px-8 md:py-6">
           <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
             <Link
               href="/hub"
@@ -237,7 +241,7 @@ export function ProveedoresView() {
           </div>
         </header>
 
-        <main className="flex-1 px-4 py-6 md:px-8">
+        <main className="min-h-0 flex-1 overflow-y-auto px-4 py-6 md:px-8">
           {loading ? (
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
               {Array.from({ length: 6 }).map((_, i) => (

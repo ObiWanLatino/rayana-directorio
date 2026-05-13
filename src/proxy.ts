@@ -12,7 +12,8 @@ export async function proxy(request: NextRequest) {
 
   const isStripeWebhookPublic =
     pathname.startsWith("/api/stripe/webhook") ||
-    pathname.startsWith("/api/webhooks/stripe");
+    pathname.startsWith("/api/webhooks/stripe") ||
+    pathname.startsWith("/api/lemonsqueezy/webhook");
 
   const isPublic =
     pathname === "/" ||

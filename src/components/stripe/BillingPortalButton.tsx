@@ -15,7 +15,9 @@ export function BillingPortalButton({ disabled, className }: BillingPortalButton
     setError(null);
     setLoading(true);
     try {
-      const res = await fetch("/api/stripe/create-portal", { method: "POST" });
+      const res = await fetch("/api/lemonsqueezy/customer-portal", {
+        method: "POST",
+      });
       const data: { url?: string; error?: string } = await res.json();
       if (!res.ok) {
         setError(data.error ?? "No se pudo abrir el portal");
