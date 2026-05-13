@@ -14,6 +14,7 @@ type LoginFormProps = {
 const errorMessages: Record<string, string> = {
   oauth: "No se pudo completar el inicio de sesión con Google.",
   confirm: "El enlace de confirmación no es válido o expiró.",
+  invalid_link: "El enlace de confirmación no es válido o expiró.",
   session: "Tu sesión fue iniciada en otro dispositivo. Por favor inicia sesión nuevamente.",
   suspended:
     "Tu cuenta ha sido suspendida. Contacta a soporte en hola@makeray.cl",

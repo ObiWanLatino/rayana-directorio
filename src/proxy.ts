@@ -19,6 +19,7 @@ export async function proxy(request: NextRequest) {
     pathname === "/" ||
     pathname === "/login" ||
     pathname.startsWith("/auth/callback") ||
+    pathname.startsWith("/api/auth/callback") ||
     pathname.startsWith("/auth/confirm") ||
     isStripeWebhookPublic;
 
