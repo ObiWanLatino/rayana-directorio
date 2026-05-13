@@ -15,13 +15,13 @@ const cards: {
   {
     title: "Ver / Editar proveedores",
     description: "Listado completo, activos e inactivos, con enlace a edición.",
-    href: "/admin/suppliers",
+    href: "/admin/suppliers?pais=cl",
     cta: "Abrir lista",
   },
   {
     title: "Agregar nuevo proveedor",
     description: "Formulario con validación y códigos únicos.",
-    href: "/admin/suppliers/new",
+    href: "/admin/suppliers/new?pais=cl",
     cta: "Nuevo proveedor",
   },
   {

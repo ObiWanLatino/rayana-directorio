@@ -32,7 +32,6 @@ type PatchByIdBody = {
   observacion?: string | null;
   whatsapp?: string | null;
   activo?: boolean;
-  pais_codigo?: string;
   destacado?: boolean;
   verificado?: boolean;
 };
@@ -137,16 +136,6 @@ export async function PATCH(
   }
   if (body.verificado !== undefined) {
     patch.verificado = Boolean(body.verificado);
-  }
-  if (body.pais_codigo !== undefined) {
-    const p = String(body.pais_codigo).trim();
-    if (!/^\d+$/.test(p)) {
-      return NextResponse.json(
-        { error: "pais_codigo debe ser numérico" },
-        { status: 400 },
-      );
-    }
-    patch.pais_codigo = p;
   }
 
   if (Object.keys(patch).length <= 1) {

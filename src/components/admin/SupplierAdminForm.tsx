@@ -1,18 +1,28 @@
 "use client";
 
+import {
+  type PaisSlug,
+  paisCodigoToSlug,
+  paisDirectoryLabel,
+} from "@/lib/admin/supplier-pais";
 import type { Supplier } from "@/types";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
 type Props =
-  | { mode: "new"; supplier?: undefined }
+  | { mode: "new"; listPaisSlug: PaisSlug; paisCodigo: string }
   | { mode: "edit"; supplier: Supplier };
 
 export function SupplierAdminForm(props: Props) {
   const router = useRouter();
   const isEdit = props.mode === "edit";
   const s = isEdit ? props.supplier : null;
+
+  const listPaisSlug: PaisSlug = isEdit
+    ? paisCodigoToSlug(s!.pais_codigo)
+    : props.listPaisSlug;
+  const listHref = `/admin/suppliers?pais=${listPaisSlug}`;
 
   const [codigo, setCodigo] = useState(
     isEdit ? String(s!.codigo) : "",
@@ -28,7 +38,6 @@ export function SupplierAdminForm(props: Props) {
   const [observacion, setObservacion] = useState(s?.observacion ?? "");
   const [whatsapp, setWhatsapp] = useState(s?.whatsapp ?? "");
   const [activo, setActivo] = useState(s?.activo ?? true);
-  const [paisCodigo, setPaisCodigo] = useState(s?.pais_codigo ?? "56");
   const [destacado, setDestacado] = useState(s?.destacado ?? false);
   const [verificado, setVerificado] = useState(s?.verificado ?? false);
 
@@ -114,7 +123,6 @@ export function SupplierAdminForm(props: Props) {
             observacion: observacion.trim() === "" ? null : observacion,
             whatsapp: whatsapp.trim() === "" ? null : whatsapp,
             activo,
-            pais_codigo: paisCodigo,
             destacado,
             verificado,
           }),
@@ -124,7 +132,7 @@ export function SupplierAdminForm(props: Props) {
           setError(data.error ?? "Error al guardar");
           return;
         }
-        router.push("/admin/suppliers");
+        router.push(listHref);
         router.refresh();
         return;
       }
@@ -151,7 +159,7 @@ export function SupplierAdminForm(props: Props) {
           observacion: observacion.trim() === "" ? null : observacion,
           whatsapp: whatsapp.trim() === "" ? null : whatsapp,
           activo,
-          pais_codigo: paisCodigo,
+          pais_codigo: props.paisCodigo,
         }),
       });
       const data: { error?: string } = await res.json();
@@ -159,7 +167,7 @@ export function SupplierAdminForm(props: Props) {
         setError(data.error ?? "Error al crear");
         return;
       }
-      router.push("/admin/suppliers");
+      router.push(listHref);
       router.refresh();
     } catch {
       setError("Error de red");
@@ -184,7 +192,7 @@ export function SupplierAdminForm(props: Props) {
         setError(data.error ?? "Error al desactivar");
         return;
       }
-      router.push("/admin/suppliers");
+      router.push(listHref);
       router.refresh();
     } catch {
       setError("Error de red");
@@ -200,7 +208,7 @@ export function SupplierAdminForm(props: Props) {
     <div className="space-y-8">
       <div>
         <Link
-          href="/admin/suppliers"
+          href={listHref}
           className="text-sm text-zinc-500 underline hover:text-zinc-700"
         >
           ← Lista de proveedores
@@ -209,6 +217,12 @@ export function SupplierAdminForm(props: Props) {
           {isEdit ? "Editar proveedor" : "Nuevo proveedor"}
         </h1>
       </div>
+
+      <p className="inline-flex rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 text-sm font-medium text-emerald-950">
+        {isEdit
+          ? `Editando proveedor de: ${paisDirectoryLabel(listPaisSlug)}`
+          : `Creando proveedor en: ${paisDirectoryLabel(listPaisSlug)}`}
+      </p>
 
       {error ? (
         <p className="text-sm text-red-600" role="alert">
@@ -384,18 +398,6 @@ export function SupplierAdminForm(props: Props) {
             onChange={(e) => setWhatsapp(e.target.value)}
             placeholder="Solo dígitos (ej. 56912345678)"
             className={inputClass}
-          />
-        </div>
-
-        <div>
-          <label className="block text-sm font-medium text-zinc-700" htmlFor="pais">
-            Código país (WhatsApp)
-          </label>
-          <input
-            id="pais"
-            value={paisCodigo}
-            onChange={(e) => setPaisCodigo(e.target.value)}
-            className={`${inputClass} max-w-[8rem]`}
           />
         </div>
 

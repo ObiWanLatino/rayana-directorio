@@ -21,11 +21,14 @@ export async function GET(request: Request) {
 
   const { searchParams } = new URL(request.url);
   const q = searchParams.get("q")?.trim().toLowerCase() ?? "";
+  const paisRaw = searchParams.get("pais_codigo")?.trim() ?? "56";
+  const pais_codigo = /^\d+$/.test(paisRaw) ? paisRaw : "56";
 
   const admin = createAdminSupabaseClient();
   const { data, error } = await admin
     .from("suppliers")
     .select("*")
+    .eq("pais_codigo", pais_codigo)
     .order("codigo", { ascending: true });
 
   if (error) {
@@ -92,25 +95,26 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "tipo es requerido" }, { status: 400 });
   }
 
+  const pais = body.pais_codigo?.trim() ?? "56";
+  if (!/^\d+$/.test(pais)) {
+    return NextResponse.json(
+      { error: "pais_codigo debe ser numérico" },
+      { status: 400 },
+    );
+  }
+
   const admin = createAdminSupabaseClient();
   const { data: dup } = await admin
     .from("suppliers")
     .select("id")
     .eq("codigo", codigo)
+    .eq("pais_codigo", pais)
     .maybeSingle();
 
   if (dup) {
     return NextResponse.json(
       { error: "Ya existe un proveedor con ese código" },
       { status: 409 },
-    );
-  }
-
-  const pais = body.pais_codigo?.trim() ?? "56";
-  if (!/^\d+$/.test(pais)) {
-    return NextResponse.json(
-      { error: "pais_codigo debe ser numérico" },
-      { status: 400 },
     );
   }
 
@@ -159,7 +163,6 @@ type PatchBody = {
   observacion?: string | null;
   whatsapp?: string | null;
   activo?: boolean;
-  pais_codigo?: string;
 };
 
 export async function PATCH(request: Request) {
@@ -243,16 +246,6 @@ export async function PATCH(request: Request) {
   }
   if (body.activo !== undefined) {
     patch.activo = Boolean(body.activo);
-  }
-  if (body.pais_codigo !== undefined) {
-    const p = String(body.pais_codigo).trim();
-    if (!/^\d+$/.test(p)) {
-      return NextResponse.json(
-        { error: "pais_codigo debe ser numérico" },
-        { status: 400 },
-      );
-    }
-    patch.pais_codigo = p;
   }
 
   if (Object.keys(patch).length <= 1) {
