@@ -28,6 +28,7 @@ e2e/.auth/
 /build
 
 # misc
+Landing Page/
 .DS_Store
 *.pem
 public/logo-original.png

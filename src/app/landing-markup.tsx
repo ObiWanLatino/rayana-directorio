@@ -36,7 +36,16 @@ export function LandingMarkup({
       <li><a href="#categorias">Categorías</a></li>
       <li><a href="#precio">Precio</a></li>
       <li><a href="#faq">FAQ</a></li>
-      <li><Link href="/login" className="btn-nav">Acceder ahora</Link></li>
+      <li>
+        <Link href="/login" className="btn-nav-outline">
+          Iniciar sesión
+        </Link>
+      </li>
+      <li>
+        <Link href="/checkout" className="btn-nav">
+          Acceder ahora
+        </Link>
+      </li>
     </ul>
     <button
       type="button"
@@ -60,7 +69,12 @@ export function LandingMarkup({
     <a href="#categorias">Categorías</a>
     <a href="#precio">Precio</a>
     <a href="#faq">FAQ</a>
-    <Link href="/login" className="btn-mob">Acceder ahora →</Link>
+    <Link href="/login" className="btn-mob-outline">
+      Iniciar sesión
+    </Link>
+    <Link href="/checkout" className="btn-mob">
+      Acceder ahora →
+    </Link>
   </div>
 </nav>
 
