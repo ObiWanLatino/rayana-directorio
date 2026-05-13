@@ -2,7 +2,7 @@ import Image from "next/image";
 import Link from "next/link";
 
 type MakerayLogoProps = {
-  size?: "sm" | "md" | "lg";
+  size?: "sm" | "md" | "lg" | "xl";
   /** true sobre fondo navy (footer, sidebar) */
   invert?: boolean;
   href?: string;
@@ -12,7 +12,7 @@ type MakerayLogoProps = {
   priority?: boolean;
 };
 
-const heightMap = { sm: 40, md: 52, lg: 64 } as const;
+const heightMap = { sm: 40, md: 52, lg: 64, xl: 120 } as const;
 
 export function MakerayLogo({
   size = "md",

@@ -18,7 +18,9 @@ export async function proxy(request: NextRequest) {
   const isPublic =
     pathname === "/" ||
     pathname === "/login" ||
+    pathname === "/forgot-password" ||
     pathname.startsWith("/auth/callback") ||
+    pathname.startsWith("/auth/reset-password") ||
     pathname.startsWith("/api/auth/callback") ||
     pathname.startsWith("/auth/confirm") ||
     isStripeWebhookPublic;

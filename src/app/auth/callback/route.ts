@@ -72,6 +72,10 @@ export async function GET(request: Request) {
         .eq("id", user.id);
     }
 
+    if (typeParam === "recovery") {
+      return NextResponse.redirect(`${base}/auth/reset-password`);
+    }
+
     return NextResponse.redirect(`${base}/hub`);
   }
 
