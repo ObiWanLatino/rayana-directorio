@@ -1,5 +1,6 @@
 import type Stripe from "stripe";
 import { getInvoiceSubscriptionId } from "@/lib/stripe/invoice-subscription";
+import type { StripeCheckoutBillingMeta } from "@/lib/stripe/sync-subscription";
 import {
   markSubscriptionCanceledByStripeId,
   resolveUserIdForStripeSubscription,
@@ -7,6 +8,33 @@ import {
   upsertSubscriptionFromStripe,
 } from "@/lib/stripe/sync-subscription";
 import { createAdminSupabaseClient } from "@/lib/supabase/admin";
+
+function checkoutBillingFromSessionMetadata(
+  metadata: Stripe.Metadata | null | undefined,
+): StripeCheckoutBillingMeta | null {
+  const currency = metadata?.currency;
+  if (currency !== "CLP" && currency !== "USD") {
+    return null;
+  }
+  const rawAmount = metadata?.amount;
+  const amountParsed =
+    rawAmount != null && rawAmount !== ""
+      ? Number(rawAmount)
+      : currency === "CLP"
+        ? 14990
+        : 15;
+  if (!Number.isFinite(amountParsed)) {
+    return null;
+  }
+  const plan_name =
+    (metadata?.plan_name as string | undefined) ||
+    (currency === "CLP" ? "Premium CLP" : "Premium USD");
+  return {
+    currency,
+    plan_name,
+    amount: amountParsed,
+  };
+}
 
 export async function handleCheckoutSessionCompleted(
   session: Stripe.Checkout.Session,
@@ -24,7 +52,8 @@ export async function handleCheckoutSessionCompleted(
     return;
   }
   const sub = await retrieveSubscriptionExpanded(subId);
-  await upsertSubscriptionFromStripe(sub, userId);
+  const billing = checkoutBillingFromSessionMetadata(session.metadata);
+  await upsertSubscriptionFromStripe(sub, userId, billing);
 }
 
 export async function handleInvoicePaymentSucceeded(

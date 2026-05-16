@@ -13,11 +13,13 @@ export async function proxy(request: NextRequest) {
   const isStripeWebhookPublic =
     pathname.startsWith("/api/stripe/webhook") ||
     pathname.startsWith("/api/webhooks/stripe") ||
-    pathname.startsWith("/api/lemonsqueezy/webhook");
+    pathname.startsWith("/api/lemonsqueezy/webhook") ||
+    pathname.startsWith("/api/webhooks/lemon-squeezy-proveedores");
 
   const isPublic =
     pathname === "/" ||
     pathname === "/login" ||
+    pathname === "/unete-proveedor" ||
     pathname === "/forgot-password" ||
     pathname.startsWith("/auth/callback") ||
     pathname.startsWith("/auth/reset-password") ||
@@ -147,6 +149,8 @@ export async function proxy(request: NextRequest) {
     pathname.startsWith("/hub/") ||
     pathname === "/proveedores" ||
     pathname.startsWith("/proveedores/") ||
+    pathname === "/proveedor" ||
+    pathname.startsWith("/proveedor/") ||
     pathname === "/directorio" ||
     pathname.startsWith("/directorio/") ||
     pathname === "/fabricantes" ||
@@ -168,6 +172,33 @@ export async function proxy(request: NextRequest) {
       url.search = "";
       return NextResponse.redirect(url);
     }
+
+    if (pathname.startsWith("/proveedor/dashboard")) {
+      const { data: prof } = await supabase
+        .from("supplier_profiles")
+        .select("onboarding_completed")
+        .eq("user_id", user.id)
+        .maybeSingle();
+      if (!prof?.onboarding_completed) {
+        return NextResponse.redirect(
+          new URL("/proveedor/onboarding", request.url),
+        );
+      }
+    }
+
+    if (pathname.startsWith("/proveedor/onboarding")) {
+      const { data: prof } = await supabase
+        .from("supplier_profiles")
+        .select("onboarding_completed")
+        .eq("user_id", user.id)
+        .maybeSingle();
+      if (prof?.onboarding_completed) {
+        return NextResponse.redirect(
+          new URL("/proveedor/dashboard", request.url),
+        );
+      }
+    }
+
     return supabaseResponse;
   }
 

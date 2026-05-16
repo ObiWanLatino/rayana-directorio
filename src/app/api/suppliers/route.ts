@@ -4,7 +4,10 @@ import {
   hasSubscriptionAccess,
 } from "@/lib/auth/entitlements";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
-import type { Supplier } from "@/types";
+import type {
+  SupplierProfileSummary,
+  SupplierWithProfile,
+} from "@/types/proveedores";
 
 export const dynamic = "force-dynamic";
 
@@ -33,7 +36,7 @@ export async function GET(request: NextRequest) {
 
   const { data, error } = await supabase
     .from("suppliers")
-    .select("*")
+    .select("*, supplier_profiles (plan, badge, onboarding_completed)")
     .eq("activo", true)
     .eq("pais_codigo", pais_codigo)
     .order("codigo", { ascending: true });
@@ -42,5 +45,15 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 
-  return NextResponse.json({ suppliers: (data ?? []) as Supplier[] });
+  const rows = (data ?? []) as (SupplierWithProfile & {
+    supplier_profiles?: SupplierProfileSummary | SupplierProfileSummary[] | null;
+  })[];
+
+  const suppliers: SupplierWithProfile[] = rows.map((row) => {
+    const raw = row.supplier_profiles;
+    const summary = Array.isArray(raw) ? raw[0] ?? null : raw ?? null;
+    return { ...row, supplier_profiles: summary };
+  });
+
+  return NextResponse.json({ suppliers });
 }

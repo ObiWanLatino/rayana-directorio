@@ -1,15 +1,10 @@
 import { NextResponse } from "next/server";
-import { getAppUrl } from "@/lib/app-url";
-import {
-  fetchSubscriptionAccessRow,
-  hasSubscriptionAccess,
-} from "@/lib/auth/entitlements";
-import { getStripe } from "@/lib/stripe/client";
+import { createRegionalStripeSubscriptionCheckoutSession } from "@/lib/stripe/create-regional-checkout-session";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 
 export const dynamic = "force-dynamic";
 
-export async function POST() {
+export async function POST(request: Request) {
   try {
     const supabase = await createServerSupabaseClient();
     const {
@@ -20,55 +15,21 @@ export async function POST() {
       return NextResponse.json({ error: "No autorizado" }, { status: 401 });
     }
 
-    const access = await fetchSubscriptionAccessRow(supabase, user.id);
-    if (hasSubscriptionAccess(access)) {
+    const result = await createRegionalStripeSubscriptionCheckoutSession(
+      request.headers,
+      supabase,
+      user,
+      { cancelPath: "/checkout" },
+    );
+
+    if (!result.ok) {
       return NextResponse.json(
-        { error: "Ya tienes una suscripción activa" },
-        { status: 400 },
+        { error: result.error },
+        { status: result.status },
       );
     }
 
-    const priceId = process.env.STRIPE_PRICE_ID;
-    if (!priceId) {
-      return NextResponse.json(
-        { error: "STRIPE_PRICE_ID no configurado" },
-        { status: 500 },
-      );
-    }
-
-    const { data: existingRow } = await supabase
-      .from("subscriptions")
-      .select("stripe_customer_id")
-      .eq("user_id", user.id)
-      .maybeSingle();
-
-    const stripe = getStripe();
-    const origin = getAppUrl();
-
-    const session = await stripe.checkout.sessions.create({
-      mode: "subscription",
-      line_items: [{ price: priceId, quantity: 1 }],
-      success_url: `${origin}/hub?session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: `${origin}/checkout`,
-      client_reference_id: user.id,
-      allow_promotion_codes: false,
-      subscription_data: {
-        metadata: { user_id: user.id },
-      },
-      metadata: { user_id: user.id },
-      ...(existingRow?.stripe_customer_id
-        ? { customer: existingRow.stripe_customer_id }
-        : { customer_email: user.email }),
-    });
-
-    if (!session.url) {
-      return NextResponse.json(
-        { error: "Stripe no devolvió URL de checkout" },
-        { status: 500 },
-      );
-    }
-
-    return NextResponse.json({ url: session.url });
+    return NextResponse.json({ url: result.url });
   } catch (e) {
     const message =
       e instanceof Error ? e.message : "Error al crear la sesión de pago";

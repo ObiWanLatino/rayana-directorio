@@ -35,9 +35,16 @@ export async function retrieveSubscriptionExpanded(
   });
 }
 
+export type StripeCheckoutBillingMeta = {
+  currency: "CLP" | "USD";
+  plan_name: string;
+  amount: number;
+};
+
 export function subscriptionToDbPayload(
   sub: Stripe.Subscription,
   userId: string,
+  checkoutBilling?: StripeCheckoutBillingMeta | null,
 ): {
   user_id: string;
   stripe_customer_id: string;
@@ -46,8 +53,16 @@ export function subscriptionToDbPayload(
   current_period_end: string | null;
   cancel_at_period_end: boolean;
   updated_at: string;
+  payment_processor: string;
+  provider: string;
+  provider_subscription_id: string;
+  started_at: string;
+  plan_name?: string;
+  currency?: string;
+  last_purchase_currency?: string;
+  last_purchase_amount?: number;
 } {
-  return {
+  const base = {
     user_id: userId,
     stripe_customer_id: customerIdOf(sub),
     stripe_subscription_id: sub.id,
@@ -55,15 +70,32 @@ export function subscriptionToDbPayload(
     current_period_end: subscriptionCurrentPeriodEndIso(sub),
     cancel_at_period_end: sub.cancel_at_period_end,
     updated_at: new Date().toISOString(),
+    payment_processor: "stripe",
+    provider: "stripe" as const,
+    provider_subscription_id: sub.id,
+    started_at: new Date(sub.created * 1000).toISOString(),
+  };
+
+  if (!checkoutBilling) {
+    return base;
+  }
+
+  return {
+    ...base,
+    plan_name: checkoutBilling.plan_name,
+    currency: checkoutBilling.currency,
+    last_purchase_currency: checkoutBilling.currency,
+    last_purchase_amount: checkoutBilling.amount,
   };
 }
 
 export async function upsertSubscriptionFromStripe(
   sub: Stripe.Subscription,
   userId: string,
+  checkoutBilling?: StripeCheckoutBillingMeta | null,
 ): Promise<void> {
   const admin = createAdminSupabaseClient();
-  const row = subscriptionToDbPayload(sub, userId);
+  const row = subscriptionToDbPayload(sub, userId, checkoutBilling);
   const { error } = await admin.from("subscriptions").upsert(row, {
     onConflict: "user_id",
   });

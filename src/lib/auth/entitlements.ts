@@ -11,7 +11,9 @@ export function hasSubscriptionAccess(
   row: SubscriptionAccessRow | null | undefined,
 ): boolean {
   if (!row) return false;
-  if (row.status === "active" || row.status === "past_due") return true;
+  if (row.status === "expired") return false;
+  if (row.status === "active" || row.status === "past_due" || row.status === "trialing")
+    return true;
   if (
     row.cancel_at_period_end &&
     row.current_period_end &&

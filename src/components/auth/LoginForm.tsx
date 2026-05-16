@@ -12,6 +12,8 @@ type Mode = "signin" | "signup";
 type LoginFormProps = {
   initialError?: string;
   initialMessage?: string;
+  /** Ruta interna post login (desde `?next=`). */
+  redirectAfterLogin?: string;
 };
 
 const errorMessages: Record<string, string> = {
@@ -87,7 +89,11 @@ function GoogleLogo() {
   );
 }
 
-export function LoginForm({ initialError, initialMessage }: LoginFormProps) {
+export function LoginForm({
+  initialError,
+  initialMessage,
+  redirectAfterLogin,
+}: LoginFormProps) {
   const router = useRouter();
   const passwordUpdated = initialMessage === "password_updated";
   const [mode, setMode] = useState<Mode>("signin");
@@ -187,7 +193,7 @@ export function LoginForm({ initialError, initialMessage }: LoginFormProps) {
           return;
         }
         router.refresh();
-        router.push("/hub");
+        router.push(redirectAfterLogin ?? "/hub");
         return;
       }
 
@@ -214,7 +220,7 @@ export function LoginForm({ initialError, initialMessage }: LoginFormProps) {
 
       if (data.session) {
         router.refresh();
-        router.push("/hub");
+        router.push(redirectAfterLogin ?? "/hub");
         return;
       }
 

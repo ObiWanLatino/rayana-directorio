@@ -1,10 +1,10 @@
 "use client";
 
-import type { Supplier } from "@/types";
+import type { SupplierWithProfile } from "@/types/proveedores";
 import { useCallback, useEffect, useRef, useState } from "react";
 
 export function useSuppliers(paisCodigo: "55" | "56") {
-  const [suppliers, setSuppliers] = useState<Supplier[]>([]);
+  const [suppliers, setSuppliers] = useState<SupplierWithProfile[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [attempt, setAttempt] = useState(0);
@@ -24,7 +24,7 @@ export function useSuppliers(paisCodigo: "55" | "56") {
       try {
         const qs = new URLSearchParams({ pais_codigo: paisCodigo });
         const res = await fetch(`/api/suppliers?${qs.toString()}`);
-        const data: { suppliers?: Supplier[]; error?: string } =
+        const data: { suppliers?: SupplierWithProfile[]; error?: string } =
           await res.json();
         if (!res.ok) {
           throw new Error(data.error ?? `Error ${res.status}`);

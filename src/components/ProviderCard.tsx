@@ -1,6 +1,9 @@
 "use client";
 
+import { BadgePill } from "@/components/proveedores/BadgePill";
 import { supplierInitial } from "@/components/suppliers/supplier-utils";
+import type { SupplierBadge, SupplierPlan } from "@/types/proveedores";
+import Link from "next/link";
 
 export interface ProviderCardProvider {
   id: string;
@@ -15,6 +18,10 @@ export interface ProviderCardProvider {
   mapsUrl?: string;
   photoUrl?: string;
   verified: boolean;
+  supplierBadge?: SupplierBadge | null;
+  supplierPlan?: SupplierPlan | null;
+  fullProfileHref?: string | null;
+  onWhatsappNav?: () => void;
 }
 
 function WaIcon() {
@@ -37,10 +44,15 @@ export function ProviderCard({ provider }: { provider: ProviderCardProvider }) {
   const hasMaps = Boolean(provider.mapsUrl);
   const hasSocialLinks = hasInstagram || hasTiktok || hasMaps;
 
+  const proRing =
+    provider.supplierPlan === "pro"
+      ? "ring-2 ring-[#f5a623]/50 ring-offset-2 ring-offset-white"
+      : "";
+
   return (
     <article
       data-testid="provider-card"
-      className="group relative rounded-[20px] border border-primary/12 bg-white p-5 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg hover:shadow-primary/10"
+      className={`group relative rounded-[20px] border border-primary/12 bg-white p-5 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg hover:shadow-primary/10 ${proRing}`}
     >
       <div className="flex gap-3">
         <div className="relative shrink-0">
@@ -69,9 +81,14 @@ export function ProviderCard({ provider }: { provider: ProviderCardProvider }) {
             <h2 className="pr-2 font-semibold leading-snug text-navy">
               {provider.name}
             </h2>
-            <span className="font-display shrink-0 text-sm text-navy/45">
-              {provider.code}
-            </span>
+            <div className="flex shrink-0 flex-col items-end gap-1">
+              {provider.supplierBadge ? (
+                <BadgePill badge={provider.supplierBadge} size="sm" />
+              ) : null}
+              <span className="font-display text-sm text-navy/45">
+                {provider.code}
+              </span>
+            </div>
           </div>
           <div className="mt-1 flex flex-wrap items-center gap-2">
             <span className="rounded-lg bg-primary/8 px-2 py-0.5 text-[11px] font-semibold text-primary">
@@ -215,7 +232,8 @@ export function ProviderCard({ provider }: { provider: ProviderCardProvider }) {
           href={provider.whatsappUrl}
           target="_blank"
           rel="noopener noreferrer"
-          className="mt-4 flex w-full items-center justify-center gap-2 rounded-xl bg-wa py-3 text-sm font-bold text-white transition-transform active:scale-[0.99]"
+          onClick={() => provider.onWhatsappNav?.()}
+          className="mt-4 flex min-h-12 w-full items-center justify-center gap-2 rounded-xl bg-wa py-3 text-sm font-bold text-white transition-transform active:scale-[0.99]"
         >
           <WaIcon />
           <span className="md:hidden">WhatsApp</span>
@@ -225,13 +243,23 @@ export function ProviderCard({ provider }: { provider: ProviderCardProvider }) {
         <button
           type="button"
           disabled
-          className="mt-4 flex w-full cursor-not-allowed items-center justify-center gap-2 rounded-xl bg-navy/20 py-3 text-sm font-bold text-white/70"
+          className="mt-4 flex min-h-12 w-full cursor-not-allowed items-center justify-center gap-2 rounded-xl bg-navy/20 py-3 text-sm font-bold text-white/70"
         >
           <WaIcon />
           <span className="md:hidden">WhatsApp</span>
           <span className="hidden md:inline">Contactar por WhatsApp</span>
         </button>
       )}
+
+      {provider.fullProfileHref &&
+      (provider.supplierPlan === "vitrina" || provider.supplierPlan === "pro") ? (
+        <Link
+          href={provider.fullProfileHref}
+          className="mt-3 block text-center text-xs font-bold text-primary underline-offset-2 hover:underline"
+        >
+          Ver perfil completo
+        </Link>
+      ) : null}
     </article>
   );
 }

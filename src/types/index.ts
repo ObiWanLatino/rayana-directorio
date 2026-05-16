@@ -2,7 +2,9 @@ export type SubscriptionStatus =
   | "active"
   | "past_due"
   | "canceled"
-  | "inactive";
+  | "inactive"
+  | "expired"
+  | "trialing";
 
 export type Profile = {
   id: string;
@@ -21,6 +23,18 @@ export type Subscription = {
   stripe_customer_id: string | null;
   stripe_subscription_id: string | null;
   payment_processor: string | null;
+  provider: string | null;
+  provider_subscription_id: string | null;
+  provider_transaction_id: string | null;
+  plan_name: string | null;
+  plan_id: string | null;
+  buyer_email: string | null;
+  started_at: string | null;
+  ends_at: string | null;
+  cancelled_at: string | null;
+  last_purchase_currency: string | null;
+  last_purchase_amount: number | null;
+  currency: string | null;
   lemon_squeezy_customer_id: string | null;
   lemon_squeezy_subscription_id: string | null;
   lemon_squeezy_order_id: string | null;

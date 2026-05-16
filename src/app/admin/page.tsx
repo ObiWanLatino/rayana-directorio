@@ -13,6 +13,12 @@ const cards: {
   isDownload?: boolean;
 }[] = [
   {
+    title: "Perfiles proveedor (Makeray Pro)",
+    description: "Planes, badges, activación y métricas 30d de supplier_profiles.",
+    href: "/admin/proveedores",
+    cta: "Abrir perfiles",
+  },
+  {
     title: "Ver / Editar proveedores",
     description: "Listado completo, activos e inactivos, con enlace a edición.",
     href: "/admin/suppliers?pais=cl",

@@ -30,17 +30,30 @@ import {
   supplierTiktokHref,
 } from "@/components/suppliers/supplier-utils";
 import { useSuppliers } from "@/hooks/useSuppliers";
+import { trackSupplierEvent } from "@/lib/proveedores/analytics";
 import { createBrowserSupabaseClient } from "@/lib/supabase/client";
-import type { Supplier } from "@/types";
+import type { SupplierBadge, SupplierPlan, SupplierWithProfile } from "@/types/proveedores";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 
-function supplierToCardProvider(s: Supplier): ProviderCardProvider {
+function supplierToCardProvider(
+  s: SupplierWithProfile,
+  onWhatsappNav?: () => void,
+): ProviderCardProvider {
   const raw = s.whatsapp?.replace(/\D/g, "") ?? "";
   const whatsappUrl =
     raw !== "" ? `https://wa.me/${raw}?text=${WA_MESSAGE}` : "";
   const cat = s.categoria?.trim();
+  const rawSp = s.supplier_profiles;
+  const sp = Array.isArray(rawSp) ? rawSp[0] ?? null : rawSp;
+  const plan =
+    sp?.plan === "vitrina" || sp?.plan === "pro"
+      ? (sp.plan as SupplierPlan)
+      : null;
+  const badge = (sp?.badge as SupplierBadge | undefined) ?? null;
+  const fullProfileHref =
+    plan === "vitrina" || plan === "pro" ? `/directorio/${s.codigo}` : null;
   return {
     id: s.id,
     code: `#${s.codigo}`,
@@ -54,6 +67,10 @@ function supplierToCardProvider(s: Supplier): ProviderCardProvider {
     mapsUrl: supplierMapsHref(s),
     photoUrl: s.logo_url ?? undefined,
     verified: s.verificado,
+    supplierBadge: badge,
+    supplierPlan: plan,
+    fullProfileHref,
+    onWhatsappNav,
   };
 }
 
@@ -67,33 +84,39 @@ export function ProveedoresView() {
   const [filterOpen, setFilterOpen] = useState(false);
   const [userMark, setUserMark] = useState("");
   const [userEmail, setUserEmail] = useState("");
+  const [viewerUserId, setViewerUserId] = useState<string | null>(null);
+  const supabase = useMemo(() => createBrowserSupabaseClient(), []);
 
   useEffect(() => {
-    setQuery("");
-    setSelectedCategory(null);
+    queueMicrotask(() => {
+      setQuery("");
+      setSelectedCategory(null);
+    });
   }, [paisTab]);
 
   useEffect(() => {
     let cancel = false;
     void (async () => {
       try {
-        const sb = createBrowserSupabaseClient();
-        const { data } = await sb.auth.getUser();
+        const { data } = await supabase.auth.getUser();
         if (cancel) return;
-        const e = data.user?.email;
+        const u = data.user;
+        const e = u?.email;
         setUserEmail(e ?? "");
         setUserMark(e?.[0]?.toUpperCase() ?? "·");
+        setViewerUserId(u?.id ?? null);
       } catch {
         if (!cancel) {
           setUserEmail("");
           setUserMark("·");
+          setViewerUserId(null);
         }
       }
     })();
     return () => {
       cancel = true;
     };
-  }, []);
+  }, [supabase]);
 
   const categoryRows = useMemo(() => {
     const keys = buildCategoryOptions(suppliers);
@@ -290,7 +313,12 @@ export function ProveedoresView() {
               }}
             >
               {filtered.map((s) => (
-                <ProviderCard key={s.id} provider={supplierToCardProvider(s)} />
+                <ProviderCard
+                  key={s.id}
+                  provider={supplierToCardProvider(s, () =>
+                    trackSupplierEvent(supabase, s.id, "wa_click", viewerUserId),
+                  )}
+                />
               ))}
             </div>
           ) : null}
