@@ -8,7 +8,7 @@ import {
   hasSubscriptionAccess,
 } from "@/lib/auth/entitlements";
 
-export async function middleware(request: NextRequest) {
+export async function proxy(request: NextRequest) {
   const pathname = request.nextUrl.pathname;
 
   const isStripeWebhookPublic =
