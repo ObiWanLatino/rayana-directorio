@@ -1,5 +1,6 @@
 "use client";
 
+import { formatUtcDateTime } from "@/lib/format/date";
 import { useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
 
@@ -20,11 +21,6 @@ export type AdminSubscriptionRow = {
     expires_at: string | null;
   } | null;
 };
-
-function formatDate(value: string | null): string {
-  if (!value) return "-";
-  return new Date(value).toLocaleString("es-CL");
-}
 
 function formatUsd(cents: number): string {
   return new Intl.NumberFormat("en-US", {
@@ -313,7 +309,7 @@ export function SubscriptionsAdminTable({ rows, metrics }: Props) {
                     </div>
                   </td>
                   <td className="px-4 py-3 text-zinc-700">
-                    {formatDate(row.registered_at)}
+                    {formatUtcDateTime(row.registered_at)}
                   </td>
                   <td className="px-4 py-3">
                     <div className="flex flex-col gap-1.5">
@@ -326,14 +322,14 @@ export function SubscriptionsAdminTable({ rows, metrics }: Props) {
                         <span className="rounded-full bg-violet-100 px-2.5 py-1 text-xs font-semibold text-violet-800">
                           Obsequio activo
                           {gifted.expires_at
-                            ? ` · hasta ${formatDate(gifted.expires_at)}`
+                            ? ` · hasta ${formatUtcDateTime(gifted.expires_at)}`
                             : " · permanente"}
                         </span>
                       ) : null}
                     </div>
                   </td>
                   <td className="px-4 py-3 text-zinc-700">
-                    {formatDate(row.next_billing_at)}
+                    {formatUtcDateTime(row.next_billing_at)}
                   </td>
                   <td className="px-4 py-3">
                     <span className="text-sm text-zinc-700">
