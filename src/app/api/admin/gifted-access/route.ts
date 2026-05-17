@@ -85,67 +85,73 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "JSON inválido" }, { status: 400 });
   }
 
-  const userId = body.user_id?.trim();
-  if (!userId) {
-    return NextResponse.json({ error: "user_id es requerido" }, { status: 400 });
-  }
+  try {
+    const userId = body.user_id?.trim();
+    if (!userId) {
+      return NextResponse.json({ error: "user_id es requerido" }, { status: 400 });
+    }
 
-  const expiresAt =
-    body.expires_at === undefined || body.expires_at === null || body.expires_at === ""
-      ? null
-      : body.expires_at;
+    const expiresAt =
+      body.expires_at === undefined || body.expires_at === null || body.expires_at === ""
+        ? null
+        : body.expires_at;
 
-  if (expiresAt !== null && Number.isNaN(Date.parse(expiresAt))) {
-    return NextResponse.json({ error: "expires_at inválido" }, { status: 400 });
-  }
+    if (expiresAt !== null && Number.isNaN(Date.parse(expiresAt))) {
+      return NextResponse.json({ error: "expires_at inválido" }, { status: 400 });
+    }
 
-  const existing = await findActiveGiftedForUser(userId);
-  if (existing.data) {
-    return NextResponse.json(
-      { error: "El usuario ya tiene un obsequio activo" },
-      { status: 409 },
-    );
-  }
+    const existing = await findActiveGiftedForUser(userId);
+    if (existing.data) {
+      return NextResponse.json(
+        { error: "El usuario ya tiene un obsequio activo" },
+        { status: 409 },
+      );
+    }
 
-  const admin = createAdminSupabaseClient();
-  const { data: inserted, error } = await admin
-    .from("gifted_access")
-    .insert({
-      user_id: userId,
-      granted_by: adminUser.id,
-      reason: body.reason?.trim() || null,
-      expires_at: expiresAt,
-    })
-    .select("id, user_id, expires_at, created_at")
-    .single();
+    const admin = createAdminSupabaseClient();
+    const { data: inserted, error } = await admin
+      .from("gifted_access")
+      .insert({
+        user_id: userId,
+        granted_by: adminUser.id,
+        reason: body.reason?.trim() || null,
+        expires_at: expiresAt,
+      })
+      .select("id, user_id, expires_at, created_at")
+      .single();
 
-  if (error || !inserted) {
-    return NextResponse.json(
-      { error: error?.message ?? "No se pudo crear el obsequio" },
-      { status: 500 },
-    );
-  }
+    if (error || !inserted) {
+      console.error("[gifted-access POST]", error);
+      return NextResponse.json(
+        { error: error?.message ?? "No se pudo crear el obsequio" },
+        { status: 500 },
+      );
+    }
 
-  const { data: profile } = await admin
-    .from("profiles")
-    .select("email")
-    .eq("id", userId)
-    .maybeSingle();
+    const { data: profile } = await admin
+      .from("profiles")
+      .select("email")
+      .eq("id", userId)
+      .maybeSingle();
 
-  if (profile?.email) {
-    notifyGiftedAccessByEmail({
-      to: profile.email,
-      expiresAt: inserted.expires_at,
-      reason: body.reason,
+    if (profile?.email) {
+      notifyGiftedAccessByEmail({
+        to: profile.email,
+        expiresAt: inserted.expires_at,
+        reason: body.reason,
+      });
+    }
+
+    return NextResponse.json({
+      id: inserted.id,
+      user_id: inserted.user_id,
+      expires_at: inserted.expires_at,
+      created_at: inserted.created_at,
     });
+  } catch (error) {
+    console.error("[gifted-access POST]", error);
+    return NextResponse.json({ error: "Error interno" }, { status: 500 });
   }
-
-  return NextResponse.json({
-    id: inserted.id,
-    user_id: inserted.user_id,
-    expires_at: inserted.expires_at,
-    created_at: inserted.created_at,
-  });
 }
 
 export async function DELETE(request: Request) {
