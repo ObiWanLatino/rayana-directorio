@@ -38,44 +38,76 @@ type Metrics = {
   canceledThisMonth: number;
 };
 
+function logSubscriptionsQueryError(label: string, err: unknown) {
+  const e = err as { message?: string };
+  console.error(`[subscriptions page] ${label} error:`, e?.message ?? err);
+}
+
 async function loadData(): Promise<{ rows: AdminSubscriptionRow[]; metrics: Metrics }> {
   const db = createAdminSupabaseClient();
-  const [{ data: profiles, error: profilesError }, { data: subscriptions, error: subsError }] =
-    await Promise.all([
-      db
-        .from("profiles")
-        .select("id, email, full_name, avatar_url, created_at, suspended")
-        .order("created_at", { ascending: false }),
-      db
-        .from("subscriptions")
-        .select(
-          "user_id, status, created_at, updated_at, current_period_end, stripe_customer_id, stripe_subscription_id",
-        ),
-    ]);
 
-  if (profilesError) {
-    throw new Error(profilesError.message);
-  }
-  if (subsError) {
-    throw new Error(subsError.message);
+  let profileRows: ProfileRow[] = [];
+  let subsRows: SubscriptionRow[] = [];
+
+  try {
+    const [{ data: profiles, error: profilesError }, { data: subscriptions, error: subsError }] =
+      await Promise.all([
+        db
+          .from("profiles")
+          .select("id, email, full_name, avatar_url, created_at, suspended")
+          .order("created_at", { ascending: false }),
+        db
+          .from("subscriptions")
+          .select(
+            "user_id, status, created_at, updated_at, current_period_end, stripe_customer_id, stripe_subscription_id",
+          ),
+      ]);
+
+    if (profilesError) {
+      throw profilesError;
+    }
+    if (subsError) {
+      throw subsError;
+    }
+
+    profileRows = (profiles ?? []) as ProfileRow[];
+    subsRows = (subscriptions ?? []) as SubscriptionRow[];
+  } catch (err) {
+    logSubscriptionsQueryError("profiles/subscriptions", err);
   }
 
-  const profileRows = (profiles ?? []) as ProfileRow[];
-  const subsRows = (subscriptions ?? []) as SubscriptionRow[];
   const subByUser = new Map(subsRows.map((s) => [s.user_id, s]));
 
-  const nowIso = new Date().toISOString();
-  const { data: giftedRows } = await giftedAccessTable()
-    .select("id, user_id, reason, expires_at, created_at")
-    .is("revoked_at", null)
-    .or(`expires_at.is.null,expires_at.gt.${nowIso}`);
+  let giftedRows: {
+    id: string;
+    user_id: string;
+    reason: string | null;
+    expires_at: string | null;
+    created_at: string;
+  }[] = [];
+
+  try {
+    const nowIso = new Date().toISOString();
+    const { data, error } = await giftedAccessTable()
+      .select("id, user_id, reason, expires_at, created_at")
+      .is("revoked_at", null)
+      .or(`expires_at.is.null,expires_at.gt.${nowIso}`);
+
+    if (error) {
+      throw error;
+    }
+    giftedRows = (data ?? []) as typeof giftedRows;
+  } catch (err) {
+    logSubscriptionsQueryError("gifted_access", err);
+  }
+
   const giftedByUser = new Map(
-    (giftedRows ?? []).map((g) => [
-      g.user_id as string,
+    giftedRows.map((g) => [
+      g.user_id,
       {
-        id: g.id as string,
-        reason: (g.reason as string | null) ?? null,
-        expires_at: (g.expires_at as string | null) ?? null,
+        id: g.id,
+        reason: g.reason ?? null,
+        expires_at: g.expires_at ?? null,
       },
     ]),
   );
