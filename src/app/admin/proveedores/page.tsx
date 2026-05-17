@@ -1,6 +1,8 @@
-import { isAdminEmail } from "@/lib/auth/entitlements";
+// DEPRECATED: Esta ruta será migrada a admin.makeray.cl
+// TODO: Eliminar después de migración completa
+
+import { getAdminUser } from "@/lib/auth/require-admin";
 import { createAdminSupabaseClient } from "@/lib/supabase/admin";
-import { createServerSupabaseClient } from "@/lib/supabase/server";
 import type { SupplierBadge } from "@/types/proveedores";
 import Link from "next/link";
 import { redirect } from "next/navigation";
@@ -24,11 +26,8 @@ type ProfileRow = {
 
 async function updateProveedorAdmin(formData: FormData) {
   "use server";
-  const sb = await createServerSupabaseClient();
-  const {
-    data: { user },
-  } = await sb.auth.getUser();
-  if (!user?.email || !isAdminEmail(user.email)) redirect("/hub");
+  const user = await getAdminUser();
+  if (!user) redirect("/admin-login");
 
   const id = String(formData.get("id") ?? "");
   const action = String(formData.get("action") ?? "");
@@ -57,12 +56,10 @@ async function updateProveedorAdmin(formData: FormData) {
 }
 
 export default async function AdminProveedoresPage() {
-  const supabase = await createServerSupabaseClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) redirect("/login?next=/admin/proveedores");
-  if (!isAdminEmail(user.email)) redirect("/hub");
+  const user = await getAdminUser();
+  if (!user) {
+    redirect("/admin-login");
+  }
 
   const admin = createAdminSupabaseClient();
   const { data: profiles, error } = await admin
