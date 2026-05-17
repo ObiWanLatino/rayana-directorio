@@ -146,7 +146,7 @@ export default async function AdminSubscriptionsPage() {
     <div className="min-h-screen bg-zinc-100 px-4 py-10">
       <div className="mx-auto max-w-6xl">
         <Link
-          href="/admin"
+          href="/"
           className="text-sm text-zinc-500 underline hover:text-zinc-700"
         >
           ← Volver a Admin

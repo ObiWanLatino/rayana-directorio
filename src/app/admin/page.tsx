@@ -16,19 +16,19 @@ const cards: {
   {
     title: "Perfiles proveedor (Makeray Pro)",
     description: "Planes, badges, activación y métricas 30d de supplier_profiles.",
-    href: "/admin/proveedores",
+    href: "/proveedores",
     cta: "Abrir perfiles",
   },
   {
     title: "Ver / Editar proveedores",
     description: "Listado completo, activos e inactivos, con enlace a edición.",
-    href: "/admin/suppliers?pais=cl",
+    href: "/suppliers?pais=cl",
     cta: "Abrir lista",
   },
   {
     title: "Agregar nuevo proveedor",
     description: "Formulario con validación y códigos únicos.",
-    href: "/admin/suppliers/new?pais=cl",
+    href: "/suppliers/new?pais=cl",
     cta: "Nuevo proveedor",
   },
   {
@@ -42,13 +42,13 @@ const cards: {
   {
     title: "Carga masiva",
     description: "Importación por Excel con pasos de seguridad y vista previa.",
-    href: "/admin/upload",
+    href: "/upload",
     cta: "Ir a carga masiva",
   },
   {
     title: "Suscriptores",
     description: "Panel completo de suscriptores, accesos y cobros.",
-    href: "/admin/subscriptions",
+    href: "/subscriptions",
     cta: "Abrir panel",
   },
 ];

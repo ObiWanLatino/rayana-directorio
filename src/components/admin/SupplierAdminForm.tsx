@@ -22,7 +22,7 @@ export function SupplierAdminForm(props: Props) {
   const listPaisSlug: PaisSlug = isEdit
     ? paisCodigoToSlug(s!.pais_codigo)
     : props.listPaisSlug;
-  const listHref = `/admin/suppliers?pais=${listPaisSlug}`;
+  const listHref = `/suppliers?pais=${listPaisSlug}`;
 
   const [codigo, setCodigo] = useState(
     isEdit ? String(s!.codigo) : "",

@@ -52,7 +52,7 @@ async function updateProveedorAdmin(formData: FormData) {
     const activo = formData.get("activo") === "true";
     await admin.from("supplier_profiles").update({ activo }).eq("id", id);
   }
-  redirect("/admin/proveedores");
+  redirect("/proveedores");
 }
 
 export default async function AdminProveedoresPage() {
@@ -126,7 +126,7 @@ export default async function AdminProveedoresPage() {
   return (
     <div className="min-h-screen bg-zinc-50 px-4 py-10">
       <div className="mx-auto max-w-6xl">
-        <Link href="/admin" className="text-sm text-zinc-500 underline">
+        <Link href="/" className="text-sm text-zinc-500 underline">
           ← Admin
         </Link>
         <h1 className="mt-4 text-2xl font-semibold text-zinc-900">

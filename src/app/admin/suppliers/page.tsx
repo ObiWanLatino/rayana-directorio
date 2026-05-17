@@ -36,7 +36,7 @@ function AdminSuppliersCountryBar({ active }: { active: PaisSlug }) {
       </p>
       <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap">
         <Link
-          href="/admin/suppliers?pais=cl"
+          href="/suppliers?pais=cl"
           scroll={false}
           className={countryChoiceClass(active === "cl")}
         >
@@ -47,7 +47,7 @@ function AdminSuppliersCountryBar({ active }: { active: PaisSlug }) {
           </span>
         </Link>
         <Link
-          href="/admin/suppliers?pais=br"
+          href="/suppliers?pais=br"
           scroll={false}
           className={countryChoiceClass(active === "br")}
         >
@@ -93,7 +93,7 @@ export default async function AdminSuppliersPage({
     <div className="min-h-screen bg-zinc-50 px-4 py-10">
       <div className="mx-auto max-w-[1200px]">
         <Link
-          href="/admin"
+          href="/"
           className="text-sm text-zinc-500 underline hover:text-zinc-700"
         >
           ← Admin
@@ -112,7 +112,7 @@ export default async function AdminSuppliersPage({
             </p>
           </div>
           <Link
-            href={`/admin/suppliers/new?pais=${paisSlug}`}
+            href={`/suppliers/new?pais=${paisSlug}`}
             className="inline-flex w-fit rounded-xl bg-zinc-900 px-4 py-2.5 text-sm font-medium text-white hover:bg-zinc-800"
           >
             Agregar nuevo proveedor
@@ -175,7 +175,7 @@ export default async function AdminSuppliersPage({
                   </td>
                   <td className="whitespace-nowrap px-4 py-3">
                     <Link
-                      href={`/admin/suppliers/${r.id}/edit`}
+                      href={`/suppliers/${r.id}/edit`}
                       className="font-medium text-zinc-900 underline decoration-zinc-300 underline-offset-2 hover:decoration-zinc-600"
                     >
                       Editar

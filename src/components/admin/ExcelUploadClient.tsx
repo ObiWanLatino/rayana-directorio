@@ -169,7 +169,7 @@ export function ExcelUploadClient() {
     <div className="mx-auto max-w-xl space-y-10">
       <div>
         <Link
-          href="/admin"
+          href="/"
           className="text-sm text-zinc-500 underline hover:text-zinc-700"
         >
           ← Admin
@@ -483,7 +483,7 @@ export function ExcelUploadClient() {
             </li>
           </ul>
           <Link
-            href="/admin"
+            href="/"
             className="inline-flex rounded-xl bg-zinc-900 px-5 py-2.5 text-sm font-medium text-white hover:bg-zinc-800"
           >
             Volver al admin
