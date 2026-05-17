@@ -121,7 +121,10 @@ export async function POST(request: Request) {
       .single();
 
     if (error || !inserted) {
-      console.error("[gifted-access POST]", error);
+      console.error(
+        "[gifted-access POST]",
+        error instanceof Error ? error.message : JSON.stringify(error),
+      );
       return NextResponse.json(
         { error: error?.message ?? "No se pudo crear el obsequio" },
         { status: 500 },
@@ -149,7 +152,10 @@ export async function POST(request: Request) {
       created_at: inserted.created_at,
     });
   } catch (error) {
-    console.error("[gifted-access POST]", error);
+    console.error(
+      "[gifted-access POST]",
+      error instanceof Error ? error.message : JSON.stringify(error),
+    );
     return NextResponse.json({ error: "Error interno" }, { status: 500 });
   }
 }
