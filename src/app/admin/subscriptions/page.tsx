@@ -63,6 +63,23 @@ async function loadData(): Promise<{ rows: AdminSubscriptionRow[]; metrics: Metr
   const subsRows = (subscriptions ?? []) as SubscriptionRow[];
   const subByUser = new Map(subsRows.map((s) => [s.user_id, s]));
 
+  const nowIso = new Date().toISOString();
+  const { data: giftedRows } = await db
+    .from("gifted_access")
+    .select("id, user_id, reason, expires_at, created_at")
+    .is("revoked_at", null)
+    .or(`expires_at.is.null,expires_at.gt.${nowIso}`);
+  const giftedByUser = new Map(
+    (giftedRows ?? []).map((g) => [
+      g.user_id as string,
+      {
+        id: g.id as string,
+        reason: (g.reason as string | null) ?? null,
+        expires_at: (g.expires_at as string | null) ?? null,
+      },
+    ]),
+  );
+
   const stripe = getStripe();
   const totalPaidByUser = new Map<string, number>();
   await Promise.all(
@@ -99,6 +116,7 @@ async function loadData(): Promise<{ rows: AdminSubscriptionRow[]; metrics: Metr
       total_paid_usd_cents: totalPaidByUser.get(profile.id) ?? 0,
       status: sub?.status ?? "inactive",
       suspended: Boolean(profile.suspended),
+      gifted_access: giftedByUser.get(profile.id) ?? null,
     };
   });
 

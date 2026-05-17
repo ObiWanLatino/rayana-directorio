@@ -1,8 +1,5 @@
 import { OfferCard } from "@/components/proveedores/OfferCard";
-import {
-  fetchSubscriptionAccessRow,
-  hasSubscriptionAccess,
-} from "@/lib/auth/entitlements";
+import { userHasListAccess } from "@/lib/auth/gifted-access";
 import { getMySupplierProfile, listSupplierOffers } from "@/lib/proveedores/queries";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import Link from "next/link";
@@ -17,8 +14,7 @@ export default async function ProveedorOfertasPage() {
   } = await supabase.auth.getUser();
   if (!user) redirect("/login?next=/proveedor/dashboard/ofertas");
 
-  const sub = await fetchSubscriptionAccessRow(supabase, user.id);
-  if (!hasSubscriptionAccess(sub)) redirect("/checkout");
+  if (!(await userHasListAccess(supabase, user.id))) redirect("/checkout");
 
   const profileRow = await getMySupplierProfile(supabase);
   if (!profileRow?.onboarding_completed) redirect("/proveedor/onboarding");

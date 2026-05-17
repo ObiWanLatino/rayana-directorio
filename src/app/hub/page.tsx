@@ -2,10 +2,7 @@ import { SignOutButton } from "@/components/auth/SignOutButton";
 import { HubCard } from "@/components/HubCard";
 import { MakerayLogo } from "@/components/MakerayLogo";
 import { BillingPortalButton } from "@/components/stripe/BillingPortalButton";
-import {
-  fetchSubscriptionAccessRow,
-  hasSubscriptionAccess,
-} from "@/lib/auth/entitlements";
+import { userHasListAccess } from "@/lib/auth/gifted-access";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import type { User } from "@supabase/supabase-js";
 import { redirect } from "next/navigation";
@@ -45,8 +42,7 @@ export default async function HubPage({
     redirect("/login");
   }
 
-  const sub = await fetchSubscriptionAccessRow(supabase, user.id);
-  if (!hasSubscriptionAccess(sub)) {
+  if (!(await userHasListAccess(supabase, user.id))) {
     redirect("/checkout");
   }
 
@@ -64,7 +60,7 @@ export default async function HubPage({
   const firstName =
     fullName?.split(" ")[0] ?? user.email?.split("@")[0] ?? "bienvenida";
 
-  const hasActiveDirectory = hasSubscriptionAccess(sub);
+  const hasActiveDirectory = true;
 
   return (
     <div style={{ minHeight: "100vh", background: "var(--color-off)" }}>

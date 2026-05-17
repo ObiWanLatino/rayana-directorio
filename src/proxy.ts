@@ -3,10 +3,7 @@ import { createClient } from "@supabase/supabase-js";
 import { NextResponse, type NextRequest } from "next/server";
 import { handleAdminHostnameRequest } from "@/lib/admin/admin-host-proxy";
 import { isAdminRequestHost } from "@/lib/admin/request-host";
-import {
-  fetchSubscriptionAccessRow,
-  hasSubscriptionAccess,
-} from "@/lib/auth/entitlements";
+import { userHasListAccess } from "@/lib/auth/gifted-access";
 
 export async function proxy(request: NextRequest) {
   const pathname = request.nextUrl.pathname;
@@ -133,9 +130,9 @@ export async function proxy(request: NextRequest) {
   }
 
   if (pathname === "/login" && user) {
-    const sub = await fetchSubscriptionAccessRow(supabase, user.id);
+    const hasAccess = await userHasListAccess(supabase, user.id);
     const url = request.nextUrl.clone();
-    url.pathname = hasSubscriptionAccess(sub) ? "/hub" : "/checkout";
+    url.pathname = hasAccess ? "/hub" : "/checkout";
     url.search = "";
     return NextResponse.redirect(url);
   }
@@ -151,8 +148,7 @@ export async function proxy(request: NextRequest) {
       url.searchParams.set("next", "/checkout");
       return NextResponse.redirect(url);
     }
-    const sub = await fetchSubscriptionAccessRow(supabase, user.id);
-    if (hasSubscriptionAccess(sub)) {
+    if (await userHasListAccess(supabase, user.id)) {
       const url = request.nextUrl.clone();
       url.pathname = "/hub";
       url.search = "";
@@ -182,8 +178,7 @@ export async function proxy(request: NextRequest) {
       url.searchParams.set("next", pathname);
       return NextResponse.redirect(url);
     }
-    const sub = await fetchSubscriptionAccessRow(supabase, user.id);
-    if (!hasSubscriptionAccess(sub)) {
+    if (!(await userHasListAccess(supabase, user.id))) {
       const url = request.nextUrl.clone();
       url.pathname = "/checkout";
       url.search = "";

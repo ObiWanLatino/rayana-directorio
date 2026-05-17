@@ -1,7 +1,4 @@
-import {
-  fetchSubscriptionAccessRow,
-  hasSubscriptionAccess,
-} from "@/lib/auth/entitlements";
+import { userHasListAccess } from "@/lib/auth/gifted-access";
 import { StripeCheckoutButton } from "@/components/subscription/StripeCheckoutButton";
 import {
   getCountryFromHeaders,
@@ -24,8 +21,7 @@ export default async function CheckoutPage() {
     redirect("/login?next=/checkout");
   }
 
-  const sub = await fetchSubscriptionAccessRow(supabase, user.id);
-  if (hasSubscriptionAccess(sub)) {
+  if (await userHasListAccess(supabase, user.id)) {
     redirect("/hub");
   }
 

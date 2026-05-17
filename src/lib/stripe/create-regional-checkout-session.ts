@@ -1,8 +1,5 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
-import {
-  fetchSubscriptionAccessRow,
-  hasSubscriptionAccess,
-} from "@/lib/auth/entitlements";
+import { userHasListAccess } from "@/lib/auth/gifted-access";
 import { getAppUrl } from "@/lib/app-url";
 import { getStripe } from "@/lib/stripe/client";
 import {
@@ -30,8 +27,7 @@ export async function createRegionalStripeSubscriptionCheckoutSession(
     return { ok: false, status: 401, error: "No autorizado" };
   }
 
-  const access = await fetchSubscriptionAccessRow(supabase, user.id);
-  if (hasSubscriptionAccess(access)) {
+  if (await userHasListAccess(supabase, user.id)) {
     return {
       ok: false,
       status: 400,

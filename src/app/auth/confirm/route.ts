@@ -2,10 +2,7 @@ import type { EmailOtpType } from "@supabase/auth-js";
 import { createServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
-import {
-  fetchSubscriptionAccessRow,
-  hasSubscriptionAccess,
-} from "@/lib/auth/entitlements";
+import { userHasListAccess } from "@/lib/auth/gifted-access";
 import { getAuthRedirectOrigin } from "@/lib/app-url";
 
 export async function GET(request: Request) {
@@ -62,7 +59,6 @@ export async function GET(request: Request) {
     return NextResponse.redirect(`${base}/login?error=confirm`);
   }
 
-  const sub = await fetchSubscriptionAccessRow(supabase, user.id);
-  const path = hasSubscriptionAccess(sub) ? "/hub" : "/checkout";
+  const path = (await userHasListAccess(supabase, user.id)) ? "/hub" : "/checkout";
   return NextResponse.redirect(`${base}${path}`);
 }

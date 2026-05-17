@@ -1,8 +1,5 @@
 import { CatalogoUpgradeGate, NuevoProductoForm } from "./NuevoProductoForm";
-import {
-  fetchSubscriptionAccessRow,
-  hasSubscriptionAccess,
-} from "@/lib/auth/entitlements";
+import { userHasListAccess } from "@/lib/auth/gifted-access";
 import {
   getDistinctSupplierCategorias,
   getMySupplierProfile,
@@ -20,8 +17,7 @@ export default async function NuevoProductoPage() {
   } = await supabase.auth.getUser();
   if (!user) redirect("/login?next=/proveedor/dashboard/catalogo/nuevo");
 
-  const sub = await fetchSubscriptionAccessRow(supabase, user.id);
-  if (!hasSubscriptionAccess(sub)) redirect("/checkout");
+  if (!(await userHasListAccess(supabase, user.id))) redirect("/checkout");
 
   const profileRow = await getMySupplierProfile(supabase);
   if (!profileRow?.onboarding_completed) redirect("/proveedor/onboarding");

@@ -1,8 +1,5 @@
 import { OnboardingWizard } from "@/components/proveedores/OnboardingWizard";
-import {
-  fetchSubscriptionAccessRow,
-  hasSubscriptionAccess,
-} from "@/lib/auth/entitlements";
+import { userHasListAccess } from "@/lib/auth/gifted-access";
 import { getMySupplierProfile } from "@/lib/proveedores/queries";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
@@ -16,8 +13,7 @@ export default async function ProveedorOnboardingPage() {
   } = await supabase.auth.getUser();
   if (!user) redirect("/login?next=/proveedor/onboarding");
 
-  const sub = await fetchSubscriptionAccessRow(supabase, user.id);
-  if (!hasSubscriptionAccess(sub)) redirect("/checkout");
+  if (!(await userHasListAccess(supabase, user.id))) redirect("/checkout");
 
   const existing = await getMySupplierProfile(supabase);
   if (existing?.onboarding_completed) {

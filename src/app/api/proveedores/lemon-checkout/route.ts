@@ -1,10 +1,7 @@
 import { createCheckout } from "@lemonsqueezy/lemonsqueezy.js";
 import { NextResponse, type NextRequest } from "next/server";
 import { getAppUrl } from "@/lib/app-url";
-import {
-  fetchSubscriptionAccessRow,
-  hasSubscriptionAccess,
-} from "@/lib/auth/entitlements";
+import { userHasListAccess } from "@/lib/auth/gifted-access";
 import { initLemonSqueezy } from "@/lib/lemonsqueezy/client";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import type { SupplierPlan } from "@/types/proveedores";
@@ -21,8 +18,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "No autorizado" }, { status: 401 });
   }
 
-  const access = await fetchSubscriptionAccessRow(supabase, user.id);
-  if (!hasSubscriptionAccess(access)) {
+  if (!(await userHasListAccess(supabase, user.id))) {
     return NextResponse.json({ error: "Suscripción requerida" }, { status: 403 });
   }
 

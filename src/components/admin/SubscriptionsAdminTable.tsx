@@ -14,6 +14,11 @@ export type AdminSubscriptionRow = {
   total_paid_usd_cents: number;
   status: string;
   suspended: boolean;
+  gifted_access: {
+    id: string;
+    reason: string | null;
+    expires_at: string | null;
+  } | null;
 };
 
 function formatDate(value: string | null): string {
@@ -76,6 +81,71 @@ export function SubscriptionsAdminTable({ rows, metrics }: Props) {
   >("all");
   const [magicLink, setMagicLink] = useState<string | null>(null);
   const [magicEmail, setMagicEmail] = useState<string | null>(null);
+  const [giftTarget, setGiftTarget] = useState<AdminSubscriptionRow | null>(null);
+  const [giftReason, setGiftReason] = useState("");
+  const [giftPermanent, setGiftPermanent] = useState(false);
+  const [giftExpiresAt, setGiftExpiresAt] = useState("");
+
+  async function revokeGiftedAccess(row: AdminSubscriptionRow) {
+    if (!row.gifted_access) return;
+    if (
+      !window.confirm(`¿Revocar obsequio de acceso para ${row.email}?`)
+    ) {
+      return;
+    }
+    setError(null);
+    setBusyId(`gift-revoke:${row.user_id}`);
+    try {
+      const res = await fetch("/api/admin/gifted-access", {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ gifted_access_id: row.gifted_access.id }),
+      });
+      const data = (await res.json()) as { error?: string };
+      if (!res.ok) {
+        throw new Error(data.error ?? "No se pudo revocar el obsequio");
+      }
+      router.refresh();
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Error inesperado");
+    } finally {
+      setBusyId(null);
+    }
+  }
+
+  async function grantGiftedAccess() {
+    if (!giftTarget) return;
+    setError(null);
+    setBusyId(`gift-grant:${giftTarget.user_id}`);
+    try {
+      const res = await fetch("/api/admin/gifted-access", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          user_id: giftTarget.user_id,
+          reason: giftReason.trim() || null,
+          expires_at: giftPermanent
+            ? null
+            : giftExpiresAt
+              ? new Date(giftExpiresAt).toISOString()
+              : null,
+        }),
+      });
+      const data = (await res.json()) as { error?: string };
+      if (!res.ok) {
+        throw new Error(data.error ?? "No se pudo otorgar el obsequio");
+      }
+      setGiftTarget(null);
+      setGiftReason("");
+      setGiftPermanent(false);
+      setGiftExpiresAt("");
+      router.refresh();
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Error inesperado");
+    } finally {
+      setBusyId(null);
+    }
+  }
 
   async function postAction(
     endpoint: string,
@@ -213,7 +283,10 @@ export function SubscriptionsAdminTable({ rows, metrics }: Props) {
                 busyId === "/api/admin/subscriptions/suspend:" + row.user_id;
               const magicBusy =
                 busyId === "/api/admin/subscriptions/magic-link:" + row.email;
+              const giftGrantBusy = busyId === `gift-grant:${row.user_id}`;
+              const giftRevokeBusy = busyId === `gift-revoke:${row.user_id}`;
               const badge = statusLabel(row);
+              const gifted = row.gifted_access;
               const displayName =
                 row.full_name?.trim() || row.email.split("@")[0] || "Usuario";
               return (
@@ -243,11 +316,21 @@ export function SubscriptionsAdminTable({ rows, metrics }: Props) {
                     {formatDate(row.registered_at)}
                   </td>
                   <td className="px-4 py-3">
-                    <span
-                      className={`rounded-full px-2.5 py-1 text-xs font-semibold ${badge.className}`}
-                    >
-                      {badge.text}
-                    </span>
+                    <div className="flex flex-col gap-1.5">
+                      <span
+                        className={`rounded-full px-2.5 py-1 text-xs font-semibold ${badge.className}`}
+                      >
+                        {badge.text}
+                      </span>
+                      {gifted ? (
+                        <span className="rounded-full bg-violet-100 px-2.5 py-1 text-xs font-semibold text-violet-800">
+                          Obsequio activo
+                          {gifted.expires_at
+                            ? ` · hasta ${formatDate(gifted.expires_at)}`
+                            : " · permanente"}
+                        </span>
+                      ) : null}
+                    </div>
                   </td>
                   <td className="px-4 py-3 text-zinc-700">
                     {formatDate(row.next_billing_at)}
@@ -263,6 +346,30 @@ export function SubscriptionsAdminTable({ rows, metrics }: Props) {
                         Acciones
                       </summary>
                       <div className="absolute right-0 z-10 mt-2 w-52 rounded-xl border border-zinc-200 bg-white p-1.5 shadow-lg">
+                        {gifted ? (
+                          <button
+                            type="button"
+                            disabled={giftRevokeBusy}
+                            onClick={() => void revokeGiftedAccess(row)}
+                            className="w-full rounded-lg px-3 py-2 text-left text-xs text-violet-900 hover:bg-violet-50 disabled:opacity-60"
+                          >
+                            Revocar obsequio
+                          </button>
+                        ) : (
+                          <button
+                            type="button"
+                            disabled={giftGrantBusy}
+                            onClick={() => {
+                              setGiftTarget(row);
+                              setGiftReason("");
+                              setGiftPermanent(false);
+                              setGiftExpiresAt("");
+                            }}
+                            className="w-full rounded-lg px-3 py-2 text-left text-xs text-violet-900 hover:bg-violet-50 disabled:opacity-60"
+                          >
+                            Obsequiar acceso
+                          </button>
+                        )}
                         <button
                           type="button"
                           disabled={magicBusy}
@@ -329,6 +436,67 @@ export function SubscriptionsAdminTable({ rows, metrics }: Props) {
         </table>
       </div>
       </div>
+      {giftTarget ? (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 p-4">
+          <div className="w-full max-w-md rounded-2xl bg-white p-5 shadow-xl">
+            <h3 className="text-lg font-semibold text-zinc-900">
+              Obsequiar acceso
+            </h3>
+            <p className="mt-1 text-sm text-zinc-600">
+              {giftTarget.email} — acceso a la lista sin Stripe.
+            </p>
+            <label className="mt-4 block text-sm text-zinc-700">
+              Motivo (opcional)
+              <textarea
+                value={giftReason}
+                onChange={(e) => setGiftReason(e.target.value)}
+                rows={2}
+                className="mt-1 w-full rounded-lg border border-zinc-200 px-3 py-2 text-sm outline-none ring-zinc-300 focus:ring-2"
+                placeholder="Ej. cortesía lanzamiento"
+              />
+            </label>
+            <label className="mt-3 flex items-center gap-2 text-sm text-zinc-700">
+              <input
+                type="checkbox"
+                checked={giftPermanent}
+                onChange={(e) => setGiftPermanent(e.target.checked)}
+              />
+              Acceso permanente
+            </label>
+            {!giftPermanent ? (
+              <label className="mt-3 block text-sm text-zinc-700">
+                Válido hasta
+                <input
+                  type="datetime-local"
+                  value={giftExpiresAt}
+                  onChange={(e) => setGiftExpiresAt(e.target.value)}
+                  className="mt-1 w-full rounded-lg border border-zinc-200 px-3 py-2 text-sm outline-none ring-zinc-300 focus:ring-2"
+                />
+              </label>
+            ) : null}
+            <div className="mt-4 flex justify-end gap-2">
+              <button
+                type="button"
+                onClick={() => setGiftTarget(null)}
+                className="rounded-lg border border-zinc-300 px-3 py-2 text-sm hover:bg-zinc-100"
+              >
+                Cancelar
+              </button>
+              <button
+                type="button"
+                disabled={
+                  busyId === `gift-grant:${giftTarget.user_id}` ||
+                  (!giftPermanent && !giftExpiresAt)
+                }
+                onClick={() => void grantGiftedAccess()}
+                className="rounded-lg bg-violet-700 px-3 py-2 text-sm text-white hover:bg-violet-800 disabled:opacity-50"
+              >
+                Confirmar obsequio
+              </button>
+            </div>
+          </div>
+        </div>
+      ) : null}
       {magicLink ? (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 p-4">
           <div className="w-full max-w-xl rounded-2xl bg-white p-5 shadow-xl">

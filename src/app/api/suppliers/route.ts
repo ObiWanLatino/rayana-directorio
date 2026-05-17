@@ -1,8 +1,5 @@
 import { NextResponse, type NextRequest } from "next/server";
-import {
-  fetchSubscriptionAccessRow,
-  hasSubscriptionAccess,
-} from "@/lib/auth/entitlements";
+import { userHasListAccess } from "@/lib/auth/gifted-access";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import type {
   SupplierProfileSummary,
@@ -27,8 +24,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ error: "No autorizado" }, { status: 401 });
   }
 
-  const sub = await fetchSubscriptionAccessRow(supabase, user.id);
-  if (!hasSubscriptionAccess(sub)) {
+  if (!(await userHasListAccess(supabase, user.id))) {
     return NextResponse.json({ error: "Suscripción requerida" }, { status: 403 });
   }
 
