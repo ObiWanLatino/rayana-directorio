@@ -17,11 +17,10 @@ export type ActiveGiftedAccess = {
 };
 
 export async function hasActiveGiftedAccess(userId: string): Promise<boolean> {
-  const { data, error } = await rpcCheckActiveGiftedAccess(userId);
-  if (error) {
-    return false;
-  }
-  return data;
+  console.log("[hasActiveGiftedAccess] checking userId:", userId);
+  const result = await rpcCheckActiveGiftedAccess(userId);
+  console.log("[hasActiveGiftedAccess] result:", result);
+  return result.data;
 }
 
 export async function fetchActiveGiftedAccess(
