@@ -14,3 +14,7 @@ CREATE INDEX IF NOT EXISTS idx_gifted_access_user_id ON public.gifted_access (us
 ALTER TABLE public.gifted_access ENABLE ROW LEVEL SECURITY;
 
 -- No policies: anon/authenticated cannot read/write; service_role bypasses RLS.
+
+-- Users can read their own gifted access (required for RLS subquery in suppliers policy)
+CREATE POLICY "Users can view own gifted access" ON public.gifted_access
+FOR SELECT USING (auth.uid() = user_id);
