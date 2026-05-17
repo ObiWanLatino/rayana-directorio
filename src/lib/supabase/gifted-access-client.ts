@@ -79,6 +79,7 @@ export async function rpcCheckActiveGiftedAccess(
   });
 
   if (error) {
+    console.error("[check_active_gifted_access]", error.message, error.code);
     return { data: false, error: new Error(error.message) };
   }
 
