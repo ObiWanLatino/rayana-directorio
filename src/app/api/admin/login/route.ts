@@ -3,6 +3,7 @@ import {
   createAdminSession,
 } from "@/lib/admin/admin-session";
 import { constantTimeStringEqual } from "@/lib/admin/constant-time";
+import { enforceAdminLoginRateLimit } from "@/lib/admin/login-rate-limit";
 import { isAdminRequestHost } from "@/lib/admin/request-host";
 import { createAdminSupabaseClient } from "@/lib/supabase/admin";
 import { createServerClient } from "@supabase/ssr";
@@ -17,13 +18,18 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
+  const ip = request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ?? "unknown";
+  const userAgent = request.headers.get("user-agent") ?? "unknown";
+
+  const rateLimited = await enforceAdminLoginRateLimit(ip, userAgent);
+  if (rateLimited) {
+    return rateLimited;
+  }
+
   const ADMIN_SECRET = process.env.ADMIN_SECRET;
   if (!ADMIN_SECRET) {
     return NextResponse.json({ error: "Server misconfiguration" }, { status: 500 });
   }
-
-  const ip = request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ?? "unknown";
-  const userAgent = request.headers.get("user-agent") ?? "unknown";
 
   let body: { email?: string; password?: string; secret?: string };
   try {
@@ -86,7 +92,7 @@ export async function POST(request: Request) {
   if (!constantTimeStringEqual(secret, ADMIN_SECRET)) {
     await logAttempt({
       email: emailRaw,
-      action: "LOGIN_ATTEMPT",
+      action: "LOGIN_FAIL",
       success: false,
       reason: "Invalid admin secret",
     });
@@ -104,7 +110,7 @@ export async function POST(request: Request) {
   if (!adminUser) {
     await logAttempt({
       email,
-      action: "LOGIN_ATTEMPT",
+      action: "LOGIN_FAIL",
       success: false,
       reason: "Email not in admin whitelist",
     });
@@ -119,7 +125,7 @@ export async function POST(request: Request) {
   if (error || !data.user) {
     await logAttempt({
       email,
-      action: "LOGIN_ATTEMPT",
+      action: "LOGIN_FAIL",
       success: false,
       reason: "Invalid Supabase credentials",
     });
@@ -138,7 +144,7 @@ export async function POST(request: Request) {
     await logAttempt({
       email,
       user_id: data.user.id,
-      action: "LOGIN_ATTEMPT",
+      action: "LOGIN_FAIL",
       success: false,
       reason: "User not in admin whitelist after auth",
     });
