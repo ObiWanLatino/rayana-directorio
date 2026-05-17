@@ -144,10 +144,8 @@ export async function POST(request: Request) {
     });
   } catch (error) {
     const err = error as any;
-    console.error("[gifted-access POST] code:", err?.code);
-    console.error("[gifted-access POST] message:", err?.message);
-    console.error("[gifted-access POST] details:", err?.details);
-    console.error("[gifted-access POST] hint:", err?.hint);
+    const msg = `code=${err?.code} | message=${err?.message} | hint=${err?.hint} | details=${err?.details}`;
+    console.error("[gifted-access POST]", msg);
     return NextResponse.json({ error: "Error interno" }, { status: 500 });
   }
 }
