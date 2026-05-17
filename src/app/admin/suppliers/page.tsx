@@ -1,13 +1,15 @@
+// DEPRECATED: Esta ruta será migrada a admin.makeray.cl
+// TODO: Eliminar después de migración completa
+
 import {
   parsePaisSlug,
   paisDirectoryLabel,
   paisSlugToCodigo,
   type PaisSlug,
 } from "@/lib/admin/supplier-pais";
-import { isAdminEmail } from "@/lib/auth/entitlements";
+import { getAdminUser } from "@/lib/auth/require-admin";
 import { formatCodigo } from "@/lib/utils/format-codigo";
 import { createAdminSupabaseClient } from "@/lib/supabase/admin";
-import { createServerSupabaseClient } from "@/lib/supabase/server";
 import type { Supplier } from "@/types";
 import Link from "next/link";
 import { redirect } from "next/navigation";
@@ -65,16 +67,9 @@ export default async function AdminSuppliersPage({
 }: {
   searchParams: Promise<{ pais?: string }>;
 }) {
-  const supabase = await createServerSupabaseClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
+  const user = await getAdminUser();
   if (!user) {
-    redirect("/login?next=/admin/suppliers");
-  }
-  if (!isAdminEmail(user.email)) {
-    redirect("/hub");
+    redirect("/admin-login");
   }
 
   const { pais: paisParam } = await searchParams;

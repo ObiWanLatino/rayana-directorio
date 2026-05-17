@@ -5,7 +5,6 @@ import { BillingPortalButton } from "@/components/stripe/BillingPortalButton";
 import {
   fetchSubscriptionAccessRow,
   hasSubscriptionAccess,
-  parseAdminEmails,
 } from "@/lib/auth/entitlements";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import type { User } from "@supabase/supabase-js";
@@ -60,14 +59,6 @@ export default async function HubPage({
   const canUseBillingPortal = Boolean(
     billingRow?.stripe_customer_id || billingRow?.customer_portal_url,
   );
-  const {
-    data: { session },
-  } = await supabase.auth.getSession();
-
-  const adminEmails = parseAdminEmails();
-  const userEmail = session?.user?.email?.trim().toLowerCase() ?? "";
-  const isAdmin = adminEmails.includes(userEmail);
-
   const rawName = user.user_metadata?.full_name;
   const fullName = typeof rawName === "string" ? rawName : undefined;
   const firstName =
@@ -208,16 +199,6 @@ export default async function HubPage({
             description="Aprende a vender, hacer marketing y hacer crecer tu tienda."
             accent="accent"
           />
-
-          {isAdmin ? (
-            <HubCard
-              href="/admin"
-              emoji="⚙️"
-              title="Panel Admin"
-              description="Gestiona proveedores, suscriptores y contenido del directorio."
-              accent="navy"
-            />
-          ) : null}
         </div>
       </section>
     </div>

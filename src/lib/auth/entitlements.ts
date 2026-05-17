@@ -24,20 +24,6 @@ export function hasSubscriptionAccess(
   return false;
 }
 
-export function parseAdminEmails(): string[] {
-  const raw = process.env.ADMIN_EMAILS ?? "";
-  return raw
-    .split(",")
-    .map((e) => e.trim().toLowerCase())
-    .filter(Boolean);
-}
-
-export function isAdminEmail(email: string | undefined): boolean {
-  if (!email) return false;
-  const normalized = email.trim().toLowerCase();
-  return parseAdminEmails().includes(normalized);
-}
-
 export async function fetchSubscriptionAccessRow(
   supabase: SupabaseClient,
   userId: string,

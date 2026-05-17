@@ -1,21 +1,16 @@
+// DEPRECATED: Esta ruta será migrada a admin.makeray.cl
+// TODO: Eliminar después de migración completa
+
 import { ExcelUploadClient } from "@/components/admin/ExcelUploadClient";
-import { isAdminEmail } from "@/lib/auth/entitlements";
-import { createServerSupabaseClient } from "@/lib/supabase/server";
+import { getAdminUser } from "@/lib/auth/require-admin";
 import { redirect } from "next/navigation";
 
 export const dynamic = "force-dynamic";
 
 export default async function AdminUploadPage() {
-  const supabase = await createServerSupabaseClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
+  const user = await getAdminUser();
   if (!user) {
-    redirect("/login?next=/admin/upload");
-  }
-  if (!isAdminEmail(user.email)) {
-    redirect("/hub");
+    redirect("/admin-login");
   }
 
   return (

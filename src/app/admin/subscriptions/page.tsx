@@ -1,3 +1,6 @@
+// DEPRECATED: Esta ruta será migrada a admin.makeray.cl
+// TODO: Eliminar después de migración completa
+
 import { SubscriptionsAdminTable } from "@/components/admin/SubscriptionsAdminTable";
 import type { AdminSubscriptionRow } from "@/components/admin/SubscriptionsAdminTable";
 import { getAdminUser } from "@/lib/auth/require-admin";
@@ -134,7 +137,7 @@ async function loadData(): Promise<{ rows: AdminSubscriptionRow[]; metrics: Metr
 export default async function AdminSubscriptionsPage() {
   const user = await getAdminUser();
   if (!user) {
-    redirect("/login?next=/admin/subscriptions");
+    redirect("/admin-login");
   }
 
   const { rows, metrics } = await loadData();

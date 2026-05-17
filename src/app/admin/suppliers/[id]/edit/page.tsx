@@ -1,7 +1,9 @@
+// DEPRECATED: Esta ruta será migrada a admin.makeray.cl
+// TODO: Eliminar después de migración completa
+
 import { SupplierAdminForm } from "@/components/admin/SupplierAdminForm";
-import { isAdminEmail } from "@/lib/auth/entitlements";
+import { getAdminUser } from "@/lib/auth/require-admin";
 import { createAdminSupabaseClient } from "@/lib/supabase/admin";
-import { createServerSupabaseClient } from "@/lib/supabase/server";
 import type { Supplier } from "@/types";
 import { notFound, redirect } from "next/navigation";
 
@@ -14,16 +16,9 @@ export default async function AdminEditSupplierPage({
 }) {
   const { id } = await params;
 
-  const supabase = await createServerSupabaseClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
+  const user = await getAdminUser();
   if (!user) {
-    redirect(`/login?next=/admin/suppliers/${id}/edit`);
-  }
-  if (!isAdminEmail(user.email)) {
-    redirect("/hub");
+    redirect("/admin-login");
   }
 
   const admin = createAdminSupabaseClient();

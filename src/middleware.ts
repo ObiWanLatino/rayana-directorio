@@ -1,13 +1,14 @@
 import { createServerClient } from "@supabase/ssr";
 import { createClient } from "@supabase/supabase-js";
 import { NextResponse, type NextRequest } from "next/server";
+import { handleAdminHostnameRequest } from "@/lib/admin/admin-host-proxy";
+import { isAdminRequestHost } from "@/lib/admin/request-host";
 import {
   fetchSubscriptionAccessRow,
   hasSubscriptionAccess,
-  parseAdminEmails,
 } from "@/lib/auth/entitlements";
 
-export async function proxy(request: NextRequest) {
+export async function middleware(request: NextRequest) {
   const pathname = request.nextUrl.pathname;
 
   const isStripeWebhookPublic =
@@ -40,6 +41,22 @@ export async function proxy(request: NextRequest) {
     const url = request.nextUrl.clone();
     url.pathname = `/directorio${pathname.slice("/proveedores".length)}`;
     return NextResponse.redirect(url, { status: 308 });
+  }
+
+  const rawHost =
+    request.headers.get("x-forwarded-host") ?? request.headers.get("host");
+  if (isAdminRequestHost(rawHost)) {
+    return handleAdminHostnameRequest(request, pathname);
+  }
+
+  if (pathname === "/admin-login" || pathname.startsWith("/admin-login/")) {
+    return NextResponse.redirect(new URL("/hub", request.url));
+  }
+  if (pathname === "/admin" || pathname.startsWith("/admin/")) {
+    return NextResponse.redirect(new URL("/hub", request.url));
+  }
+  if (pathname.startsWith("/api/admin")) {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
   let supabaseResponse = NextResponse.next({
@@ -199,21 +216,6 @@ export async function proxy(request: NextRequest) {
       }
     }
 
-    return supabaseResponse;
-  }
-
-  if (pathname === "/admin" || pathname.startsWith("/admin/")) {
-    if (!user) {
-      const url = request.nextUrl.clone();
-      url.pathname = "/login";
-      url.searchParams.set("next", pathname);
-      return NextResponse.redirect(url);
-    }
-    const adminEmails = parseAdminEmails();
-    const email = session?.user?.email?.trim().toLowerCase() ?? "";
-    if (!email || !adminEmails.includes(email)) {
-      return NextResponse.redirect(new URL("/hub", request.url));
-    }
     return supabaseResponse;
   }
 

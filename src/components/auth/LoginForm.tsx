@@ -20,6 +20,8 @@ const errorMessages: Record<string, string> = {
   oauth: "No se pudo completar el inicio de sesión con Google.",
   confirm: "El enlace de confirmación no es válido o expiró.",
   invalid_link: "El enlace de confirmación no es válido o expiró.",
+  verification_failed:
+    "No pudimos completar la verificación. El enlace puede haber expirado: solicita uno nuevo o inicia sesión.",
   session:
     "Tu sesión fue iniciada en otro dispositivo. Por favor inicia sesión nuevamente.",
   suspended:

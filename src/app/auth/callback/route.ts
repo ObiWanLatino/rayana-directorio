@@ -1,43 +1,46 @@
 import type { EmailOtpType } from "@supabase/auth-js";
-import { createServerClient } from "@supabase/ssr";
-import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
-import {
-  fetchSubscriptionAccessRow,
-  hasSubscriptionAccess,
-} from "@/lib/auth/entitlements";
 import { getAuthRedirectOrigin } from "@/lib/app-url";
 import { createAdminSupabaseClient } from "@/lib/supabase/admin";
+import { createServerSupabaseClient } from "@/lib/supabase/server";
+
+function safeInternalNext(raw: string | null): string | null {
+  if (!raw) {
+    return null;
+  }
+  try {
+    const decoded = decodeURIComponent(raw);
+    if (decoded.startsWith("/") && !decoded.startsWith("//")) {
+      return decoded;
+    }
+  } catch {
+    // ignore malformed next
+  }
+  return null;
+}
+
+async function updateProfileLastSession(userId: string, accessToken: string) {
+  const admin = createAdminSupabaseClient();
+  await admin
+    .from("profiles")
+    .update({
+      last_session_id: accessToken,
+      updated_at: new Date().toISOString(),
+    })
+    .eq("id", userId);
+}
 
 export async function GET(request: Request) {
-  const { searchParams } = new URL(request.url);
+  const requestUrl = new URL(request.url);
+  const { searchParams } = requestUrl;
   const base = getAuthRedirectOrigin(request);
   const token_hash = searchParams.get("token_hash");
   const typeParam = searchParams.get("type");
   const code = searchParams.get("code");
+  const nextRaw = searchParams.get("next");
+  const nextOrCheckout = safeInternalNext(nextRaw) ?? "/checkout";
 
-  const cookieStore = await cookies();
-
-  const supabase = createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    {
-      cookies: {
-        getAll() {
-          return cookieStore.getAll();
-        },
-        setAll(cookiesToSet) {
-          try {
-            cookiesToSet.forEach(({ name, value, options }) => {
-              cookieStore.set(name, value, options);
-            });
-          } catch {
-            // ignore when not mutable
-          }
-        },
-      },
-    },
-  );
+  const supabase = await createServerSupabaseClient();
 
   /** Confirmación de email / magic link — no usar exchangeCodeForSession aquí. */
   if (token_hash && typeParam) {
@@ -62,24 +65,17 @@ export async function GET(request: Request) {
     } = await supabase.auth.getSession();
     const sessionId = session?.access_token;
     if (sessionId) {
-      const admin = createAdminSupabaseClient();
-      await admin
-        .from("profiles")
-        .update({
-          last_session_id: sessionId,
-          updated_at: new Date().toISOString(),
-        })
-        .eq("id", user.id);
+      await updateProfileLastSession(user.id, sessionId);
     }
 
     if (typeParam === "recovery") {
       return NextResponse.redirect(`${base}/auth/reset-password`);
     }
 
-    return NextResponse.redirect(`${base}/hub`);
+    return NextResponse.redirect(`${base}${nextOrCheckout}`);
   }
 
-  /** OAuth (Google, etc.) — PKCE intercambia `code`. */
+  /** PKCE: verificación de email u OAuth (intercambio de `code`). */
   if (!code) {
     return NextResponse.redirect(`${base}/login?error=invalid_link`);
   }
@@ -87,29 +83,24 @@ export async function GET(request: Request) {
   const { data: exchangeData, error } =
     await supabase.auth.exchangeCodeForSession(code);
   if (error) {
-    return NextResponse.redirect(`${base}/login?error=oauth`);
+    return NextResponse.redirect(
+      `${base}/login?error=verification_failed`,
+    );
   }
 
   const {
     data: { user },
   } = await supabase.auth.getUser();
   if (!user) {
-    return NextResponse.redirect(`${base}/login?error=oauth`);
+    return NextResponse.redirect(
+      `${base}/login?error=verification_failed`,
+    );
   }
 
   const sessionId = exchangeData.session?.access_token;
   if (sessionId) {
-    const admin = createAdminSupabaseClient();
-    await admin
-      .from("profiles")
-      .update({
-        last_session_id: sessionId,
-        updated_at: new Date().toISOString(),
-      })
-      .eq("id", user.id);
+    await updateProfileLastSession(user.id, sessionId);
   }
 
-  const sub = await fetchSubscriptionAccessRow(supabase, user.id);
-  const path = hasSubscriptionAccess(sub) ? "/hub" : "/checkout";
-  return NextResponse.redirect(`${base}${path}`);
+  return NextResponse.redirect(`${base}${nextOrCheckout}`);
 }
