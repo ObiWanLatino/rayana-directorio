@@ -18,8 +18,6 @@ const giftedMocks = vi.hoisted(() => ({
     expires_at: string | null;
     created_at: string;
   } | null,
-  insert: vi.fn(),
-  update: vi.fn(),
   profileEmail: "user@example.com",
 }));
 
@@ -36,39 +34,30 @@ vi.mock("@/lib/auth/entitlements", () => ({
   hasSubscriptionAccess: vi.fn(),
 }));
 
-const giftedAccessQueryMock = {
-  select: () => ({
-    eq: () => ({
-      is: () => ({
-        or: () => ({
-          order: () => ({
-            limit: () => ({
-              maybeSingle: async () => ({
-                data: giftedMocks.giftedRow,
-                error: null,
-              }),
-            }),
-          }),
-        }),
-      }),
-      eq: () => ({
-        is: () => ({
-          or: () => ({
-            maybeSingle: async () => ({
-              data: giftedMocks.giftedRow ? { id: giftedMocks.giftedRow.id } : null,
-              error: null,
-            }),
-          }),
-        }),
-      }),
-    }),
-  }),
-  insert: giftedMocks.insert,
-  update: giftedMocks.update,
-};
-
 vi.mock("@/lib/supabase/gifted-access-client", () => ({
-  giftedAccessTable: () => giftedAccessQueryMock,
+  rpcGrantGiftedAccess: vi.fn(),
+  rpcRevokeGiftedAccess: vi.fn(),
+  rpcGetActiveGiftedAccess: vi.fn(async (userId?: string | null) => {
+    if (userId && giftedMocks.giftedRow?.user_id !== userId) {
+      return { data: [], error: null };
+    }
+    if (!giftedMocks.giftedRow) {
+      return { data: [], error: null };
+    }
+    return {
+      data: [
+        {
+          ...giftedMocks.giftedRow,
+          revoked_at: null,
+        },
+      ],
+      error: null,
+    };
+  }),
+  rpcCheckActiveGiftedAccess: vi.fn(async (userId: string) => ({
+    data: Boolean(giftedMocks.giftedRow && giftedMocks.giftedRow.user_id === userId),
+    error: null,
+  })),
 }));
 
 vi.mock("@/lib/supabase/admin", () => ({
@@ -92,6 +81,10 @@ vi.mock("@/lib/supabase/admin", () => ({
 }));
 
 import { getAdminUser } from "@/lib/auth/require-admin";
+import {
+  rpcCheckActiveGiftedAccess,
+  rpcGrantGiftedAccess,
+} from "@/lib/supabase/gifted-access-client";
 
 describe("gifted access entitlements", () => {
   beforeEach(() => {
@@ -132,10 +125,13 @@ describe("POST /api/admin/gifted-access", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     giftedMocks.giftedRow = null;
-    giftedMocks.insert.mockResolvedValue({
+    vi.mocked(rpcCheckActiveGiftedAccess).mockResolvedValue({ data: false, error: null });
+    vi.mocked(rpcGrantGiftedAccess).mockResolvedValue({
       data: {
         id: "new-gift",
         user_id: "target-u",
+        granted_by: "admin-1",
+        reason: null,
         expires_at: null,
         created_at: "2026-01-01T00:00:00.000Z",
       },

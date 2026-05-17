@@ -6,7 +6,7 @@ import type { AdminSubscriptionRow } from "@/components/admin/SubscriptionsAdmin
 import { getAdminUser } from "@/lib/auth/require-admin";
 import { getStripe } from "@/lib/stripe/client";
 import { createAdminSupabaseClient } from "@/lib/supabase/admin";
-import { giftedAccessTable } from "@/lib/supabase/gifted-access-client";
+import { rpcGetActiveGiftedAccess } from "@/lib/supabase/gifted-access-client";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 
@@ -87,16 +87,18 @@ async function loadData(): Promise<{ rows: AdminSubscriptionRow[]; metrics: Metr
   }[] = [];
 
   try {
-    const nowIso = new Date().toISOString();
-    const { data, error } = await giftedAccessTable()
-      .select("id, user_id, reason, expires_at, created_at")
-      .is("revoked_at", null)
-      .or(`expires_at.is.null,expires_at.gt.${nowIso}`);
+    const { data, error } = await rpcGetActiveGiftedAccess();
 
     if (error) {
       throw error;
     }
-    giftedRows = (data ?? []) as typeof giftedRows;
+    giftedRows = data.map((g) => ({
+      id: g.id,
+      user_id: g.user_id,
+      reason: g.reason,
+      expires_at: g.expires_at,
+      created_at: g.created_at,
+    }));
   } catch (err) {
     logSubscriptionsQueryError("gifted_access", err);
   }

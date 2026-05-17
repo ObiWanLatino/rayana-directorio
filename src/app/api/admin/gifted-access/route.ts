@@ -1,7 +1,12 @@
 import { notifyGiftedAccessByEmail } from "@/lib/email/send-gifted-access-email";
 import { getAdminUser } from "@/lib/auth/require-admin";
 import { createAdminSupabaseClient } from "@/lib/supabase/admin";
-import { giftedAccessTable } from "@/lib/supabase/gifted-access-client";
+import {
+  rpcCheckActiveGiftedAccess,
+  rpcGetActiveGiftedAccess,
+  rpcGrantGiftedAccess,
+  rpcRevokeGiftedAccess,
+} from "@/lib/supabase/gifted-access-client";
 import { NextResponse } from "next/server";
 
 export const dynamic = "force-dynamic";
@@ -16,55 +21,47 @@ type RevokeBody = {
   gifted_access_id?: string;
 };
 
-async function findActiveGiftedForUser(userId: string) {
-  const now = new Date().toISOString();
-  return giftedAccessTable()
-    .select("id")
-    .eq("user_id", userId)
-    .is("revoked_at", null)
-    .or(`expires_at.is.null,expires_at.gt.${now}`)
-    .maybeSingle();
-}
-
 export async function GET(request: Request) {
   const adminUser = await getAdminUser();
   if (!adminUser) {
     return NextResponse.json({ error: "No autorizado" }, { status: 401 });
   }
 
-  const userId = new URL(request.url).searchParams.get("user_id")?.trim();
-  const now = new Date().toISOString();
-
-  let query = giftedAccessTable()
-    .select(
-      "id, user_id, reason, expires_at, created_at, granted_by, profiles:user_id (email)",
-    )
-    .is("revoked_at", null)
-    .or(`expires_at.is.null,expires_at.gt.${now}`)
-    .order("created_at", { ascending: false });
-
-  if (userId) {
-    query = query.eq("user_id", userId);
-  }
-
-  const { data, error } = await query;
+  const userId = new URL(request.url).searchParams.get("user_id")?.trim() || null;
+  const { data: rows, error } = await rpcGetActiveGiftedAccess(userId);
 
   if (error) {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 
-  const items = (data ?? []).map((row) => {
-    const profile = row.profiles as { email?: string | null } | null;
-    return {
-      id: row.id,
-      user_id: row.user_id,
-      email: profile?.email ?? null,
-      reason: row.reason,
-      expires_at: row.expires_at,
-      created_at: row.created_at,
-      granted_by: row.granted_by,
-    };
-  });
+  const userIds = [...new Set(rows.map((row) => row.user_id))];
+  const emailByUserId = new Map<string, string | null>();
+
+  if (userIds.length > 0) {
+    const admin = createAdminSupabaseClient();
+    const { data: profiles, error: profilesError } = await admin
+      .from("profiles")
+      .select("id, email")
+      .in("id", userIds);
+
+    if (profilesError) {
+      return NextResponse.json({ error: profilesError.message }, { status: 500 });
+    }
+
+    for (const profile of profiles ?? []) {
+      emailByUserId.set(profile.id as string, (profile.email as string | null) ?? null);
+    }
+  }
+
+  const items = rows.map((row) => ({
+    id: row.id,
+    user_id: row.user_id,
+    email: emailByUserId.get(row.user_id) ?? null,
+    reason: row.reason,
+    expires_at: row.expires_at,
+    created_at: row.created_at,
+    granted_by: null,
+  }));
 
   return NextResponse.json({ items });
 }
@@ -97,36 +94,34 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "expires_at inválido" }, { status: 400 });
     }
 
-    const existing = await findActiveGiftedForUser(userId);
-    if (existing.data) {
+    const { data: alreadyActive, error: checkError } =
+      await rpcCheckActiveGiftedAccess(userId);
+    if (checkError) {
+      throw checkError;
+    }
+    if (alreadyActive) {
       return NextResponse.json(
         { error: "El usuario ya tiene un obsequio activo" },
         { status: 409 },
       );
     }
 
-    const admin = createAdminSupabaseClient();
-    const { data: inserted, error } = await giftedAccessTable()
-      .insert({
-        user_id: userId,
-        granted_by: adminUser.id,
-        reason: body.reason?.trim() || null,
-        expires_at: expiresAt,
-      })
-      .select("id, user_id, expires_at, created_at")
-      .single();
+    const { data: inserted, error: grantError } = await rpcGrantGiftedAccess(
+      userId,
+      adminUser.id,
+      body.reason?.trim() || null,
+      expiresAt,
+    );
 
-    if (error || !inserted) {
-      console.error(
-        "[gifted-access POST]",
-        error instanceof Error ? error.message : JSON.stringify(error),
-      );
+    if (grantError || !inserted) {
+      console.error("[gifted-access POST] message:", grantError?.message);
       return NextResponse.json(
-        { error: error?.message ?? "No se pudo crear el obsequio" },
+        { error: grantError?.message ?? "No se pudo crear el obsequio" },
         { status: 500 },
       );
     }
 
+    const admin = createAdminSupabaseClient();
     const { data: profile } = await admin
       .from("profiles")
       .select("email")
@@ -178,13 +173,17 @@ export async function DELETE(request: Request) {
     );
   }
 
-  const { error } = await giftedAccessTable()
-    .update({ revoked_at: new Date().toISOString() })
-    .eq("id", giftedAccessId)
-    .is("revoked_at", null);
+  const { data: revoked, error } = await rpcRevokeGiftedAccess(giftedAccessId);
 
   if (error) {
     return NextResponse.json({ error: error.message }, { status: 500 });
+  }
+
+  if (!revoked) {
+    return NextResponse.json(
+      { error: "Obsequio no encontrado o ya revocado" },
+      { status: 404 },
+    );
   }
 
   return NextResponse.json({ revoked: true });

@@ -1,4 +1,7 @@
-import { giftedAccessTable } from "@/lib/supabase/gifted-access-client";
+import {
+  rpcCheckActiveGiftedAccess,
+  rpcGetActiveGiftedAccess,
+} from "@/lib/supabase/gifted-access-client";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import {
   fetchSubscriptionAccessRow,
@@ -14,29 +17,29 @@ export type ActiveGiftedAccess = {
 };
 
 export async function hasActiveGiftedAccess(userId: string): Promise<boolean> {
-  const row = await fetchActiveGiftedAccess(userId);
-  return row !== null;
+  const { data, error } = await rpcCheckActiveGiftedAccess(userId);
+  if (error) {
+    return false;
+  }
+  return data;
 }
 
 export async function fetchActiveGiftedAccess(
   userId: string,
 ): Promise<ActiveGiftedAccess | null> {
-  const now = new Date().toISOString();
-
-  const { data, error } = await giftedAccessTable()
-    .select("id, user_id, reason, expires_at, created_at")
-    .eq("user_id", userId)
-    .is("revoked_at", null)
-    .or(`expires_at.is.null,expires_at.gt.${now}`)
-    .order("created_at", { ascending: false })
-    .limit(1)
-    .maybeSingle();
-
-  if (error || !data) {
+  const { data, error } = await rpcGetActiveGiftedAccess(userId);
+  if (error || data.length === 0) {
     return null;
   }
 
-  return data;
+  const row = data[0];
+  return {
+    id: row.id,
+    user_id: row.user_id,
+    reason: row.reason,
+    expires_at: row.expires_at,
+    created_at: row.created_at,
+  };
 }
 
 /** Stripe subscription OR active gifted_access. */
