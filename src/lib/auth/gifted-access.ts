@@ -1,4 +1,4 @@
-import { createAdminSupabaseClient } from "@/lib/supabase/admin";
+import { giftedAccessTable } from "@/lib/supabase/gifted-access-client";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import {
   fetchSubscriptionAccessRow,
@@ -21,11 +21,9 @@ export async function hasActiveGiftedAccess(userId: string): Promise<boolean> {
 export async function fetchActiveGiftedAccess(
   userId: string,
 ): Promise<ActiveGiftedAccess | null> {
-  const admin = createAdminSupabaseClient();
   const now = new Date().toISOString();
 
-  const { data, error } = await admin
-    .from("gifted_access")
+  const { data, error } = await giftedAccessTable()
     .select("id, user_id, reason, expires_at, created_at")
     .eq("user_id", userId)
     .is("revoked_at", null)

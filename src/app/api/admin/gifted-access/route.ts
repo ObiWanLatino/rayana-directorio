@@ -1,6 +1,7 @@
 import { notifyGiftedAccessByEmail } from "@/lib/email/send-gifted-access-email";
 import { getAdminUser } from "@/lib/auth/require-admin";
 import { createAdminSupabaseClient } from "@/lib/supabase/admin";
+import { giftedAccessTable } from "@/lib/supabase/gifted-access-client";
 import { NextResponse } from "next/server";
 
 export const dynamic = "force-dynamic";
@@ -16,10 +17,8 @@ type RevokeBody = {
 };
 
 async function findActiveGiftedForUser(userId: string) {
-  const admin = createAdminSupabaseClient();
   const now = new Date().toISOString();
-  return admin
-    .from("gifted_access")
+  return giftedAccessTable()
     .select("id")
     .eq("user_id", userId)
     .is("revoked_at", null)
@@ -34,11 +33,9 @@ export async function GET(request: Request) {
   }
 
   const userId = new URL(request.url).searchParams.get("user_id")?.trim();
-  const admin = createAdminSupabaseClient();
   const now = new Date().toISOString();
 
-  let query = admin
-    .from("gifted_access")
+  let query = giftedAccessTable()
     .select(
       "id, user_id, reason, expires_at, created_at, granted_by, profiles:user_id (email)",
     )
@@ -109,8 +106,7 @@ export async function POST(request: Request) {
     }
 
     const admin = createAdminSupabaseClient();
-    const { data: inserted, error } = await admin
-      .from("gifted_access")
+    const { data: inserted, error } = await giftedAccessTable()
       .insert({
         user_id: userId,
         granted_by: adminUser.id,
@@ -181,9 +177,7 @@ export async function DELETE(request: Request) {
     );
   }
 
-  const admin = createAdminSupabaseClient();
-  const { error } = await admin
-    .from("gifted_access")
+  const { error } = await giftedAccessTable()
     .update({ revoked_at: new Date().toISOString() })
     .eq("id", giftedAccessId)
     .is("revoked_at", null);

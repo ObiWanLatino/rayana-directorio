@@ -36,41 +36,44 @@ vi.mock("@/lib/auth/entitlements", () => ({
   hasSubscriptionAccess: vi.fn(),
 }));
 
-vi.mock("@/lib/supabase/admin", () => ({
-  createAdminSupabaseClient: vi.fn(() => ({
-    from: (table: string) => {
-      if (table === "gifted_access") {
-        return {
-          select: () => ({
-            eq: () => ({
-              is: () => ({
-                or: () => ({
-                  order: () => ({
-                    limit: () => ({
-                      maybeSingle: async () => ({
-                        data: giftedMocks.giftedRow,
-                        error: null,
-                      }),
-                    }),
-                  }),
-                }),
-              }),
-              eq: () => ({
-                is: () => ({
-                  or: () => ({
-                    maybeSingle: async () => ({
-                      data: giftedMocks.giftedRow ? { id: giftedMocks.giftedRow.id } : null,
-                      error: null,
-                    }),
-                  }),
-                }),
+const giftedAccessQueryMock = {
+  select: () => ({
+    eq: () => ({
+      is: () => ({
+        or: () => ({
+          order: () => ({
+            limit: () => ({
+              maybeSingle: async () => ({
+                data: giftedMocks.giftedRow,
+                error: null,
               }),
             }),
           }),
-          insert: giftedMocks.insert,
-          update: giftedMocks.update,
-        };
-      }
+        }),
+      }),
+      eq: () => ({
+        is: () => ({
+          or: () => ({
+            maybeSingle: async () => ({
+              data: giftedMocks.giftedRow ? { id: giftedMocks.giftedRow.id } : null,
+              error: null,
+            }),
+          }),
+        }),
+      }),
+    }),
+  }),
+  insert: giftedMocks.insert,
+  update: giftedMocks.update,
+};
+
+vi.mock("@/lib/supabase/gifted-access-client", () => ({
+  giftedAccessTable: () => giftedAccessQueryMock,
+}));
+
+vi.mock("@/lib/supabase/admin", () => ({
+  createAdminSupabaseClient: vi.fn(() => ({
+    from: (table: string) => {
       if (table === "profiles") {
         return {
           select: () => ({

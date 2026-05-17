@@ -6,6 +6,7 @@ import type { AdminSubscriptionRow } from "@/components/admin/SubscriptionsAdmin
 import { getAdminUser } from "@/lib/auth/require-admin";
 import { getStripe } from "@/lib/stripe/client";
 import { createAdminSupabaseClient } from "@/lib/supabase/admin";
+import { giftedAccessTable } from "@/lib/supabase/gifted-access-client";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 
@@ -64,8 +65,7 @@ async function loadData(): Promise<{ rows: AdminSubscriptionRow[]; metrics: Metr
   const subByUser = new Map(subsRows.map((s) => [s.user_id, s]));
 
   const nowIso = new Date().toISOString();
-  const { data: giftedRows } = await db
-    .from("gifted_access")
+  const { data: giftedRows } = await giftedAccessTable()
     .select("id, user_id, reason, expires_at, created_at")
     .is("revoked_at", null)
     .or(`expires_at.is.null,expires_at.gt.${nowIso}`);
