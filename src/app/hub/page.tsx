@@ -187,14 +187,6 @@ export default async function HubPage({
               accent="primary"
             />
           ) : null}
-
-          <HubCard
-            href="/cursos"
-            emoji="🎓"
-            title="Cursos"
-            description="Aprende a vender, hacer marketing y hacer crecer tu tienda."
-            accent="accent"
-          />
         </div>
       </section>
     </div>

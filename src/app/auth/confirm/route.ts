@@ -59,6 +59,6 @@ export async function GET(request: Request) {
     return NextResponse.redirect(`${base}/login?error=confirm`);
   }
 
-  const path = (await userHasListAccess(supabase, user.id)) ? "/hub" : "/checkout";
+  const path = (await userHasListAccess(supabase, user.id)) ? "/directorio" : "/checkout";
   return NextResponse.redirect(`${base}${path}`);
 }

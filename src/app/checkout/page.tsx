@@ -22,7 +22,7 @@ export default async function CheckoutPage() {
   }
 
   if (await userHasListAccess(supabase, user.id)) {
-    redirect("/hub");
+    redirect("/directorio");
   }
 
   const headersList = await headers();

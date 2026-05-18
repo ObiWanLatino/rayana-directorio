@@ -195,7 +195,7 @@ export function LoginForm({
           return;
         }
         router.refresh();
-        router.push(redirectAfterLogin ?? "/hub");
+        router.push(redirectAfterLogin ?? "/directorio");
         return;
       }
 
@@ -222,7 +222,7 @@ export function LoginForm({
 
       if (data.session) {
         router.refresh();
-        router.push(redirectAfterLogin ?? "/hub");
+        router.push(redirectAfterLogin ?? "/directorio");
         return;
       }
 
