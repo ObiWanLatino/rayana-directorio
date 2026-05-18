@@ -34,6 +34,10 @@ type PatchByIdBody = {
   activo?: boolean;
   destacado?: boolean;
   verificado?: boolean;
+  logo_url?: null;
+  foto_1_url?: null;
+  foto_2_url?: null;
+  foto_3_url?: null;
 };
 
 export async function PATCH(
@@ -136,6 +140,25 @@ export async function PATCH(
   }
   if (body.verificado !== undefined) {
     patch.verificado = Boolean(body.verificado);
+  }
+  if (body.logo_url !== undefined) {
+    if (body.logo_url !== null) {
+      return NextResponse.json(
+        { error: "logo_url solo puede enviarse como null para quitar" },
+        { status: 400 },
+      );
+    }
+    patch.logo_url = null;
+  }
+  for (const col of ["foto_1_url", "foto_2_url", "foto_3_url"] as const) {
+    if (body[col] === undefined) continue;
+    if (body[col] !== null) {
+      return NextResponse.json(
+        { error: `${col} solo puede enviarse como null para quitar` },
+        { status: 400 },
+      );
+    }
+    patch[col] = null;
   }
 
   if (Object.keys(patch).length <= 1) {

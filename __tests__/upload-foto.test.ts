@@ -78,7 +78,7 @@ describe("POST /api/admin/upload-foto", () => {
     );
     expect(res.status).toBe(200);
     const json = (await res.json()) as { url?: string };
-    expect(json.url).toBe("https://cdn.example/i.jpg");
+    expect(json.url).toMatch(/^https:\/\/cdn\.example\/i\.jpg\?v=/);
     expect(adminMocks.upload).toHaveBeenCalled();
   });
 });

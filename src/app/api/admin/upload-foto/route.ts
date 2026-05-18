@@ -103,14 +103,15 @@ export async function POST(request: Request) {
 
   const col = FOTO_COL[fotoIndex];
   const now = new Date().toISOString();
+  const versionedUrl = `${publicUrl}?v=${encodeURIComponent(now)}`;
   const { error: updErr } = await admin
     .from("suppliers")
-    .update({ [col]: publicUrl, updated_at: now })
+    .update({ [col]: versionedUrl, updated_at: now })
     .eq("id", supplierId);
 
   if (updErr) {
     return NextResponse.json({ error: updErr.message }, { status: 500 });
   }
 
-  return NextResponse.json({ url: publicUrl });
+  return NextResponse.json({ url: versionedUrl });
 }

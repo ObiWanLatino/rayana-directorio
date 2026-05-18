@@ -75,6 +75,65 @@ export function SupplierAdminForm(props: Props) {
     }
   }
 
+  async function removeLogo() {
+    if (!isEdit || !logoUrl) return;
+    setLogoBusy(true);
+    setError(null);
+    try {
+      const res = await fetch(`/api/admin/suppliers/${props.supplier.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ logo_url: null }),
+      });
+      const data: { error?: string } = await res.json();
+      if (!res.ok) {
+        setError(data.error ?? "Error al quitar logo");
+        return;
+      }
+      setLogoUrl(null);
+    } catch {
+      setError("Error de red al quitar logo");
+    } finally {
+      setLogoBusy(false);
+    }
+  }
+
+  async function removeFoto(fotoIndex: "1" | "2" | "3") {
+    if (!isEdit) return;
+    const url =
+      fotoIndex === "1" ? foto1Url : fotoIndex === "2" ? foto2Url : foto3Url;
+    if (!url) return;
+
+    const field =
+      fotoIndex === "1"
+        ? "foto_1_url"
+        : fotoIndex === "2"
+          ? "foto_2_url"
+          : "foto_3_url";
+
+    setFotoBusy(fotoIndex);
+    setError(null);
+    try {
+      const res = await fetch(`/api/admin/suppliers/${props.supplier.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ [field]: null }),
+      });
+      const data: { error?: string } = await res.json();
+      if (!res.ok) {
+        setError(data.error ?? "Error al quitar foto");
+        return;
+      }
+      if (fotoIndex === "1") setFoto1Url(null);
+      if (fotoIndex === "2") setFoto2Url(null);
+      if (fotoIndex === "3") setFoto3Url(null);
+    } catch {
+      setError("Error de red al quitar foto");
+    } finally {
+      setFotoBusy(null);
+    }
+  }
+
   async function uploadFoto(file: File, fotoIndex: "1" | "2" | "3") {
     if (!isEdit) return;
     setFotoBusy(fotoIndex);
@@ -463,8 +522,18 @@ export function SupplierAdminForm(props: Props) {
                   }}
                   className="text-sm"
                 />
+                {logoUrl ? (
+                  <button
+                    type="button"
+                    disabled={logoBusy}
+                    onClick={() => void removeLogo()}
+                    className="mt-2 block text-sm text-red-700 underline hover:text-red-900 disabled:opacity-50"
+                  >
+                    Quitar logo
+                  </button>
+                ) : null}
                 {logoBusy ? (
-                  <p className="mt-1 text-xs text-zinc-500">Subiendo…</p>
+                  <p className="mt-1 text-xs text-zinc-500">Procesando…</p>
                 ) : null}
               </div>
             </div>
@@ -480,7 +549,11 @@ export function SupplierAdminForm(props: Props) {
             </p>
             {(
               [
-                { n: "1" as const, url: foto1Url, label: "Foto 1" },
+                {
+                  n: "1" as const,
+                  url: foto1Url,
+                  label: "Foto principal (Foto 1)",
+                },
                 { n: "2" as const, url: foto2Url, label: "Foto 2" },
                 { n: "3" as const, url: foto3Url, label: "Foto 3" },
               ] as const
@@ -509,8 +582,18 @@ export function SupplierAdminForm(props: Props) {
                   }}
                   className="mt-1 block text-sm"
                 />
+                {url ? (
+                  <button
+                    type="button"
+                    disabled={fotoBusy !== null}
+                    onClick={() => void removeFoto(n)}
+                    className="mt-2 block text-sm text-red-700 underline hover:text-red-900 disabled:opacity-50"
+                  >
+                    Quitar foto
+                  </button>
+                ) : null}
                 {fotoBusy === n ? (
-                  <p className="mt-1 text-xs text-zinc-500">Subiendo…</p>
+                  <p className="mt-1 text-xs text-zinc-500">Procesando…</p>
                 ) : null}
               </div>
             ))}
