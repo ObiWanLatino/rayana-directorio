@@ -53,6 +53,8 @@ export function SupplierAdminForm(props: Props) {
   const [deactivating, setDeactivating] = useState(false);
   const [logoBusy, setLogoBusy] = useState(false);
   const [logoUrl, setLogoUrl] = useState<string | null>(s?.logo_url ?? null);
+  const [coverBusy, setCoverBusy] = useState(false);
+  const [coverUrl, setCoverUrl] = useState<string | null>(s?.cover_url ?? null);
   const [fotoBusy, setFotoBusy] = useState<"1" | "2" | "3" | null>(null);
   const [foto1Url, setFoto1Url] = useState<string | null>(s?.foto_1_url ?? null);
   const [foto2Url, setFoto2Url] = useState<string | null>(s?.foto_2_url ?? null);
@@ -103,6 +105,54 @@ export function SupplierAdminForm(props: Props) {
       setError("Error de red al quitar logo");
     } finally {
       setLogoBusy(false);
+    }
+  }
+
+  async function uploadCover(file: File) {
+    if (!isEdit) return;
+    setCoverBusy(true);
+    setError(null);
+    try {
+      const fd = new FormData();
+      fd.set("supplier_id", props.supplier.id);
+      fd.set("file", file);
+      const res = await fetch("/api/admin/upload-cover", {
+        method: "POST",
+        body: fd,
+      });
+      const data: { error?: string; cover_url?: string } = await res.json();
+      if (!res.ok) {
+        setError(data.error ?? "Error al subir portada");
+        return;
+      }
+      if (data.cover_url) setCoverUrl(data.cover_url);
+    } catch {
+      setError("Error de red al subir portada");
+    } finally {
+      setCoverBusy(false);
+    }
+  }
+
+  async function removeCover() {
+    if (!isEdit || !coverUrl) return;
+    setCoverBusy(true);
+    setError(null);
+    try {
+      const res = await fetch(`/api/admin/suppliers/${props.supplier.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ cover_url: null }),
+      });
+      const data: { error?: string } = await res.json();
+      if (!res.ok) {
+        setError(data.error ?? "Error al quitar portada");
+        return;
+      }
+      setCoverUrl(null);
+    } catch {
+      setError("Error de red al quitar portada");
+    } finally {
+      setCoverBusy(false);
     }
   }
 
@@ -192,6 +242,7 @@ export function SupplierAdminForm(props: Props) {
             activo,
             destacado,
             verificado,
+            cover_url: coverUrl,
           }),
         });
         const data: { error?: string } = await res.json();
@@ -557,9 +608,67 @@ export function SupplierAdminForm(props: Props) {
           <div className="space-y-4 rounded-xl border border-zinc-200 bg-white p-4">
             <p className="text-sm font-medium text-zinc-800">Fotos destacadas</p>
             <p className="text-xs text-zinc-500">
-              Hasta 3 imágenes para el carrusel del directorio. El Excel no modifica
+              Portada y hasta 3 imágenes para la card destacada. El Excel no modifica
               estas URLs.
             </p>
+
+            <div className="space-y-2">
+              <p className="text-sm font-medium text-zinc-800">Imagen de portada</p>
+              <p className="text-xs text-zinc-500">
+                Aparece como banner en la card destacada. Recomendado: 1200×400px.
+              </p>
+              <div className="relative flex aspect-[3/1] w-full cursor-pointer items-center justify-center overflow-hidden rounded-lg border-2 border-dashed border-zinc-200 bg-zinc-50 transition-colors hover:border-indigo-300">
+                {coverUrl ? (
+                  <>
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      src={coverUrl}
+                      alt=""
+                      className="h-full w-full object-cover"
+                    />
+                    <button
+                      type="button"
+                      disabled={coverBusy || fotoBusy !== null}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        void removeCover();
+                      }}
+                      className="absolute right-2 top-2 rounded-full bg-white p-1 text-red-500 shadow hover:text-red-700 disabled:opacity-50"
+                      aria-label="Quitar portada"
+                    >
+                      <X className="h-4 w-4" aria-hidden />
+                    </button>
+                  </>
+                ) : (
+                  <label className="flex h-full w-full cursor-pointer flex-col items-center justify-center gap-2 text-zinc-400">
+                    <ImagePlus className="h-8 w-8" aria-hidden />
+                    <span className="px-2 text-center text-xs">
+                      Subir imagen de portada
+                    </span>
+                    <input
+                      type="file"
+                      accept="image/jpeg,image/png,image/webp"
+                      className="hidden"
+                      disabled={coverBusy || fotoBusy !== null}
+                      onChange={(e) => {
+                        const f = e.target.files?.[0];
+                        if (f) void uploadCover(f);
+                        e.target.value = "";
+                      }}
+                    />
+                  </label>
+                )}
+                {coverBusy ? (
+                  <div className="absolute inset-0 flex items-center justify-center bg-white/80">
+                    <Loader2
+                      className="h-6 w-6 animate-spin text-indigo-600"
+                      aria-hidden
+                    />
+                  </div>
+                ) : null}
+              </div>
+            </div>
+
             <div className="grid gap-4 sm:grid-cols-3">
             {(
               [
@@ -585,7 +694,7 @@ export function SupplierAdminForm(props: Props) {
                       />
                       <button
                         type="button"
-                        disabled={fotoBusy !== null}
+                        disabled={fotoBusy !== null || coverBusy}
                         onClick={(e) => {
                           e.stopPropagation();
                           void removeFoto(n);
@@ -604,7 +713,7 @@ export function SupplierAdminForm(props: Props) {
                         type="file"
                         accept="image/jpeg,image/png,image/webp"
                         className="hidden"
-                        disabled={fotoBusy !== null}
+                        disabled={fotoBusy !== null || coverBusy}
                         onChange={(e) => {
                           const f = e.target.files?.[0];
                           if (f) void uploadFoto(f, n);
@@ -647,7 +756,7 @@ export function SupplierAdminForm(props: Props) {
                 foto1Url={foto1Url}
                 foto2Url={foto2Url}
                 foto3Url={foto3Url}
-                coverUrl={null}
+                coverUrl={coverUrl}
                 whatsappUrl={previewWhatsappUrl}
               />
             </div>

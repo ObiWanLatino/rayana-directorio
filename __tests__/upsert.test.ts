@@ -40,6 +40,7 @@ function dbSupplier(codigo: number, activo = true): Supplier {
     observacion: null,
     whatsapp: null,
     logo_url: null,
+    cover_url: null,
     destacado: false,
     verificado: true,
     foto_1_url: null,

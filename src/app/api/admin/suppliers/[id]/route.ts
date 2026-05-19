@@ -35,6 +35,7 @@ type PatchByIdBody = {
   destacado?: boolean;
   verificado?: boolean;
   logo_url?: null;
+  cover_url?: string | null;
   foto_1_url?: null;
   foto_2_url?: null;
   foto_3_url?: null;
@@ -149,6 +150,14 @@ export async function PATCH(
       );
     }
     patch.logo_url = null;
+  }
+  if (body.cover_url !== undefined) {
+    if (body.cover_url === null) {
+      patch.cover_url = null;
+    } else {
+      const url = sanitizeHttpUrl(body.cover_url);
+      patch.cover_url = url;
+    }
   }
   for (const col of ["foto_1_url", "foto_2_url", "foto_3_url"] as const) {
     if (body[col] === undefined) continue;

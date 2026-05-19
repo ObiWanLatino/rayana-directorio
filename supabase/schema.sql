@@ -80,6 +80,7 @@ CREATE TABLE IF NOT EXISTS public.suppliers (
   observacion TEXT,
   whatsapp TEXT,
   logo_url TEXT,
+  cover_url TEXT,
   destacado BOOLEAN DEFAULT false,
   verificado BOOLEAN DEFAULT false,
   foto_1_url TEXT,

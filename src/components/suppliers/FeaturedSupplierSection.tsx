@@ -32,6 +32,14 @@ function resolveProfile(
   return Array.isArray(raw) ? raw[0] ?? null : raw;
 }
 
+/** suppliers.cover_url tiene prioridad sobre supplier_profiles (vitrina admin). */
+function resolveCoverUrl(s: SupplierWithFeaturedProfile): string | null {
+  const fromSupplier = s.cover_url?.trim() || null;
+  if (fromSupplier) return fromSupplier;
+  const profile = resolveProfile(s);
+  return profile?.cover_url?.trim() || null;
+}
+
 function whatsappHref(whatsapp: string | null): string | null {
   const raw = whatsapp?.replace(/\D/g, "") ?? "";
   if (raw === "") return null;
@@ -53,7 +61,7 @@ function FeaturedSupplierCard({
     plan === "vitrina" || plan === "pro"
       ? `/directorio/${supplier.codigo}`
       : null;
-  const coverUrl = profile?.cover_url?.trim() || null;
+  const coverUrl = resolveCoverUrl(supplier);
   const whatsappUrl = whatsappHref(supplier.whatsapp);
   const initials = supplierInitial(supplier.tienda);
   const metaParts = [supplier.categoria?.trim(), supplier.direccion?.trim()].filter(
