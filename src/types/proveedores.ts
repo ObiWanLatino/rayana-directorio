@@ -104,8 +104,33 @@ export type SupplierProfileSummary = Pick<
   "plan" | "badge" | "onboarding_completed"
 >;
 
+export type SupplierFeaturedProfileSummary = Pick<
+  SupplierProfile,
+  "cover_url" | "plan" | "badge"
+>;
+
 export type SupplierWithProfile = Supplier & {
   supplier_profiles: SupplierProfileSummary | SupplierProfileSummary[] | null;
+};
+
+export type SupplierWithFeaturedProfile = Supplier & {
+  supplier_profiles:
+    | SupplierFeaturedProfileSummary
+    | SupplierFeaturedProfileSummary[]
+    | null;
+};
+
+export type FeaturedEventType =
+  | "view"
+  | "wa_click"
+  | "catalog_click"
+  | "profile_click";
+
+export type FeaturedSupplierMetrics = {
+  view: number;
+  wa_click: number;
+  catalog_click: number;
+  profile_click: number;
 };
 
 export type SupplierDashboardData = {

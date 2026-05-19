@@ -5,10 +5,18 @@ import {
   paisCodigoToSlug,
   paisDirectoryLabel,
 } from "@/lib/admin/supplier-pais";
+import { FeaturedCardPreview } from "@/components/admin/FeaturedCardPreview";
 import type { Supplier } from "@/types";
+import {
+  AlertTriangle,
+  Eye,
+  ImagePlus,
+  Loader2,
+  X,
+} from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 
 type Props =
   | { mode: "new"; listPaisSlug: PaisSlug; paisCodigo: string }
@@ -262,6 +270,11 @@ export function SupplierAdminForm(props: Props) {
 
   const inputClass =
     "mt-1 w-full max-w-lg rounded-lg border border-zinc-200 px-3 py-2 text-sm text-zinc-900";
+
+  const previewWhatsappUrl = useMemo(() => {
+    const raw = whatsapp.replace(/\D/g, "");
+    return raw !== "" ? `https://wa.me/${raw}` : null;
+  }, [whatsapp]);
 
   return (
     <div className="space-y-8">
@@ -547,6 +560,7 @@ export function SupplierAdminForm(props: Props) {
               Hasta 3 imágenes para el carrusel del directorio. El Excel no modifica
               estas URLs.
             </p>
+            <div className="grid gap-4 sm:grid-cols-3">
             {(
               [
                 {
@@ -559,44 +573,90 @@ export function SupplierAdminForm(props: Props) {
               ] as const
             ).map(({ n, url, label }) => (
               <div key={n}>
-                <label className="block text-sm font-medium text-zinc-700">
-                  {label}
-                </label>
-                {url ? (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img
-                    src={url}
-                    alt=""
-                    className="mt-1 rounded border border-zinc-100"
-                    style={{ height: 80, objectFit: "cover" }}
-                  />
-                ) : null}
-                <input
-                  type="file"
-                  accept="image/jpeg,image/png,image/webp"
-                  disabled={fotoBusy !== null}
-                  onChange={(e) => {
-                    const f = e.target.files?.[0];
-                    if (f) void uploadFoto(f, n);
-                    e.target.value = "";
-                  }}
-                  className="mt-1 block text-sm"
-                />
-                {url ? (
-                  <button
-                    type="button"
-                    disabled={fotoBusy !== null}
-                    onClick={() => void removeFoto(n)}
-                    className="mt-2 block text-sm text-red-700 underline hover:text-red-900 disabled:opacity-50"
-                  >
-                    Quitar foto
-                  </button>
-                ) : null}
-                {fotoBusy === n ? (
-                  <p className="mt-1 text-xs text-zinc-500">Procesando…</p>
-                ) : null}
+                <p className="mb-2 text-sm font-medium text-zinc-700">{label}</p>
+                <div className="relative flex aspect-video w-full cursor-pointer items-center justify-center overflow-hidden rounded-lg border-2 border-dashed border-zinc-200 bg-zinc-50 transition-colors hover:border-indigo-300">
+                  {url ? (
+                    <>
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img
+                        src={url}
+                        alt=""
+                        className="h-full w-full object-cover"
+                      />
+                      <button
+                        type="button"
+                        disabled={fotoBusy !== null}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          void removeFoto(n);
+                        }}
+                        className="absolute right-2 top-2 rounded-full bg-white p-1 text-red-500 shadow hover:text-red-700 disabled:opacity-50"
+                        aria-label={`Quitar ${label}`}
+                      >
+                        <X className="h-4 w-4" aria-hidden />
+                      </button>
+                    </>
+                  ) : (
+                    <label className="flex h-full w-full cursor-pointer flex-col items-center justify-center gap-2 text-zinc-400">
+                      <ImagePlus className="h-8 w-8" aria-hidden />
+                      <span className="px-2 text-center text-xs">{label}</span>
+                      <input
+                        type="file"
+                        accept="image/jpeg,image/png,image/webp"
+                        className="hidden"
+                        disabled={fotoBusy !== null}
+                        onChange={(e) => {
+                          const f = e.target.files?.[0];
+                          if (f) void uploadFoto(f, n);
+                          e.target.value = "";
+                        }}
+                      />
+                    </label>
+                  )}
+                  {fotoBusy === n ? (
+                    <div className="absolute inset-0 flex items-center justify-center bg-white/80">
+                      <Loader2
+                        className="h-6 w-6 animate-spin text-indigo-600"
+                        aria-hidden
+                      />
+                    </div>
+                  ) : null}
+                </div>
               </div>
             ))}
+            </div>
+          </div>
+        ) : null}
+
+        {isEdit && destacado ? (
+          <div className="space-y-3 rounded-xl border border-zinc-200 bg-zinc-50 p-4">
+            <p className="flex items-center gap-2 text-sm font-medium text-zinc-800">
+              <Eye className="h-4 w-4" aria-hidden />
+              Preview de la card destacada
+            </p>
+            <p className="text-xs text-zinc-500">
+              Así se verá en el directorio público.
+            </p>
+            <div className="max-w-sm">
+              <FeaturedCardPreview
+                tienda={tienda}
+                categoria={categoria}
+                direccion={direccion}
+                verificado={verificado}
+                logoUrl={logoUrl}
+                foto1Url={foto1Url}
+                foto2Url={foto2Url}
+                foto3Url={foto3Url}
+                coverUrl={null}
+                whatsappUrl={previewWhatsappUrl}
+              />
+            </div>
+            {!foto1Url && !foto2Url && !foto3Url ? (
+              <p className="flex items-center gap-1 text-xs text-amber-600">
+                <AlertTriangle className="h-3.5 w-3.5 shrink-0" aria-hidden />
+                Sube al menos una foto para que la card se vea completa.
+              </p>
+            ) : null}
           </div>
         ) : null}
 

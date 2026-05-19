@@ -1,3 +1,4 @@
+// Deprecated: usar FeaturedSupplierSection
 "use client";
 
 import { FeaturedSupplierCard } from "@/components/suppliers/FeaturedSupplierCard";

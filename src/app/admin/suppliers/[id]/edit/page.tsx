@@ -1,6 +1,7 @@
 // DEPRECATED: Esta ruta será migrada a admin.makeray.cl
 // TODO: Eliminar después de migración completa
 
+import { FeaturedVitrinaMetrics } from "@/components/admin/FeaturedVitrinaMetrics";
 import { SupplierAdminForm } from "@/components/admin/SupplierAdminForm";
 import { getAdminUser } from "@/lib/auth/require-admin";
 import { createAdminSupabaseClient } from "@/lib/supabase/admin";
@@ -38,6 +39,7 @@ export default async function AdminEditSupplierPage({
   return (
     <div className="min-h-screen bg-zinc-50 px-4 py-10">
       <div className="mx-auto max-w-2xl">
+        <FeaturedVitrinaMetrics supplierId={id} />
         <SupplierAdminForm mode="edit" supplier={data as Supplier} />
       </div>
     </div>

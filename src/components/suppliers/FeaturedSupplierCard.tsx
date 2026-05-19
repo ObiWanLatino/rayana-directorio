@@ -1,3 +1,4 @@
+// Deprecated: usar FeaturedSupplierSection
 "use client";
 
 import { RayanaAvatar } from "@/components/suppliers/RayanaAvatar";

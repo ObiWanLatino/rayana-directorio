@@ -14,6 +14,9 @@ export async function proxy(request: NextRequest) {
     pathname.startsWith("/api/lemonsqueezy/webhook") ||
     pathname.startsWith("/api/webhooks/lemon-squeezy-proveedores");
 
+  const isDirectorioList =
+    pathname === "/directorio" || pathname === "/proveedores";
+
   const isPublic =
     pathname === "/" ||
     pathname === "/login" ||
@@ -23,6 +26,7 @@ export async function proxy(request: NextRequest) {
     pathname.startsWith("/auth/reset-password") ||
     pathname.startsWith("/api/auth/callback") ||
     pathname.startsWith("/auth/confirm") ||
+    isDirectorioList ||
     isStripeWebhookPublic;
 
   if (isStripeWebhookPublic) {
@@ -160,11 +164,9 @@ export async function proxy(request: NextRequest) {
   const requiresSubscription =
     pathname === "/hub" ||
     pathname.startsWith("/hub/") ||
-    pathname === "/proveedores" ||
     pathname.startsWith("/proveedores/") ||
     pathname === "/proveedor" ||
     pathname.startsWith("/proveedor/") ||
-    pathname === "/directorio" ||
     pathname.startsWith("/directorio/") ||
     pathname === "/fabricantes" ||
     pathname.startsWith("/fabricantes/") ||
