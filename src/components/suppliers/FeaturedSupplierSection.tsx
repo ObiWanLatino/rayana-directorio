@@ -1,6 +1,6 @@
 "use client";
 
-import { featuredCoverImageStyle } from "@/components/suppliers/featured-cover-styles";
+import { featuredCoverImgStyle } from "@/components/suppliers/featured-cover-position";
 import { WA_MESSAGE } from "@/components/suppliers/SupplierActionButton";
 import { supplierInitial } from "@/components/suppliers/supplier-utils";
 import { useFeaturedTracking } from "@/hooks/useFeaturedTracking";
@@ -63,6 +63,7 @@ function FeaturedSupplierCard({
       ? `/directorio/${supplier.codigo}`
       : null;
   const coverUrl = resolveCoverUrl(supplier);
+  const bannerH = supplier.cover_height ?? 128;
   const whatsappUrl = whatsappHref(supplier.whatsapp);
   const initials = supplierInitial(supplier.tienda);
   const metaParts = [supplier.categoria?.trim(), supplier.direccion?.trim()].filter(
@@ -103,14 +104,17 @@ function FeaturedSupplierCard({
     >
       <div
         className="relative w-full overflow-hidden bg-gradient-to-br from-[#23153c] to-indigo-600"
-        style={{ height: `${supplier.cover_height ?? 128}px` }}
+        style={{ height: `${bannerH}px` }}
       >
         {coverUrl ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img
             src={coverUrl}
             alt=""
-            style={featuredCoverImageStyle(supplier.cover_position_y ?? 50)}
+            style={featuredCoverImgStyle(
+              supplier.cover_position_y ?? 50,
+              bannerH,
+            )}
           />
         ) : null}
         <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />

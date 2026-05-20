@@ -799,8 +799,8 @@ export function SupplierAdminForm(props: Props) {
             </div>
             {coverUrl ? (
               <p className="mt-1 text-xs text-zinc-500">
-                Usa el control &quot;Posición&quot; en el preview para ajustar la
-                portada. Se guarda al presionar &quot;Guardar&quot;.
+                Arrastra la portada en el preview para ajustar la posición. Se
+                guarda al presionar &quot;Guardar&quot;.
               </p>
             ) : null}
             {!foto1Url && !foto2Url && !foto3Url ? (
