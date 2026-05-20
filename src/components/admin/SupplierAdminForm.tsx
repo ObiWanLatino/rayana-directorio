@@ -114,6 +114,7 @@ export function SupplierAdminForm(props: Props) {
     setCoverBusy(true);
     setError(null);
     try {
+      console.log("supplier_id enviado:", props.supplier.id);
       const fd = new FormData();
       fd.set("supplier_id", props.supplier.id);
       fd.set("file", file);
@@ -198,6 +199,12 @@ export function SupplierAdminForm(props: Props) {
     setFotoBusy(fotoIndex);
     setError(null);
     try {
+      console.log(
+        "DEBUG supplier_id:",
+        props.supplier.id,
+        "tipo:",
+        typeof props.supplier.id,
+      );
       const fd = new FormData();
       fd.set("supplier_id", props.supplier.id);
       fd.set("foto_index", fotoIndex);
