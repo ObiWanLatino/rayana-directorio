@@ -700,6 +700,23 @@ export function SupplierAdminForm(props: Props) {
                   </div>
                 </div>
               ) : null}
+              {coverUrl ? (
+                <div className="space-y-1">
+                  <label className="text-xs font-medium text-zinc-700">
+                    Posición vertical:{" "}
+                    <span className="text-indigo-600">{coverPosition}%</span>
+                  </label>
+                  <input
+                    type="range"
+                    min={0}
+                    max={100}
+                    step={1}
+                    value={coverPosition}
+                    onChange={(e) => setCoverPosition(Number(e.target.value))}
+                    className="w-full accent-indigo-600"
+                  />
+                </div>
+              ) : null}
             </div>
 
             <div className="grid gap-4 sm:grid-cols-3">
@@ -792,15 +809,13 @@ export function SupplierAdminForm(props: Props) {
                 coverUrl={coverUrl}
                 coverHeight={coverHeight}
                 coverPositionY={coverPosition}
-                editableCover={Boolean(coverUrl)}
-                onCoverPositionChange={setCoverPosition}
                 whatsappUrl={previewWhatsappUrl}
               />
             </div>
             {coverUrl ? (
               <p className="mt-1 text-xs text-zinc-500">
-                Arrastra la portada en el preview para ajustar la posición. Se
-                guarda al presionar &quot;Guardar&quot;.
+                Ajusta la posición vertical con el control de arriba. Se guarda al
+                presionar &quot;Guardar&quot;.
               </p>
             ) : null}
             {!foto1Url && !foto2Url && !foto3Url ? (

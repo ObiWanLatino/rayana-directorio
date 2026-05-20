@@ -1,18 +1,8 @@
 "use client";
 
-import {
-  featuredCoverImgStyle,
-  getCoverOffsetPx,
-} from "@/components/suppliers/featured-cover-position";
+import { featuredCoverImgStyle } from "@/components/suppliers/featured-cover-position";
 import { supplierInitial } from "@/components/suppliers/supplier-utils";
-import {
-  BookOpen,
-  CheckCircle,
-  GripHorizontal,
-  MessageCircle,
-  Star,
-} from "lucide-react";
-import { useRef } from "react";
+import { BookOpen, CheckCircle, MessageCircle, Star } from "lucide-react";
 
 export type FeaturedCardPreviewProps = {
   tienda: string;
@@ -23,9 +13,6 @@ export type FeaturedCardPreviewProps = {
   coverUrl: string | null;
   coverHeight?: number;
   coverPositionY?: number;
-  /** Permite arrastrar la portada para reposicionar (solo admin). */
-  editableCover?: boolean;
-  onCoverPositionChange?: (y: number) => void;
   foto1Url: string | null;
   foto2Url: string | null;
   foto3Url: string | null;
@@ -43,8 +30,6 @@ export function FeaturedCardPreview({
   coverUrl,
   coverHeight = 128,
   coverPositionY = 50,
-  editableCover = false,
-  onCoverPositionChange,
   foto1Url,
   foto2Url,
   foto3Url,
@@ -56,86 +41,27 @@ export function FeaturedCardPreview({
   const metaLine = metaParts.length > 0 ? metaParts.join(" · ") : "—";
   const hasPhotos = Boolean(foto1Url || foto2Url || foto3Url);
   const photoUrls = [foto1Url, foto2Url, foto3Url];
-
-  const imgRef = useRef<HTMLImageElement>(null);
-  const containerRef = useRef<HTMLDivElement>(null);
-  const isDragging = useRef(false);
-  const lastY = useRef(0);
-  const coverPositionRef = useRef(coverPositionY);
-  coverPositionRef.current = coverPositionY;
-
   const bannerH = coverHeight ?? 128;
 
-  function onMouseDown(e: React.MouseEvent) {
-    if (!editableCover || !onCoverPositionChange) return;
-    const setPosition: (y: number) => void = onCoverPositionChange;
-    e.preventDefault();
-    isDragging.current = true;
-    lastY.current = e.clientY;
-
-    function onMove(ev: MouseEvent) {
-      if (!isDragging.current || !containerRef.current) return;
-      const containerH = containerRef.current.offsetHeight;
-      const imgH = containerH * 1.5;
-      const maxOffset = imgH - containerH;
-      if (maxOffset <= 0) return;
-
-      const delta = ev.clientY - lastY.current;
-      lastY.current = ev.clientY;
-      const currentOffsetPx = getCoverOffsetPx(
-        coverPositionRef.current,
-        containerH,
-      );
-      const newOffsetPx = Math.max(
-        -maxOffset,
-        Math.min(0, currentOffsetPx + delta),
-      );
-      const newPosY = Math.round((-newOffsetPx / maxOffset) * 100);
-      coverPositionRef.current = newPosY;
-      setPosition(newPosY);
-    }
-
-    function onUp() {
-      isDragging.current = false;
-      window.removeEventListener("mousemove", onMove);
-      window.removeEventListener("mouseup", onUp);
-    }
-
-    window.addEventListener("mousemove", onMove);
-    window.addEventListener("mouseup", onUp);
-  }
+  console.log("render preview, posY:", coverPositionY);
 
   return (
     <article className="relative flex flex-col overflow-hidden rounded-xl border border-yellow-200 bg-white shadow-sm">
       <div
-        ref={containerRef}
         className="relative w-full overflow-hidden bg-gradient-to-br from-[#23153c] to-indigo-600"
-        style={{
-          height: `${bannerH}px`,
-          cursor: editableCover ? "ns-resize" : "default",
-          userSelect: editableCover ? "none" : undefined,
-        }}
-        onMouseDown={editableCover ? onMouseDown : undefined}
+        style={{ height: `${bannerH}px` }}
       >
         {coverUrl ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img
-            ref={imgRef}
             src={coverUrl}
             alt=""
             draggable={false}
-            onDragStart={(e) => e.preventDefault()}
             style={{
               ...featuredCoverImgStyle(coverPositionY, bannerH),
-              pointerEvents: editableCover ? "none" : undefined,
+              pointerEvents: "none",
             }}
           />
-        ) : null}
-        {editableCover && coverUrl ? (
-          <div className="pointer-events-none absolute bottom-2 left-1/2 flex -translate-x-1/2 items-center gap-1 rounded-full bg-black/40 px-3 py-1 text-xs text-white">
-            <GripHorizontal className="h-3 w-3" aria-hidden />
-            Arrastra para reposicionar
-          </div>
         ) : null}
         <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
         <div className="pointer-events-none absolute right-3 top-3 z-10 flex items-center gap-1 rounded bg-yellow-400 px-2 py-1 text-xs font-bold text-yellow-900">
