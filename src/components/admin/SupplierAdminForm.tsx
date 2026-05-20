@@ -64,21 +64,12 @@ export function SupplierAdminForm(props: Props) {
 
   async function uploadLogo(file: File) {
     if (!isEdit) return;
-    const codigoNum = Number(codigo);
-    if (!Number.isInteger(codigoNum)) return;
+    if (!props.supplier.id) return;
     setLogoBusy(true);
     setError(null);
     try {
-      console.log(
-        "DEBUG uploadLogo - codigo:",
-        codigo,
-        "tipo:",
-        typeof codigo,
-        "parseInt:",
-        parseInt(codigo, 10),
-      );
       const fd = new FormData();
-      fd.set("codigo", String(codigoNum));
+      fd.set("supplier_id", props.supplier.id);
       fd.set("file", file);
       const res = await fetch("/api/admin/upload-logo", { method: "POST", body: fd });
       const data: { error?: string; logo_url?: string } = await res.json();

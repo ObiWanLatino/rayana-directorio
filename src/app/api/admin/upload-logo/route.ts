@@ -4,6 +4,9 @@ import { createAdminSupabaseClient } from "@/lib/supabase/admin";
 
 export const dynamic = "force-dynamic";
 
+const UUID_RE =
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
 const ALLOWED = new Map([
   ["image/jpeg", "jpg"],
   ["image/png", "png"],
@@ -19,17 +22,20 @@ export async function POST(request: Request) {
   }
 
   const form = await request.formData();
-  console.log("DEBUG route - form data:", Object.fromEntries(form.entries()));
   const file = form.get("file");
-  const codigoRaw = form.get("codigo");
+  const supplierIdRaw = form.get("supplier_id");
 
   if (!(file instanceof File)) {
     return NextResponse.json({ error: "Falta la imagen" }, { status: 400 });
   }
 
-  const codigo = Number(codigoRaw);
-  if (!Number.isInteger(codigo)) {
-    return NextResponse.json({ error: "codigo inválido" }, { status: 400 });
+  const supplierId =
+    typeof supplierIdRaw === "string" ? supplierIdRaw.trim() : "";
+  if (!UUID_RE.test(supplierId)) {
+    return NextResponse.json(
+      { error: "supplier_id inválido" },
+      { status: 400 },
+    );
   }
 
   const ext = ALLOWED.get(file.type);
@@ -51,32 +57,24 @@ export async function POST(request: Request) {
   const { data: existing, error: findErr } = await admin
     .from("suppliers")
     .select("id")
-    .eq("codigo", codigo)
+    .eq("id", supplierId)
     .maybeSingle();
 
   if (findErr || !existing) {
-    console.error("DEBUG upload-logo no encontrado", {
-      codigo,
-      codigoType: typeof codigo,
-      findErr,
-    });
     return NextResponse.json(
-      {
-        error: "Proveedor no encontrado",
-        debug: { codigo, codigoType: typeof codigo, findErr: findErr?.message },
-      },
+      { error: "Proveedor no encontrado" },
       { status: 404 },
     );
   }
 
-  const path = `${codigo}-${Date.now()}.${ext}`;
+  const path = `${supplierId}/logo.${ext}`;
   const buffer = Buffer.from(await file.arrayBuffer());
 
   const { error: upErr } = await admin.storage
     .from("supplier-logos")
     .upload(path, buffer, {
       contentType: file.type,
-      upsert: false,
+      upsert: true,
     });
 
   if (upErr) {
@@ -92,7 +90,7 @@ export async function POST(request: Request) {
   const { error: updErr } = await admin
     .from("suppliers")
     .update({ logo_url: versionedUrl, updated_at: now })
-    .eq("codigo", codigo);
+    .eq("id", supplierId);
 
   if (updErr) {
     return NextResponse.json({ error: updErr.message }, { status: 500 });
