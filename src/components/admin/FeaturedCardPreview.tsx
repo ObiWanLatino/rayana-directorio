@@ -62,7 +62,7 @@ export function FeaturedCardPreview({
 
     function onMove(ev: MouseEvent) {
       const delta = ev.clientY - startY;
-      const newPos = Math.max(0, Math.min(100, startPos - delta * 0.5));
+      const newPos = Math.max(0, Math.min(100, startPos - delta * 1.5));
       setPosition(newPos);
     }
 
@@ -73,6 +73,27 @@ export function FeaturedCardPreview({
 
     window.addEventListener("mousemove", onMove);
     window.addEventListener("mouseup", onUp);
+  }
+
+  function handleTouchStart(e: React.TouchEvent) {
+    if (!editableCover || !onCoverPositionChange) return;
+    const setPosition = onCoverPositionChange;
+    const startY = e.touches[0].clientY;
+    const startPos = coverPositionY;
+
+    function onMove(ev: TouchEvent) {
+      const delta = ev.touches[0].clientY - startY;
+      const newPos = Math.max(0, Math.min(100, startPos - delta * 1.5));
+      setPosition(newPos);
+    }
+
+    function onEnd() {
+      window.removeEventListener("touchmove", onMove);
+      window.removeEventListener("touchend", onEnd);
+    }
+
+    window.addEventListener("touchmove", onMove, { passive: true });
+    window.addEventListener("touchend", onEnd);
   }
 
   return (
@@ -91,8 +112,9 @@ export function FeaturedCardPreview({
             />
             {editableCover && onCoverPositionChange ? (
               <div
-                className="absolute inset-0 flex cursor-ns-resize items-center justify-center bg-black/20 opacity-0 transition-opacity hover:opacity-100"
+                className="absolute inset-0 z-20 flex cursor-ns-resize items-center justify-center bg-black/20 opacity-100"
                 onMouseDown={handleDragStart}
+                onTouchStart={handleTouchStart}
                 role="presentation"
               >
                 <div className="flex items-center gap-1 rounded-full bg-white/80 px-3 py-1 text-xs font-medium text-gray-700">
