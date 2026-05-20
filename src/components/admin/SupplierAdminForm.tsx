@@ -10,7 +10,6 @@ import type { Supplier } from "@/types";
 import {
   AlertTriangle,
   Eye,
-  GripHorizontal,
   ImagePlus,
   Loader2,
   X,
@@ -799,10 +798,9 @@ export function SupplierAdminForm(props: Props) {
               />
             </div>
             {coverUrl ? (
-              <p className="mt-1 flex items-center gap-1 text-xs text-zinc-500">
-                <GripHorizontal className="h-3 w-3 shrink-0" aria-hidden />
-                Arrastra la portada para ajustar la posición. Se guarda al presionar
-                &quot;Guardar&quot;.
+              <p className="mt-1 text-xs text-zinc-500">
+                Usa el control &quot;Posición&quot; en el preview para ajustar la
+                portada. Se guarda al presionar &quot;Guardar&quot;.
               </p>
             ) : null}
             {!foto1Url && !foto2Url && !foto3Url ? (

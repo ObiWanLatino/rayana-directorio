@@ -2,13 +2,7 @@
 
 import { featuredCoverImageStyle } from "@/components/suppliers/featured-cover-styles";
 import { supplierInitial } from "@/components/suppliers/supplier-utils";
-import {
-  BookOpen,
-  CheckCircle,
-  GripHorizontal,
-  MessageCircle,
-  Star,
-} from "lucide-react";
+import { BookOpen, CheckCircle, MessageCircle, Star } from "lucide-react";
 
 export type FeaturedCardPreviewProps = {
   tienda: string;
@@ -19,7 +13,7 @@ export type FeaturedCardPreviewProps = {
   coverUrl: string | null;
   coverHeight?: number;
   coverPositionY?: number;
-  /** Muestra overlay de drag para reposicionar portada (solo admin). */
+  /** Muestra slider de posición de portada (solo admin). */
   editableCover?: boolean;
   onCoverPositionChange?: (y: number) => void;
   foto1Url: string | null;
@@ -53,49 +47,6 @@ export function FeaturedCardPreview({
   const hasPhotos = Boolean(foto1Url || foto2Url || foto3Url);
   const photoUrls = [foto1Url, foto2Url, foto3Url];
 
-  function handleDragStart(e: React.MouseEvent) {
-    if (!editableCover || !onCoverPositionChange) return;
-    const setPosition = onCoverPositionChange;
-    e.preventDefault();
-    const startY = e.clientY;
-    const startPos = coverPositionY;
-
-    function onMove(ev: MouseEvent) {
-      const delta = ev.clientY - startY;
-      const newPos = Math.max(0, Math.min(100, startPos - delta * 1.5));
-      setPosition(newPos);
-    }
-
-    function onUp() {
-      window.removeEventListener("mousemove", onMove);
-      window.removeEventListener("mouseup", onUp);
-    }
-
-    window.addEventListener("mousemove", onMove);
-    window.addEventListener("mouseup", onUp);
-  }
-
-  function handleTouchStart(e: React.TouchEvent) {
-    if (!editableCover || !onCoverPositionChange) return;
-    const setPosition = onCoverPositionChange;
-    const startY = e.touches[0].clientY;
-    const startPos = coverPositionY;
-
-    function onMove(ev: TouchEvent) {
-      const delta = ev.touches[0].clientY - startY;
-      const newPos = Math.max(0, Math.min(100, startPos - delta * 1.5));
-      setPosition(newPos);
-    }
-
-    function onEnd() {
-      window.removeEventListener("touchmove", onMove);
-      window.removeEventListener("touchend", onEnd);
-    }
-
-    window.addEventListener("touchmove", onMove, { passive: true });
-    window.addEventListener("touchend", onEnd);
-  }
-
   return (
     <article className="relative flex flex-col overflow-hidden rounded-xl border border-yellow-200 bg-white shadow-sm">
       <div
@@ -103,27 +54,12 @@ export function FeaturedCardPreview({
         style={{ height: `${coverHeight ?? 128}px` }}
       >
         {coverUrl ? (
-          <>
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              src={coverUrl}
-              alt=""
-              style={featuredCoverImageStyle(coverPositionY)}
-            />
-            {editableCover && onCoverPositionChange ? (
-              <div
-                className="absolute inset-0 z-20 flex cursor-ns-resize items-center justify-center bg-black/20 opacity-100"
-                onMouseDown={handleDragStart}
-                onTouchStart={handleTouchStart}
-                role="presentation"
-              >
-                <div className="flex items-center gap-1 rounded-full bg-white/80 px-3 py-1 text-xs font-medium text-gray-700">
-                  <GripHorizontal className="h-3 w-3" aria-hidden />
-                  Arrastrar para reposicionar
-                </div>
-              </div>
-            ) : null}
-          </>
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            src={coverUrl}
+            alt=""
+            style={featuredCoverImageStyle(coverPositionY)}
+          />
         ) : null}
         <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
         <div className="pointer-events-none absolute right-3 top-3 z-10 flex items-center gap-1 rounded bg-yellow-400 px-2 py-1 text-xs font-bold text-yellow-900">
@@ -131,6 +67,23 @@ export function FeaturedCardPreview({
           Destacado
         </div>
       </div>
+
+      {coverUrl && editableCover ? (
+        <div className="flex items-center gap-3 px-4 py-2">
+          <span className="shrink-0 text-xs text-zinc-500">Posición</span>
+          <input
+            type="range"
+            min={0}
+            max={100}
+            step={1}
+            value={coverPositionY}
+            onChange={(e) =>
+              onCoverPositionChange?.(Number(e.target.value))
+            }
+            className="w-full accent-indigo-600"
+          />
+        </div>
+      ) : null}
 
       <div className="relative z-10 -mt-8 mb-2 ml-5 h-16 w-16 rounded-xl bg-white p-1 shadow-md">
         {logoUrl ? (
