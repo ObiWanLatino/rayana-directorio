@@ -1,0 +1,2 @@
+ALTER TABLE public.suppliers
+ADD COLUMN IF NOT EXISTS cover_height INTEGER DEFAULT 128;

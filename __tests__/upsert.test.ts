@@ -41,6 +41,7 @@ function dbSupplier(codigo: number, activo = true): Supplier {
     whatsapp: null,
     logo_url: null,
     cover_url: null,
+    cover_height: 128,
     destacado: false,
     verificado: true,
     foto_1_url: null,

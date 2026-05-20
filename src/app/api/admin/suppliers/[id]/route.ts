@@ -36,6 +36,7 @@ type PatchByIdBody = {
   verificado?: boolean;
   logo_url?: null;
   cover_url?: string | null;
+  cover_height?: number | null;
   foto_1_url?: null;
   foto_2_url?: null;
   foto_3_url?: null;
@@ -157,6 +158,20 @@ export async function PATCH(
     } else {
       const url = sanitizeHttpUrl(body.cover_url);
       patch.cover_url = url;
+    }
+  }
+  if (body.cover_height !== undefined) {
+    if (body.cover_height === null) {
+      patch.cover_height = null;
+    } else {
+      const h = Math.round(Number(body.cover_height));
+      if (!Number.isFinite(h) || h < 80 || h > 280) {
+        return NextResponse.json(
+          { error: "cover_height debe estar entre 80 y 280" },
+          { status: 400 },
+        );
+      }
+      patch.cover_height = h;
     }
   }
   for (const col of ["foto_1_url", "foto_2_url", "foto_3_url"] as const) {

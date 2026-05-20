@@ -19,6 +19,7 @@ function baseSupplier(over: Partial<Supplier>): Supplier {
     whatsapp: "56912345678",
     logo_url: null,
     cover_url: null,
+    cover_height: 128,
     destacado: true,
     verificado: false,
     foto_1_url: null,

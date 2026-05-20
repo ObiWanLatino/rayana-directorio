@@ -81,6 +81,7 @@ CREATE TABLE IF NOT EXISTS public.suppliers (
   whatsapp TEXT,
   logo_url TEXT,
   cover_url TEXT,
+  cover_height INTEGER DEFAULT 128,
   destacado BOOLEAN DEFAULT false,
   verificado BOOLEAN DEFAULT false,
   foto_1_url TEXT,

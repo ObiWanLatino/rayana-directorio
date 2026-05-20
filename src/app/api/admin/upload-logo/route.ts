@@ -79,14 +79,15 @@ export async function POST(request: Request) {
   } = admin.storage.from("supplier-logos").getPublicUrl(path);
 
   const now = new Date().toISOString();
+  const versionedUrl = `${publicUrl}?v=${encodeURIComponent(now)}`;
   const { error: updErr } = await admin
     .from("suppliers")
-    .update({ logo_url: publicUrl, updated_at: now })
+    .update({ logo_url: versionedUrl, updated_at: now })
     .eq("codigo", codigo);
 
   if (updErr) {
     return NextResponse.json({ error: updErr.message }, { status: 500 });
   }
 
-  return NextResponse.json({ logo_url: publicUrl });
+  return NextResponse.json({ logo_url: versionedUrl });
 }

@@ -100,7 +100,10 @@ function FeaturedSupplierCard({
       ref={articleRef}
       className="group relative flex flex-col overflow-hidden rounded-xl border border-yellow-200 bg-white shadow-sm transition-transform hover:-translate-y-1"
     >
-      <div className="relative h-32 w-full bg-gradient-to-br from-[#23153c] to-indigo-600">
+      <div
+        className="relative w-full bg-gradient-to-br from-[#23153c] to-indigo-600"
+        style={{ height: `${supplier.cover_height ?? 128}px` }}
+      >
         {coverUrl ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img

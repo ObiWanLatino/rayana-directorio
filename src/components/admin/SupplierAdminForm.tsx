@@ -55,6 +55,7 @@ export function SupplierAdminForm(props: Props) {
   const [logoUrl, setLogoUrl] = useState<string | null>(s?.logo_url ?? null);
   const [coverBusy, setCoverBusy] = useState(false);
   const [coverUrl, setCoverUrl] = useState<string | null>(s?.cover_url ?? null);
+  const [coverHeight, setCoverHeight] = useState<number>(s?.cover_height ?? 128);
   const [fotoBusy, setFotoBusy] = useState<"1" | "2" | "3" | null>(null);
   const [foto1Url, setFoto1Url] = useState<string | null>(s?.foto_1_url ?? null);
   const [foto2Url, setFoto2Url] = useState<string | null>(s?.foto_2_url ?? null);
@@ -243,6 +244,7 @@ export function SupplierAdminForm(props: Props) {
             destacado,
             verificado,
             cover_url: coverUrl,
+            cover_height: coverHeight,
           }),
         });
         const data: { error?: string } = await res.json();
@@ -667,6 +669,27 @@ export function SupplierAdminForm(props: Props) {
                   </div>
                 ) : null}
               </div>
+              {coverUrl ? (
+                <div className="space-y-2">
+                  <label className="text-xs font-medium text-zinc-700">
+                    Altura de portada:{" "}
+                    <span className="font-bold text-indigo-600">{coverHeight}px</span>
+                  </label>
+                  <input
+                    type="range"
+                    min={80}
+                    max={280}
+                    step={8}
+                    value={coverHeight}
+                    onChange={(e) => setCoverHeight(Number(e.target.value))}
+                    className="w-full accent-indigo-600"
+                  />
+                  <div className="flex justify-between text-[10px] text-zinc-400">
+                    <span>Compacta (80px)</span>
+                    <span>Grande (280px)</span>
+                  </div>
+                </div>
+              ) : null}
             </div>
 
             <div className="grid gap-4 sm:grid-cols-3">
@@ -757,6 +780,7 @@ export function SupplierAdminForm(props: Props) {
                 foto2Url={foto2Url}
                 foto3Url={foto3Url}
                 coverUrl={coverUrl}
+                coverHeight={coverHeight}
                 whatsappUrl={previewWhatsappUrl}
               />
             </div>

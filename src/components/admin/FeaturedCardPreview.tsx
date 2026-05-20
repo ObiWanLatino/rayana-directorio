@@ -8,6 +8,7 @@ export type FeaturedCardPreviewProps = {
   verificado: boolean;
   logoUrl: string | null;
   coverUrl: string | null;
+  coverHeight?: number;
   foto1Url: string | null;
   foto2Url: string | null;
   foto3Url: string | null;
@@ -23,6 +24,7 @@ export function FeaturedCardPreview({
   verificado,
   logoUrl,
   coverUrl,
+  coverHeight = 128,
   foto1Url,
   foto2Url,
   foto3Url,
@@ -37,7 +39,10 @@ export function FeaturedCardPreview({
 
   return (
     <article className="relative flex flex-col overflow-hidden rounded-xl border border-yellow-200 bg-white shadow-sm">
-      <div className="relative h-32 w-full bg-gradient-to-br from-[#23153c] to-indigo-600">
+      <div
+        className="relative w-full bg-gradient-to-br from-[#23153c] to-indigo-600"
+        style={{ height: `${coverHeight ?? 128}px` }}
+      >
         {coverUrl ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img

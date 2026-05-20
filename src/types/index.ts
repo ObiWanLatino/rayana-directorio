@@ -65,6 +65,7 @@ export type Supplier = {
   whatsapp: string | null;
   logo_url: string | null;
   cover_url: string | null;
+  cover_height: number | null;
   destacado: boolean;
   verificado: boolean;
   foto_1_url: string | null;
