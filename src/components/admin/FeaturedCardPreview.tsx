@@ -1,5 +1,14 @@
+"use client";
+
+import { featuredCoverImageStyle } from "@/components/suppliers/featured-cover-styles";
 import { supplierInitial } from "@/components/suppliers/supplier-utils";
-import { BookOpen, CheckCircle, MessageCircle, Star } from "lucide-react";
+import {
+  BookOpen,
+  CheckCircle,
+  GripHorizontal,
+  MessageCircle,
+  Star,
+} from "lucide-react";
 
 export type FeaturedCardPreviewProps = {
   tienda: string;
@@ -9,6 +18,10 @@ export type FeaturedCardPreviewProps = {
   logoUrl: string | null;
   coverUrl: string | null;
   coverHeight?: number;
+  coverPositionY?: number;
+  /** Muestra overlay de drag para reposicionar portada (solo admin). */
+  editableCover?: boolean;
+  onCoverPositionChange?: (y: number) => void;
   foto1Url: string | null;
   foto2Url: string | null;
   foto3Url: string | null;
@@ -25,6 +38,9 @@ export function FeaturedCardPreview({
   logoUrl,
   coverUrl,
   coverHeight = 128,
+  coverPositionY = 50,
+  editableCover = false,
+  onCoverPositionChange,
   foto1Url,
   foto2Url,
   foto3Url,
@@ -37,22 +53,58 @@ export function FeaturedCardPreview({
   const hasPhotos = Boolean(foto1Url || foto2Url || foto3Url);
   const photoUrls = [foto1Url, foto2Url, foto3Url];
 
+  function handleDragStart(e: React.MouseEvent) {
+    if (!editableCover || !onCoverPositionChange) return;
+    const setPosition = onCoverPositionChange;
+    e.preventDefault();
+    const startY = e.clientY;
+    const startPos = coverPositionY;
+
+    function onMove(ev: MouseEvent) {
+      const delta = ev.clientY - startY;
+      const newPos = Math.max(0, Math.min(100, startPos - delta * 0.5));
+      setPosition(newPos);
+    }
+
+    function onUp() {
+      window.removeEventListener("mousemove", onMove);
+      window.removeEventListener("mouseup", onUp);
+    }
+
+    window.addEventListener("mousemove", onMove);
+    window.addEventListener("mouseup", onUp);
+  }
+
   return (
     <article className="relative flex flex-col overflow-hidden rounded-xl border border-yellow-200 bg-white shadow-sm">
       <div
-        className="relative w-full bg-gradient-to-br from-[#23153c] to-indigo-600"
+        className="relative w-full overflow-hidden bg-gradient-to-br from-[#23153c] to-indigo-600"
         style={{ height: `${coverHeight ?? 128}px` }}
       >
         {coverUrl ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img
-            src={coverUrl}
-            alt=""
-            className="absolute inset-0 h-full w-full object-cover"
-          />
+          <>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={coverUrl}
+              alt=""
+              style={featuredCoverImageStyle(coverPositionY)}
+            />
+            {editableCover && onCoverPositionChange ? (
+              <div
+                className="absolute inset-0 flex cursor-ns-resize items-center justify-center bg-black/20 opacity-0 transition-opacity hover:opacity-100"
+                onMouseDown={handleDragStart}
+                role="presentation"
+              >
+                <div className="flex items-center gap-1 rounded-full bg-white/80 px-3 py-1 text-xs font-medium text-gray-700">
+                  <GripHorizontal className="h-3 w-3" aria-hidden />
+                  Arrastrar para reposicionar
+                </div>
+              </div>
+            ) : null}
+          </>
         ) : null}
-        <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
-        <div className="absolute right-3 top-3 z-10 flex items-center gap-1 rounded bg-yellow-400 px-2 py-1 text-xs font-bold text-yellow-900">
+        <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
+        <div className="pointer-events-none absolute right-3 top-3 z-10 flex items-center gap-1 rounded bg-yellow-400 px-2 py-1 text-xs font-bold text-yellow-900">
           <Star className="h-3 w-3 fill-yellow-900" aria-hidden />
           Destacado
         </div>
@@ -102,14 +154,14 @@ export function FeaturedCardPreview({
 
       <div className="mt-auto grid grid-cols-2 gap-2 px-5 pb-5">
         {showCatalog ? (
-          <div className="flex items-center justify-center gap-1 rounded-lg border border-gray-200 py-2 px-3 text-sm font-medium text-gray-700">
+          <div className="flex items-center justify-center gap-1 rounded-lg border border-gray-200 px-3 py-2 text-sm font-medium text-gray-700">
             <BookOpen className="h-4 w-4" aria-hidden />
             Catálogo
           </div>
         ) : null}
         {whatsappUrl ? (
           <div
-            className={`flex items-center justify-center gap-1 rounded-lg bg-[#25D366] py-2 px-3 text-sm font-medium text-white ${
+            className={`flex items-center justify-center gap-1 rounded-lg bg-[#25D366] px-3 py-2 text-sm font-medium text-white ${
               !showCatalog ? "col-span-2" : ""
             }`}
           >
@@ -118,7 +170,7 @@ export function FeaturedCardPreview({
           </div>
         ) : (
           <div
-            className={`flex items-center justify-center gap-1 rounded-lg bg-gray-200 py-2 px-3 text-sm font-medium text-gray-500 ${
+            className={`flex items-center justify-center gap-1 rounded-lg bg-gray-200 px-3 py-2 text-sm font-medium text-gray-500 ${
               !showCatalog ? "col-span-2" : ""
             }`}
           >

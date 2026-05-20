@@ -10,6 +10,7 @@ import type { Supplier } from "@/types";
 import {
   AlertTriangle,
   Eye,
+  GripHorizontal,
   ImagePlus,
   Loader2,
   X,
@@ -56,6 +57,9 @@ export function SupplierAdminForm(props: Props) {
   const [coverBusy, setCoverBusy] = useState(false);
   const [coverUrl, setCoverUrl] = useState<string | null>(s?.cover_url ?? null);
   const [coverHeight, setCoverHeight] = useState<number>(s?.cover_height ?? 128);
+  const [coverPosition, setCoverPosition] = useState<number>(
+    s?.cover_position_y ?? 50,
+  );
   const [fotoBusy, setFotoBusy] = useState<"1" | "2" | "3" | null>(null);
   const [foto1Url, setFoto1Url] = useState<string | null>(s?.foto_1_url ?? null);
   const [foto2Url, setFoto2Url] = useState<string | null>(s?.foto_2_url ?? null);
@@ -251,6 +255,7 @@ export function SupplierAdminForm(props: Props) {
             verificado,
             cover_url: coverUrl,
             cover_height: coverHeight,
+            cover_position_y: Math.round(coverPosition),
           }),
         });
         const data: { error?: string } = await res.json();
@@ -787,9 +792,19 @@ export function SupplierAdminForm(props: Props) {
                 foto3Url={foto3Url}
                 coverUrl={coverUrl}
                 coverHeight={coverHeight}
+                coverPositionY={coverPosition}
+                editableCover={Boolean(coverUrl)}
+                onCoverPositionChange={setCoverPosition}
                 whatsappUrl={previewWhatsappUrl}
               />
             </div>
+            {coverUrl ? (
+              <p className="mt-1 flex items-center gap-1 text-xs text-zinc-500">
+                <GripHorizontal className="h-3 w-3 shrink-0" aria-hidden />
+                Arrastra la portada para ajustar la posición. Se guarda al presionar
+                &quot;Guardar&quot;.
+              </p>
+            ) : null}
             {!foto1Url && !foto2Url && !foto3Url ? (
               <p className="flex items-center gap-1 text-xs text-amber-600">
                 <AlertTriangle className="h-3.5 w-3.5 shrink-0" aria-hidden />

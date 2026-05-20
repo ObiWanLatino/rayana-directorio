@@ -1,5 +1,6 @@
 "use client";
 
+import { featuredCoverImageStyle } from "@/components/suppliers/featured-cover-styles";
 import { WA_MESSAGE } from "@/components/suppliers/SupplierActionButton";
 import { supplierInitial } from "@/components/suppliers/supplier-utils";
 import { useFeaturedTracking } from "@/hooks/useFeaturedTracking";
@@ -101,7 +102,7 @@ function FeaturedSupplierCard({
       className="group relative flex flex-col overflow-hidden rounded-xl border border-yellow-200 bg-white shadow-sm transition-transform hover:-translate-y-1"
     >
       <div
-        className="relative w-full bg-gradient-to-br from-[#23153c] to-indigo-600"
+        className="relative w-full overflow-hidden bg-gradient-to-br from-[#23153c] to-indigo-600"
         style={{ height: `${supplier.cover_height ?? 128}px` }}
       >
         {coverUrl ? (
@@ -109,7 +110,7 @@ function FeaturedSupplierCard({
           <img
             src={coverUrl}
             alt=""
-            className="absolute inset-0 h-full w-full object-cover"
+            style={featuredCoverImageStyle(supplier.cover_position_y ?? 50)}
           />
         ) : null}
         <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />

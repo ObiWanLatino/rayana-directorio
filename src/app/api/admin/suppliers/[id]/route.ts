@@ -37,6 +37,7 @@ type PatchByIdBody = {
   logo_url?: null;
   cover_url?: string | null;
   cover_height?: number | null;
+  cover_position_y?: number | null;
   foto_1_url?: null;
   foto_2_url?: null;
   foto_3_url?: null;
@@ -172,6 +173,20 @@ export async function PATCH(
         );
       }
       patch.cover_height = h;
+    }
+  }
+  if (body.cover_position_y !== undefined) {
+    if (body.cover_position_y === null) {
+      patch.cover_position_y = null;
+    } else {
+      const y = Math.round(Number(body.cover_position_y));
+      if (!Number.isFinite(y) || y < 0 || y > 100) {
+        return NextResponse.json(
+          { error: "cover_position_y debe estar entre 0 y 100" },
+          { status: 400 },
+        );
+      }
+      patch.cover_position_y = y;
     }
   }
   for (const col of ["foto_1_url", "foto_2_url", "foto_3_url"] as const) {

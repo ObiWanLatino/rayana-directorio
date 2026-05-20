@@ -20,6 +20,7 @@ function baseSupplier(over: Partial<Supplier>): Supplier {
     logo_url: null,
     cover_url: null,
     cover_height: 128,
+    cover_position_y: 50,
     destacado: true,
     verificado: false,
     foto_1_url: null,

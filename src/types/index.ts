@@ -66,6 +66,7 @@ export type Supplier = {
   logo_url: string | null;
   cover_url: string | null;
   cover_height: number | null;
+  cover_position_y: number | null;
   destacado: boolean;
   verificado: boolean;
   foto_1_url: string | null;

@@ -82,6 +82,7 @@ CREATE TABLE IF NOT EXISTS public.suppliers (
   logo_url TEXT,
   cover_url TEXT,
   cover_height INTEGER DEFAULT 128,
+  cover_position_y INTEGER DEFAULT 50,
   destacado BOOLEAN DEFAULT false,
   verificado BOOLEAN DEFAULT false,
   foto_1_url TEXT,

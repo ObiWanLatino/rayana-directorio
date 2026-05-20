@@ -1,0 +1,2 @@
+ALTER TABLE public.suppliers
+ADD COLUMN IF NOT EXISTS cover_position_y INTEGER DEFAULT 50;
