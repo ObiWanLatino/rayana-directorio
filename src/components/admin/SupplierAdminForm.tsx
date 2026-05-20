@@ -69,6 +69,14 @@ export function SupplierAdminForm(props: Props) {
     setLogoBusy(true);
     setError(null);
     try {
+      console.log(
+        "DEBUG uploadLogo - codigo:",
+        codigo,
+        "tipo:",
+        typeof codigo,
+        "parseInt:",
+        parseInt(codigo, 10),
+      );
       const fd = new FormData();
       fd.set("codigo", String(codigoNum));
       fd.set("file", file);

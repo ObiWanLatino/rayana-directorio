@@ -19,6 +19,7 @@ export async function POST(request: Request) {
   }
 
   const form = await request.formData();
+  console.log("DEBUG route - form data:", Object.fromEntries(form.entries()));
   const file = form.get("file");
   const codigoRaw = form.get("codigo");
 
