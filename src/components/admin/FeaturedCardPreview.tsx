@@ -47,6 +47,8 @@ export function FeaturedCardPreview({
   const hasPhotos = Boolean(foto1Url || foto2Url || foto3Url);
   const photoUrls = [foto1Url, foto2Url, foto3Url];
 
+  console.log("coverPositionY:", coverPositionY);
+
   return (
     <article className="relative flex flex-col overflow-hidden rounded-xl border border-yellow-200 bg-white shadow-sm">
       <div
