@@ -55,8 +55,16 @@ export async function POST(request: Request) {
     .maybeSingle();
 
   if (findErr || !existing) {
+    console.error("DEBUG upload-logo no encontrado", {
+      codigo,
+      codigoType: typeof codigo,
+      findErr,
+    });
     return NextResponse.json(
-      { error: "Proveedor no encontrado" },
+      {
+        error: "Proveedor no encontrado",
+        debug: { codigo, codigoType: typeof codigo, findErr: findErr?.message },
+      },
       { status: 404 },
     );
   }
