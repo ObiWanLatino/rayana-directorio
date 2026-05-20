@@ -110,7 +110,12 @@ export function FeaturedCardPreview({
       <div
         ref={containerRef}
         className="relative w-full overflow-hidden bg-gradient-to-br from-[#23153c] to-indigo-600"
-        style={{ height: `${bannerH}px` }}
+        style={{
+          height: `${bannerH}px`,
+          cursor: editableCover ? "ns-resize" : "default",
+          userSelect: editableCover ? "none" : undefined,
+        }}
+        onMouseDown={editableCover ? onMouseDown : undefined}
       >
         {coverUrl ? (
           // eslint-disable-next-line @next/next/no-img-element
@@ -119,11 +124,10 @@ export function FeaturedCardPreview({
             src={coverUrl}
             alt=""
             draggable={false}
-            onMouseDown={editableCover ? onMouseDown : undefined}
+            onDragStart={(e) => e.preventDefault()}
             style={{
               ...featuredCoverImgStyle(coverPositionY, bannerH),
-              cursor: editableCover ? "ns-resize" : "default",
-              userSelect: editableCover ? "none" : undefined,
+              pointerEvents: editableCover ? "none" : undefined,
             }}
           />
         ) : null}
