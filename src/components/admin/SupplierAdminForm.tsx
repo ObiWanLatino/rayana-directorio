@@ -700,23 +700,6 @@ export function SupplierAdminForm(props: Props) {
                   </div>
                 </div>
               ) : null}
-              {coverUrl ? (
-                <div className="space-y-1">
-                  <label className="text-xs font-medium text-zinc-700">
-                    Posición vertical:{" "}
-                    <span className="text-indigo-600">{coverPosition}%</span>
-                  </label>
-                  <input
-                    type="range"
-                    min={0}
-                    max={100}
-                    step={1}
-                    value={coverPosition}
-                    onChange={(e) => setCoverPosition(Number(e.target.value))}
-                    className="w-full accent-indigo-600"
-                  />
-                </div>
-              ) : null}
             </div>
 
             <div className="grid gap-4 sm:grid-cols-3">
@@ -796,6 +779,23 @@ export function SupplierAdminForm(props: Props) {
             <p className="text-xs text-zinc-500">
               Así se verá en el directorio público.
             </p>
+            {coverUrl ? (
+              <div className="space-y-1">
+                <label className="text-xs font-medium text-zinc-700">
+                  Posición vertical:{" "}
+                  <span className="text-indigo-600">{coverPosition}%</span>
+                </label>
+                <input
+                  type="range"
+                  min={0}
+                  max={100}
+                  step={1}
+                  value={coverPosition}
+                  onChange={(e) => setCoverPosition(Number(e.target.value))}
+                  className="w-full accent-indigo-600"
+                />
+              </div>
+            ) : null}
             <div className="max-w-sm">
               <FeaturedCardPreview
                 tienda={tienda}
@@ -814,7 +814,7 @@ export function SupplierAdminForm(props: Props) {
             </div>
             {coverUrl ? (
               <p className="mt-1 text-xs text-zinc-500">
-                Ajusta la posición vertical con el control de arriba. Se guarda al
+                Mueve el slider para ver el cambio en el preview. Se guarda al
                 presionar &quot;Guardar&quot;.
               </p>
             ) : null}
