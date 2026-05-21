@@ -24,6 +24,7 @@ type FeaturedSupplierSectionProps = {
   loading: boolean;
   paisCodigo: string;
   verTodosHref?: string;
+  hideWhatsapp?: boolean;
 };
 
 function resolveProfile(
@@ -50,9 +51,11 @@ function whatsappHref(whatsapp: string | null): string | null {
 function FeaturedSupplierCard({
   supplier,
   track,
+  hideWhatsapp,
 }: {
   supplier: SupplierWithFeaturedProfile;
   track: (supplierId: string, eventType: FeaturedEventType) => void;
+  hideWhatsapp?: boolean;
 }) {
   const articleRef = useRef<HTMLElement>(null);
   const viewedRef = useRef(false);
@@ -189,7 +192,7 @@ function FeaturedSupplierCard({
             Catálogo
           </Link>
         ) : null}
-        {whatsappUrl ? (
+        {whatsappUrl && hideWhatsapp !== true ? (
           <a
             href={whatsappUrl}
             target="_blank"
@@ -213,6 +216,7 @@ export function FeaturedSupplierSection({
   loading,
   paisCodigo,
   verTodosHref = "#directorio-todos",
+  hideWhatsapp,
 }: FeaturedSupplierSectionProps) {
   const { track } = useFeaturedTracking(paisCodigo);
 
@@ -253,7 +257,12 @@ export function FeaturedSupplierSection({
 
       <div className="grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-3">
         {suppliers.map((s) => (
-          <FeaturedSupplierCard key={s.id} supplier={s} track={track} />
+          <FeaturedSupplierCard
+            key={s.id}
+            supplier={s}
+            track={track}
+            hideWhatsapp={hideWhatsapp}
+          />
         ))}
       </div>
     </section>

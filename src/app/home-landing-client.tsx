@@ -1,5 +1,6 @@
 "use client";
 
+import { useFeaturedSuppliers } from "@/hooks/useFeaturedSuppliers";
 import Script from "next/script";
 import { useEffect, useState } from "react";
 import { LandingMarkup } from "./landing-markup";
@@ -8,6 +9,7 @@ import "./home-landing.css";
 export default function HomeLandingClient() {
   const [navScrolled, setNavScrolled] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
+  const { suppliers, loading } = useFeaturedSuppliers("56");
 
   useEffect(() => {
     const onScroll = () => setNavScrolled(window.scrollY > 20);
@@ -82,6 +84,8 @@ export default function HomeLandingClient() {
         mobileOpen={mobileOpen}
         onMobileToggle={() => setMobileOpen((o) => !o)}
         onMobileNavigate={() => setMobileOpen(false)}
+        featuredSuppliers={suppliers}
+        featuredLoading={loading}
       />
     </div>
   );

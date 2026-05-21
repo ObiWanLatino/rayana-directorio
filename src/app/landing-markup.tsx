@@ -1,5 +1,7 @@
 "use client";
 
+import { FeaturedSupplierSection } from "@/components/suppliers/FeaturedSupplierSection";
+import type { SupplierWithFeaturedProfile } from "@/types/proveedores";
 import Image from "next/image";
 import Link from "next/link";
 
@@ -8,6 +10,8 @@ type LandingMarkupProps = {
   mobileOpen?: boolean;
   onMobileToggle?: () => void;
   onMobileNavigate?: () => void;
+  featuredSuppliers: SupplierWithFeaturedProfile[];
+  featuredLoading: boolean;
 };
 
 export function LandingMarkup({
@@ -15,6 +19,8 @@ export function LandingMarkup({
   mobileOpen = false,
   onMobileToggle,
   onMobileNavigate,
+  featuredSuppliers,
+  featuredLoading,
 }: LandingMarkupProps) {
   return (
     <>
@@ -32,7 +38,7 @@ export function LandingMarkup({
       />
     </Link>
     <ul className="nav-links">
-      <li><a href="#problema">El Problema</a></li>
+      <li><a href="#proveedores">Proveedores</a></li>
       <li><a href="#categorias">Categorías</a></li>
       <li><a href="#precio">Precio</a></li>
       <li><a href="#faq">FAQ</a></li>
@@ -65,7 +71,7 @@ export function LandingMarkup({
       if ((e.target as HTMLElement).closest("a")) onMobileNavigate?.();
     }}
   >
-    <a href="#problema">El Problema</a>
+    <a href="#proveedores">Proveedores</a>
     <a href="#categorias">Categorías</a>
     <a href="#precio">Precio</a>
     <a href="#faq">FAQ</a>
@@ -223,37 +229,25 @@ export function LandingMarkup({
   </div>
 </div>
 
-{/* PROBLEMA */}
-<section id="problema" className="problema">
-  <div className="container">
-    <div className="reveal">
-      <div className="section-tag">La realidad del emprendimiento</div>
-      <h2 className="section-title">Emprender en Chile<br/><em style={{fontStyle: 'italic', color: 'var(--accent)'}}>no debería</em> ser un dolor de cabeza.</h2>
-      <p className="section-sub">Sabemos lo que frena tu crecimiento — y cómo los proveedores correctos lo cambian</p>
+{/* PROVEEDORES */}
+<section id="proveedores" className="mk-section-soft">
+  <div className="mk-container">
+    <div className="mk-section-header reveal">
+      <span className="mk-badge">Vista previa gratuita</span>
+      <h2 className="mk-heading-2">Algunos de nuestros proveedores</h2>
+      <p className="mk-subtitle">
+        Estos proveedores están disponibles de forma gratuita.<br/>
+        Suscríbete para acceder a los más de 75 del directorio completo.
+      </p>
     </div>
-    <div className="problema-grid">
-      <div className="prob-card reveal reveal-delay-1">
-        <div className="prob-icon" style={{background: 'rgba(89,47,146,.1)', color: 'var(--primary)'}}>
-          <i className="fas fa-search-dollar"></i>
-        </div>
-        <h4>Pagas de más</h4>
-        <p>Comprar a intermediarios en redes sociales está comiendo tu margen. Necesitas llegar directamente a la fuente.</p>
-      </div>
-      <div className="prob-card reveal reveal-delay-2">
-        <div className="prob-icon" style={{background: 'rgba(255,16,138,.1)', color: 'var(--accent)'}}>
-          <i className="fas fa-clock"></i>
-        </div>
-        <h4>Pierdes tiempo</h4>
-        <p>Horas en Meiggs o Patronato buscando calidad, cuando podrías estar enfocada en vender y hacer crecer tu marca.</p>
-      </div>
-      <div className="prob-card reveal reveal-delay-3">
-        <div className="prob-icon" style={{background: 'rgba(26,6,51,.06)', color: 'var(--navy)'}}>
-          <i className="fas fa-shield-alt"></i>
-        </div>
-        <h4>Miedo a estafas</h4>
-        <p>Transferir a perfiles dudosos es un riesgo real. Necesitas contactos verificados por alguien de confianza.</p>
-      </div>
-    </div>
+
+    <FeaturedSupplierSection
+      suppliers={featuredSuppliers}
+      loading={featuredLoading}
+      paisCodigo="56"
+      verTodosHref="/directorio"
+      hideWhatsapp={true}
+    />
   </div>
 </section>
 

@@ -543,6 +543,44 @@
   max-width:520px;
 }
 
+/* ── PROVEEDORES (landing featured preview) ── */
+#proveedores,
+.mk-section-soft {
+  background: var(--soft);
+}
+.mk-container {
+  max-width:1180px;
+  margin:auto;
+}
+.mk-section-header {
+  text-align:center;
+  margin-bottom:40px;
+}
+.mk-badge {
+  display:inline-block;
+  font-size:.72rem;
+  font-weight:800;
+  letter-spacing:.12em;
+  text-transform:uppercase;
+  color:var(--accent);
+  margin-bottom:14px;
+}
+.mk-heading-2 {
+  font-size:clamp(1.8rem,3.5vw,2.8rem);
+  font-weight:700;
+  letter-spacing:-.03em;
+  line-height:1.2;
+  color:var(--navy);
+  margin-bottom:16px;
+}
+.mk-subtitle {
+  font-size:1.05rem;
+  color:var(--muted);
+  line-height:1.7;
+  max-width:520px;
+  margin:0 auto;
+}
+
 /* ── PROBLEMA ── */
 .problema { background:#fff; }
 .problema-grid {
