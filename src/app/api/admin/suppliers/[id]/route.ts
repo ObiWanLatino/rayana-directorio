@@ -43,27 +43,7 @@ type PatchByIdBody = {
   foto_3_url?: null;
 };
 
-export async function PATCH(
-  request: Request,
-  context: { params: Promise<{ id: string }> },
-) {
-  const user = await getAdminUser();
-  if (!user) {
-    return NextResponse.json({ error: "No autorizado" }, { status: 403 });
-  }
-
-  const { id } = await context.params;
-  if (!isUuid(id)) {
-    return NextResponse.json({ error: "id inválido" }, { status: 400 });
-  }
-
-  let body: PatchByIdBody;
-  try {
-    body = (await request.json()) as PatchByIdBody;
-  } catch {
-    return NextResponse.json({ error: "JSON inválido" }, { status: 400 });
-  }
-
+function buildPatch(body: PatchByIdBody): Record<string, unknown> | NextResponse {
   const patch: Record<string, unknown> = {
     updated_at: new Date().toISOString(),
   };
@@ -158,6 +138,12 @@ export async function PATCH(
       patch.cover_url = null;
     } else {
       const url = sanitizeHttpUrl(body.cover_url);
+      if (!url) {
+        return NextResponse.json(
+          { error: "cover_url inválida" },
+          { status: 400 },
+        );
+      }
       patch.cover_url = url;
     }
   }
@@ -207,23 +193,61 @@ export async function PATCH(
     );
   }
 
-  const admin = createAdminSupabaseClient();
-  const { data, error } = await admin
-    .from("suppliers")
-    .update(patch)
-    .eq("id", id)
-    .select("*")
-    .maybeSingle();
+  return patch;
+}
 
-  if (error) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
-  }
-  if (!data) {
+export async function PATCH(
+  request: Request,
+  context: { params: Promise<{ id: string }> },
+) {
+  try {
+    const user = await getAdminUser();
+    if (!user) {
+      return NextResponse.json({ error: "No autorizado" }, { status: 403 });
+    }
+
+    const { id } = await context.params;
+    if (!isUuid(id)) {
+      return NextResponse.json({ error: "id inválido" }, { status: 400 });
+    }
+
+    let body: PatchByIdBody;
+    try {
+      body = (await request.json()) as PatchByIdBody;
+    } catch {
+      return NextResponse.json({ error: "JSON inválido" }, { status: 400 });
+    }
+
+    const patchOrResponse = buildPatch(body);
+    if (patchOrResponse instanceof NextResponse) {
+      return patchOrResponse;
+    }
+
+    const admin = createAdminSupabaseClient();
+    const { data, error } = await admin
+      .from("suppliers")
+      .update(patchOrResponse)
+      .eq("id", id)
+      .select("*")
+      .maybeSingle();
+
+    if (error) {
+      console.error("[PATCH /api/admin/suppliers] db error:", error);
+      return NextResponse.json({ error: error.message }, { status: 400 });
+    }
+    if (!data) {
+      return NextResponse.json(
+        { error: "Proveedor no encontrado" },
+        { status: 404 },
+      );
+    }
+
+    return NextResponse.json({ supplier: data as Supplier });
+  } catch (error) {
+    console.error("[PATCH /api/admin/suppliers] ERROR:", error);
     return NextResponse.json(
-      { error: "Proveedor no encontrado" },
-      { status: 404 },
+      { error: "Internal server error", detail: String(error) },
+      { status: 500 },
     );
   }
-
-  return NextResponse.json({ supplier: data as Supplier });
 }

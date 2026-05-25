@@ -17,7 +17,9 @@ export function useFeaturedSuppliers(paisCodigo: "55" | "56") {
       setError(null);
       try {
         const qs = new URLSearchParams({ pais_codigo: paisCodigo });
-        const res = await fetch(`/api/suppliers/destacados?${qs.toString()}`);
+        const res = await fetch(`/api/suppliers/destacados?${qs.toString()}`, {
+          cache: "no-store",
+        });
         const data: {
           suppliers?: SupplierWithFeaturedProfile[];
           error?: string;

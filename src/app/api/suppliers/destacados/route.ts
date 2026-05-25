@@ -42,5 +42,7 @@ export async function GET(request: NextRequest) {
     return { ...row, supplier_profiles: summary };
   });
 
-  return NextResponse.json({ suppliers });
+  return NextResponse.json({ suppliers }, {
+    headers: { "Cache-Control": "no-store" },
+  });
 }
