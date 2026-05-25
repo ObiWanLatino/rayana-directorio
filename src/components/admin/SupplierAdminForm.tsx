@@ -6,6 +6,7 @@ import {
   paisDirectoryLabel,
 } from "@/lib/admin/supplier-pais";
 import { FeaturedCardPreview } from "@/components/admin/FeaturedCardPreview";
+import { compressImage } from "@/lib/admin/compress-image";
 import type { Supplier } from "@/types";
 import {
   AlertTriangle,
@@ -73,7 +74,7 @@ export function SupplierAdminForm(props: Props) {
     try {
       const fd = new FormData();
       fd.set("supplier_id", props.supplier.id);
-      fd.set("file", file);
+      fd.set("file", await compressImage(file));
       const res = await fetch("/api/admin/upload-logo", { method: "POST", body: fd });
       const data: { error?: string; logo_url?: string } = await res.json();
       if (!res.ok) {
@@ -119,7 +120,7 @@ export function SupplierAdminForm(props: Props) {
       console.log("supplier_id enviado:", props.supplier.id);
       const fd = new FormData();
       fd.set("supplier_id", props.supplier.id);
-      fd.set("file", file);
+      fd.set("file", await compressImage(file));
       const res = await fetch("/api/admin/upload-cover", {
         method: "POST",
         body: fd,
@@ -210,7 +211,7 @@ export function SupplierAdminForm(props: Props) {
       const fd = new FormData();
       fd.set("supplier_id", props.supplier.id);
       fd.set("foto_index", fotoIndex);
-      fd.set("file", file);
+      fd.set("file", await compressImage(file));
       const res = await fetch("/api/admin/upload-foto", { method: "POST", body: fd });
       const data: { error?: string; url?: string } = await res.json();
       if (!res.ok) {
