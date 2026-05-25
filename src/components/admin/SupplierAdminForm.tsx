@@ -240,8 +240,12 @@ export function SupplierAdminForm(props: Props) {
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             tienda,
-            instagram: instagram.trim() === "" ? null : instagram,
-            instagram_url: instagramUrl.trim() === "" ? null : instagramUrl,
+            instagram:
+              instagram.trim() !== ""
+                ? instagram
+                : instagramUrl.trim() !== ""
+                  ? instagramUrl
+                  : null,
             tiktok_url: tiktokUrl.trim() === "" ? null : tiktokUrl,
             maps_url: mapsUrl.trim() === "" ? null : mapsUrl,
             categoria: categoria.trim() === "" ? null : categoria,
@@ -279,8 +283,12 @@ export function SupplierAdminForm(props: Props) {
         body: JSON.stringify({
           codigo: codigoNum,
           tienda,
-          instagram: instagram.trim() === "" ? null : instagram,
-          instagram_url: instagramUrl.trim() === "" ? null : instagramUrl,
+          instagram:
+            instagram.trim() !== ""
+              ? instagram
+              : instagramUrl.trim() !== ""
+                ? instagramUrl
+                : null,
           tiktok_url: tiktokUrl.trim() === "" ? null : tiktokUrl,
           maps_url: mapsUrl.trim() === "" ? null : mapsUrl,
           categoria: categoria.trim() === "" ? null : categoria,
@@ -405,6 +413,7 @@ export function SupplierAdminForm(props: Props) {
           </label>
           <input
             id="instagram"
+            name="instagram"
             value={instagram}
             onChange={(e) => setInstagram(e.target.value)}
             placeholder="@usuario o usuario"

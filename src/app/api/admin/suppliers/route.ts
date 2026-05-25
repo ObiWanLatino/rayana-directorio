@@ -122,8 +122,7 @@ export async function POST(request: Request) {
   const insert = {
     codigo,
     tienda,
-    instagram: sanitizeInstagram(body.instagram),
-    instagram_url: sanitizeHttpUrl(body.instagram_url),
+    instagram: sanitizeInstagram(body.instagram ?? body.instagram_url),
     tiktok_url: sanitizeHttpUrl(body.tiktok_url),
     maps_url: sanitizeHttpUrl(body.maps_url),
     categoria: sanitizeCategoria(body.categoria),
@@ -201,12 +200,11 @@ export async function PATCH(request: Request) {
       body.instagram === null
         ? null
         : sanitizeInstagram(body.instagram);
-  }
-  if (body.instagram_url !== undefined) {
-    patch.instagram_url =
+  } else if (body.instagram_url !== undefined) {
+    patch.instagram =
       body.instagram_url === null
         ? null
-        : sanitizeHttpUrl(body.instagram_url);
+        : sanitizeInstagram(body.instagram_url);
   }
   if (body.tiktok_url !== undefined) {
     patch.tiktok_url =

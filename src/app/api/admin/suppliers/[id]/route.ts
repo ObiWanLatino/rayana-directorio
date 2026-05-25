@@ -23,6 +23,7 @@ function isUuid(id: string): boolean {
 type PatchByIdBody = {
   tienda?: string;
   instagram?: string | null;
+  /** @deprecated alias — se persiste en columna `instagram` */
   instagram_url?: string | null;
   tiktok_url?: string | null;
   maps_url?: string | null;
@@ -62,12 +63,11 @@ function buildPatch(body: PatchByIdBody): Record<string, unknown> | NextResponse
       body.instagram === null
         ? null
         : sanitizeInstagram(body.instagram);
-  }
-  if (body.instagram_url !== undefined) {
-    patch.instagram_url =
+  } else if (body.instagram_url !== undefined) {
+    patch.instagram =
       body.instagram_url === null
         ? null
-        : sanitizeHttpUrl(body.instagram_url);
+        : sanitizeInstagram(body.instagram_url);
   }
   if (body.tiktok_url !== undefined) {
     patch.tiktok_url =
