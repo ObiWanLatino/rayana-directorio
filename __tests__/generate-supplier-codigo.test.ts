@@ -1,3 +1,4 @@
+import { generateSupplierCodigo } from "@/lib/admin/generate-supplier-codigo";
 import { describe, expect, test } from "vitest";
 
 function mockAdmin(sequence: Array<{ codigo: number | null }>) {
