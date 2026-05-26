@@ -25,10 +25,13 @@ export function LandingMarkup({
   onMobileNavigate,
   featuredSuppliers,
   featuredLoading,
-  categorias,
-  catLoading,
-  conteos,
+  categorias: _categorias,
+  catLoading: _catLoading,
+  conteos: _conteos,
 }: LandingMarkupProps) {
+  void _categorias;
+  void _catLoading;
+  void _conteos;
   return (
     <>
       {/* Banner mobile — encima del navbar */}
@@ -433,56 +436,58 @@ export function LandingMarkup({
 {/* CATEGORÍAS */}
 <section id="categorias" className="categorias">
   <div className="container">
-    <div className="reveal" style={{textAlign: 'center'}}>
+    <div className="reveal" style={{ textAlign: "center" }}>
       <div className="section-tag">Qué tipo de proveedores encontrarás</div>
       <h2 className="section-title">Plataforma organizada por categorias</h2>
-      <p style={{fontSize: '.85rem', color: 'var(--muted)', fontWeight: 600, marginTop: '8px'}}>más ventas, mas ganancias.</p>
+      <p
+        style={{
+          fontSize: ".85rem",
+          color: "var(--muted)",
+          fontWeight: 600,
+          marginTop: 8,
+        }}
+      >
+        más ventas, mas ganancias.
+      </p>
     </div>
     <div className="cat-grid">
-      {catLoading
-        ? Array.from({ length: 8 }).map((_, i) => (
-            <div
-              key={`sk-${i}`}
-              className={`cat-card-photo cat-skeleton reveal reveal-delay-${(i % 4) + 1}`}
-            />
-          ))
-        : categorias.map((cat, i) => (
-            <div
-              key={cat.id}
-              className={`cat-card-photo reveal reveal-delay-${(i % 4) + 1}`}
-            >
-              {cat.foto_url ? (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img
-                  src={cat.foto_url}
-                  alt={cat.nombre}
-                  className="cat-card-photo-bg"
-                />
-              ) : (
-                <div className="cat-card-photo-gradient" />
-              )}
-              <div
-                className={
-                  cat.foto_url
-                    ? "cat-card-photo-overlay"
-                    : "cat-card-photo-overlay cat-card-photo-overlay--light"
+      {(
+        [
+          { emoji: "👗", nombre: "Moda Femenina" },
+          { emoji: "👔", nombre: "Moda Masculina" },
+          { emoji: "👶", nombre: "Moda Infantil" },
+          { emoji: "🏃", nombre: "Moda Deportiva" },
+          { emoji: "💗", nombre: "Lenceria" },
+          { emoji: "🔥", nombre: "Sex Shop" },
+          { emoji: "🐾", nombre: "Accesorios para mascotas" },
+          { emoji: "👟", nombre: "Calzados" },
+          { emoji: "👜", nombre: "Carteras y accesorios" },
+          { emoji: "💍", nombre: "Joyas y Bisutería" },
+          { emoji: "💄", nombre: "Cosmética y Maquillaje" },
+          { emoji: "🏠", nombre: "Deco Hogar" },
+          { emoji: "📦", nombre: "Fardos de ropa" },
+          { emoji: "💻", nombre: "Electronicos" },
+          { emoji: "🏭", nombre: "Importadoras" },
+        ] as { emoji: string; nombre: string; fotoUrl?: string }[]
+      ).map((cat, i) => (
+        <div
+          key={cat.nombre}
+          className={`cat-card reveal reveal-delay-${(i % 3) + 1}`}
+          style={
+            cat.fotoUrl
+              ? {
+                  backgroundImage: `url(${cat.fotoUrl})`,
+                  backgroundSize: "cover",
+                  backgroundPosition: "center",
+                  position: "relative",
                 }
-              />
-              <div
-                className={
-                  cat.foto_url
-                    ? "cat-card-photo-content cat-card-photo-content--bottom"
-                    : "cat-card-photo-content cat-card-photo-content--center"
-                }
-              >
-                <span className="cat-card-photo-emoji">{cat.emoji}</span>
-                <h3 className="cat-card-photo-title">{cat.nombre}</h3>
-                <span className="cat-card-photo-count">
-                  {conteos[cat.nombre] ?? 0} proveedores
-                </span>
-              </div>
-            </div>
-          ))}
+              : {}
+          }
+        >
+          <span className="cat-emoji">{cat.emoji}</span>
+          <div className="cat-name">{cat.nombre}</div>
+        </div>
+      ))}
     </div>
   </div>
 </section>
