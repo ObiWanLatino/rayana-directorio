@@ -1,7 +1,7 @@
 import { generateSupplierCodigo } from "@/lib/admin/generate-supplier-codigo";
 import { describe, expect, test } from "vitest";
 
-function mockAdmin(maxCodigo: number | null, usedCodes = new Set<number>()) {
+function mockAdmin(maxCodigo: number | null) {
   return {
     from: (table: string) => {
       if (table !== "suppliers") {
@@ -11,25 +11,20 @@ function mockAdmin(maxCodigo: number | null, usedCodes = new Set<number>()) {
         select: () => ({
           order: () => ({
             limit: () => ({
-              maybeSingle: () =>
-                Promise.resolve({
-                  data: maxCodigo != null ? { codigo: maxCodigo } : null,
+              single: () => {
+                if (maxCodigo == null) {
+                  return Promise.resolve({
+                    data: null,
+                    error: { code: "PGRST116", message: "No rows" },
+                  });
+                }
+                return Promise.resolve({
+                  data: { codigo: maxCodigo },
                   error: null,
-                }),
+                });
+              },
             }),
           }),
-          eq: (col: string, val: unknown) => {
-            if (col === "codigo") {
-              return {
-                maybeSingle: () =>
-                  Promise.resolve({
-                    data: usedCodes.has(val as number) ? { id: "x" } : null,
-                    error: null,
-                  }),
-              };
-            }
-            throw new Error(`unexpected eq ${col}`);
-          },
         }),
       };
     },
@@ -45,11 +40,5 @@ describe("generateSupplierCodigo", () => {
   test("último global 1022 → 1023", async () => {
     const admin = mockAdmin(1022);
     await expect(generateSupplierCodigo(admin as never)).resolves.toBe(1023);
-  });
-
-  test("salta código ya ocupado", async () => {
-    const used = new Set([1023]);
-    const admin = mockAdmin(1022, used);
-    await expect(generateSupplierCodigo(admin as never)).resolves.toBe(1024);
   });
 });

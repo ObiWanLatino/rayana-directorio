@@ -17,16 +17,13 @@ import { ProveedoresEmptyState } from "@/components/suppliers/ProveedoresEmptySt
 import { WA_MESSAGE } from "@/components/suppliers/SupplierActionButton";
 import {
   UNCATEGORIZED,
-  buildCategoryOptions,
-  categoryPillLabel,
   categorySidebarEmoji,
-  matchesCategoryFilter,
-  matchesSearch,
   supplierInstagramHref,
   supplierMapsHref,
   supplierTiktokHref,
 } from "@/components/suppliers/supplier-utils";
 import { useSuppliers } from "@/hooks/useSuppliers";
+import type { SupplierCategoriaRow } from "@/lib/suppliers/fetch-supplier-categorias";
 import { trackSupplierEvent } from "@/lib/proveedores/analytics";
 import { createBrowserSupabaseClient } from "@/lib/supabase/client";
 import type {
@@ -86,14 +83,55 @@ export function ProveedoresSubscribedView({
   featuredSuppliers,
   featuredLoading,
 }: ProveedoresSubscribedViewProps) {
-  const { suppliers, loading, error, retry } = useSuppliers(paisCodigo);
   const [query, setQuery] = useState("");
+  const [debouncedQuery, setDebouncedQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+  const [categoriaRows, setCategoriaRows] = useState<SupplierCategoriaRow[]>([]);
+  const [categoriasTotal, setCategoriasTotal] = useState(0);
+  const categoriaFilter = selectedCategory ?? "";
+
+  const {
+    suppliers,
+    loading,
+    loadingMore,
+    hasMore,
+    totalCount,
+    loadMore,
+    error,
+    retry,
+  } = useSuppliers(paisCodigo, categoriaFilter, debouncedQuery);
   const [filterOpen, setFilterOpen] = useState(false);
   const [userMark, setUserMark] = useState("");
   const [userEmail, setUserEmail] = useState("");
   const [viewerUserId, setViewerUserId] = useState<string | null>(null);
   const supabase = useMemo(() => createBrowserSupabaseClient(), []);
+
+  useEffect(() => {
+    const t = window.setTimeout(() => setDebouncedQuery(query), 300);
+    return () => window.clearTimeout(t);
+  }, [query]);
+
+  useEffect(() => {
+    let cancel = false;
+    void fetch(`/api/suppliers/categorias?pais_codigo=${paisCodigo}`, {
+      cache: "no-store",
+    })
+      .then((res) => res.json())
+      .then((json: { categorias?: SupplierCategoriaRow[]; total?: number }) => {
+        if (cancel) return;
+        setCategoriaRows(json.categorias ?? []);
+        setCategoriasTotal(json.total ?? 0);
+      })
+      .catch(() => {
+        if (!cancel) {
+          setCategoriaRows([]);
+          setCategoriasTotal(0);
+        }
+      });
+    return () => {
+      cancel = true;
+    };
+  }, [paisCodigo]);
 
   useEffect(() => {
     let cancel = false;
@@ -119,18 +157,7 @@ export function ProveedoresSubscribedView({
     };
   }, [supabase]);
 
-  const categoryRows = useMemo(() => {
-    const keys = buildCategoryOptions(suppliers);
-    return keys.map((key) => ({
-      key,
-      label: categoryPillLabel(key),
-      count: suppliers.filter((s) => {
-        const c = s.categoria?.trim();
-        if (key === UNCATEGORIZED) return !c;
-        return c === key;
-      }).length,
-    }));
-  }, [suppliers]);
+  const categoryRows = categoriaRows;
 
   const sidebarCategories = useMemo(
     () =>
@@ -142,18 +169,15 @@ export function ProveedoresSubscribedView({
     [categoryRows],
   );
 
-  const categoryKeys = useMemo(() => categoryRows.map((r) => r.key), [categoryRows]);
+  const categoryKeys = useMemo(
+    () => categoryRows.map((r) => r.key),
+    [categoryRows],
+  );
 
-  const filtered = useMemo(() => {
-    return suppliers
-      .filter((s) => !s.destacado)
-      .filter(
-        (s) =>
-          matchesSearch(s, query.trim()) &&
-          matchesCategoryFilter(s, selectedCategory),
-      )
-      .sort((a, b) => a.codigo - b.codigo);
-  }, [suppliers, query, selectedCategory]);
+  const filtered = useMemo(
+    () => [...suppliers].sort((a, b) => a.codigo - b.codigo),
+    [suppliers],
+  );
 
   const activeSidebarKey =
     selectedCategory === null ? CATEGORY_SIDEBAR_ALL : selectedCategory;
@@ -169,7 +193,10 @@ export function ProveedoresSubscribedView({
   }
 
   const showFilterEmpty =
-    !loading && !error && suppliers.length > 0 && filtered.length === 0;
+    !loading &&
+    !error &&
+    suppliers.length === 0 &&
+    (debouncedQuery.trim() !== "" || selectedCategory !== null);
 
   const userFooter = (
     <div className="flex items-center gap-3">
@@ -193,7 +220,7 @@ export function ProveedoresSubscribedView({
       keys={categoryKeys}
       active={activeSidebarKey}
       onSelect={onSidebarSelect}
-      totalCount={suppliers.length}
+      totalCount={categoriasTotal || totalCount}
       footer={userFooter}
     />
   );
@@ -246,12 +273,12 @@ export function ProveedoresSubscribedView({
               <h1 className="font-display text-2xl font-bold tracking-tight text-navy md:text-[26px]">
                 Directorio Makeray
               </h1>
-              {!loading && !error && suppliers.length > 0 ? (
+              {!loading && !error && (totalCount > 0 || suppliers.length > 0) ? (
                 <p className="mt-1 text-sm text-navy/50">
-                  {filtered.length}{" "}
-                  {filtered.length === 1
-                    ? "proveedor encontrado"
-                    : "proveedores encontrados"}
+                  {suppliers.length} de {totalCount || suppliers.length}{" "}
+                  {totalCount === 1
+                    ? "proveedor"
+                    : "proveedores"}
                 </p>
               ) : null}
             </div>
@@ -261,6 +288,34 @@ export function ProveedoresSubscribedView({
               </label>
               <SearchBar id="dir-buscar" value={query} onChange={setQuery} />
             </div>
+          </div>
+
+          <div className="mt-4 flex gap-2 overflow-x-auto pb-1 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+            <button
+              type="button"
+              onClick={() => setSelectedCategory(null)}
+              className={`shrink-0 whitespace-nowrap rounded-full border-[1.5px] px-4 py-1.5 text-sm transition ${
+                selectedCategory === null
+                  ? "border-primary bg-primary font-bold text-white"
+                  : "border-primary/20 bg-transparent font-normal text-navy/60 hover:border-primary/40"
+              }`}
+            >
+              Todas
+            </button>
+            {categoryRows.map((row) => (
+              <button
+                key={row.key}
+                type="button"
+                onClick={() => setSelectedCategory(row.key)}
+                className={`shrink-0 whitespace-nowrap rounded-full border-[1.5px] px-4 py-1.5 text-sm transition ${
+                  selectedCategory === row.key
+                    ? "border-primary bg-primary font-bold text-white"
+                    : "border-primary/20 bg-transparent font-normal text-navy/60 hover:border-primary/40"
+                }`}
+              >
+                {row.label}
+              </button>
+            ))}
           </div>
         </header>
 
@@ -296,7 +351,7 @@ export function ProveedoresSubscribedView({
             </div>
           ) : null}
 
-          {!loading && !error && suppliers.length === 0 ? (
+          {!loading && !error && suppliers.length === 0 && !debouncedQuery && selectedCategory === null ? (
             <div className="rounded-[20px] border border-primary/10 bg-white p-10 text-center">
               <p className="font-semibold text-navy">Aún no hay proveedores</p>
               <p className="mt-2 text-sm text-navy/55">
@@ -329,6 +384,25 @@ export function ProveedoresSubscribedView({
                 />
               ))}
             </div>
+          ) : null}
+
+          {hasMore ? (
+            <div className="py-8 text-center">
+              <button
+                type="button"
+                onClick={loadMore}
+                disabled={loadingMore}
+                className="rounded-xl border-[1.5px] border-primary bg-transparent px-8 py-3 text-sm font-semibold text-primary transition hover:bg-primary/5 disabled:cursor-not-allowed disabled:opacity-60"
+              >
+                {loadingMore ? "Cargando…" : "Ver más proveedores"}
+              </button>
+            </div>
+          ) : null}
+
+          {!hasMore && !loading && !error && suppliers.length > 0 ? (
+            <p className="py-6 text-center text-sm text-navy/50">
+              Mostraste los {suppliers.length} proveedores disponibles
+            </p>
           ) : null}
         </main>
       </div>
