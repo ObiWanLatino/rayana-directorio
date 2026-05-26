@@ -31,6 +31,31 @@ export function LandingMarkup({
 }: LandingMarkupProps) {
   return (
     <>
+      {/* Banner mobile — encima del navbar */}
+      <div
+        style={{ display: "none" }}
+        className="publicitate-banner-mobile"
+      >
+        <a
+          href="#publicitate"
+          style={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            gap: 8,
+            width: "100%",
+            padding: "10px 16px",
+            background: "#FFD600",
+            color: "#1a0633",
+            fontWeight: 800,
+            fontSize: "0.9rem",
+            textDecoration: "none",
+          }}
+        >
+          📣 Anuncia tu tienda aquí
+        </a>
+      </div>
+
       {/* NAV */}
       <nav id="navbar" className={navScrolled ? "scrolled" : ""}>
   <div className="nav-inner">
@@ -122,25 +147,6 @@ export function LandingMarkup({
     <Link href="/checkout" className="btn-mob">
       Acceder ahora →
     </Link>
-    <a
-      href="#publicitate"
-      style={{
-        display: "inline-flex",
-        alignItems: "center",
-        gap: 6,
-        padding: "10px 20px",
-        borderRadius: 9999,
-        background: "#FFD600",
-        color: "#1a0633",
-        fontWeight: 800,
-        fontSize: "1rem",
-        textDecoration: "none",
-        margin: "8px 0",
-      }}
-      onClick={() => onMobileNavigate?.()}
-    >
-      📣 Anuncia tu tienda aquí
-    </a>
   </div>
 </nav>
 

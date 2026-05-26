@@ -197,6 +197,23 @@
   .nav-mobile-btn { display:block; }
 }
 
+@media (max-width: 767px) {
+  .publicitate-banner-mobile {
+    display: block !important;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 101;
+  }
+  #mk-landing nav {
+    top: 44px;
+  }
+  #mk-landing .hero {
+    padding-top: 164px;
+  }
+}
+
 /* ── HERO ── */
 .hero {
   padding: 140px 24px 80px;
