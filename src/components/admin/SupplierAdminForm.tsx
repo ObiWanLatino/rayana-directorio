@@ -7,6 +7,7 @@ import {
 } from "@/lib/admin/supplier-pais";
 import { FeaturedCardPreview } from "@/components/admin/FeaturedCardPreview";
 import { compressImage } from "@/lib/admin/compress-image";
+import { formatCodigo } from "@/lib/utils/format-codigo";
 import type { Supplier } from "@/types";
 import {
   AlertTriangle,
@@ -33,9 +34,6 @@ export function SupplierAdminForm(props: Props) {
     : props.listPaisSlug;
   const listHref = `/suppliers?pais=${listPaisSlug}`;
 
-  const [codigo, setCodigo] = useState(
-    isEdit ? String(s!.codigo) : "",
-  );
   const [tienda, setTienda] = useState(s?.tienda ?? "");
   const [instagram, setInstagram] = useState(s?.instagram ?? "");
   const [instagramUrl, setInstagramUrl] = useState(s?.instagram_url ?? "");
@@ -272,17 +270,10 @@ export function SupplierAdminForm(props: Props) {
         return;
       }
 
-      const codigoNum = Number.parseInt(codigo, 10);
-      if (!Number.isInteger(codigoNum)) {
-        setError("Código debe ser un número entero");
-        return;
-      }
-
       const res = await fetch("/api/admin/suppliers", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          codigo: codigoNum,
           tienda,
           instagram:
             instagram.trim() !== ""
@@ -375,25 +366,14 @@ export function SupplierAdminForm(props: Props) {
       ) : null}
 
       <form onSubmit={(e) => void handleSubmit(e)} className="space-y-4">
-        <div>
-          <label className="block text-sm font-medium text-zinc-700" htmlFor="codigo">
-            Código <span className="text-red-600">*</span>
-          </label>
-          {isEdit ? (
-            <p id="codigo" className="mt-1 text-sm font-mono text-zinc-900">
-              {codigo}
-            </p>
-          ) : (
-            <input
-              id="codigo"
-              type="number"
-              required
-              value={codigo}
-              onChange={(e) => setCodigo(e.target.value)}
-              className={inputClass}
-            />
-          )}
-        </div>
+        {isEdit ? (
+          <p className="text-xs text-zinc-500">
+            Código:{" "}
+            <strong className="font-mono text-sm text-zinc-900">
+              {formatCodigo(s!.codigo)}
+            </strong>
+          </p>
+        ) : null}
 
         <div>
           <label className="block text-sm font-medium text-zinc-700" htmlFor="tienda">

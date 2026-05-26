@@ -8,6 +8,7 @@ import {
   sanitizeTienda,
   sanitizeWhatsapp,
 } from "@/lib/utils/sanitize";
+import { generateSupplierCodigo } from "@/lib/admin/generate-supplier-codigo";
 import { createAdminSupabaseClient } from "@/lib/supabase/admin";
 import type { Supplier } from "@/types";
 
@@ -52,7 +53,7 @@ export async function GET(request: Request) {
 }
 
 type PostBody = {
-  codigo: number;
+  codigo?: number;
   tienda: string;
   instagram?: string | null;
   instagram_url?: string | null;
@@ -80,11 +81,6 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "JSON inválido" }, { status: 400 });
   }
 
-  const codigo = Number(body.codigo);
-  if (!Number.isInteger(codigo)) {
-    return NextResponse.json({ error: "codigo inválido" }, { status: 400 });
-  }
-
   const tienda = sanitizeTienda(body.tienda);
   if (!tienda) {
     return NextResponse.json({ error: "tienda es requerido" }, { status: 400 });
@@ -104,17 +100,13 @@ export async function POST(request: Request) {
   }
 
   const admin = createAdminSupabaseClient();
-  const { data: dup } = await admin
-    .from("suppliers")
-    .select("id")
-    .eq("codigo", codigo)
-    .eq("pais_codigo", pais)
-    .maybeSingle();
-
-  if (dup) {
+  let codigo: number;
+  try {
+    codigo = await generateSupplierCodigo(admin, pais);
+  } catch (e) {
     return NextResponse.json(
-      { error: "Ya existe un proveedor con ese código" },
-      { status: 409 },
+      { error: e instanceof Error ? e.message : "Error al generar código" },
+      { status: 500 },
     );
   }
 

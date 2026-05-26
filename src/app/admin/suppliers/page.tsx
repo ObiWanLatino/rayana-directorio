@@ -101,26 +101,16 @@ export default async function AdminSuppliersPage({
 
         <AdminSuppliersCountryBar active={paisSlug} />
 
-        <div className="mt-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-          <div>
-            <h1 className="text-2xl font-semibold text-zinc-900">
-              Proveedores
-            </h1>
-            <p className="mt-1 text-sm text-zinc-600">
-              Directorio {paisDirectoryLabel(paisSlug)}. Activos e inactivos;
-              edición en cada ficha.
-            </p>
-          </div>
-          <Link
-            href={`/suppliers/new?pais=${paisSlug}`}
-            className="inline-flex w-fit rounded-xl bg-zinc-900 px-4 py-2.5 text-sm font-medium text-white hover:bg-zinc-800"
-          >
-            Agregar nuevo proveedor
-          </Link>
+        <div className="mt-6">
+          <h1 className="text-2xl font-semibold text-zinc-900">Proveedores</h1>
+          <p className="mt-1 text-sm text-zinc-600">
+            Directorio {paisDirectoryLabel(paisSlug)}. Activos e inactivos;
+            edición en cada ficha.
+          </p>
         </div>
 
         <div className="mt-8">
-          <SupplierAdminList suppliers={rows} />
+          <SupplierAdminList suppliers={rows} paisSlug={paisSlug} />
         </div>
       </div>
     </div>

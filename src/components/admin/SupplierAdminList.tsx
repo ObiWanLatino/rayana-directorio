@@ -1,12 +1,15 @@
 "use client";
 
+import type { PaisSlug } from "@/lib/admin/supplier-pais";
 import { formatCodigo } from "@/lib/utils/format-codigo";
 import type { Supplier } from "@/types";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
 
 type SupplierAdminListProps = {
   suppliers: Supplier[];
+  paisSlug: PaisSlug;
 };
 
 function matchesSearch(s: Supplier, query: string): boolean {
@@ -19,7 +22,8 @@ function matchesSearch(s: Supplier, query: string): boolean {
   );
 }
 
-export function SupplierAdminList({ suppliers }: SupplierAdminListProps) {
+export function SupplierAdminList({ suppliers, paisSlug }: SupplierAdminListProps) {
+  const router = useRouter();
   const [search, setSearch] = useState("");
 
   const filtered = useMemo(
@@ -129,6 +133,15 @@ export function SupplierAdminList({ suppliers }: SupplierAdminListProps) {
           </tbody>
         </table>
       </div>
+
+      <button
+        type="button"
+        onClick={() => router.push(`/suppliers/new?pais=${paisSlug}`)}
+        aria-label="Agregar proveedor"
+        className="fixed bottom-8 right-8 z-50 flex h-14 w-14 items-center justify-center rounded-full border-0 bg-gradient-to-br from-[#592f92] to-[#ff108a] text-[1.75rem] font-light leading-none text-white shadow-[0_4px_20px_rgba(89,47,146,0.35)] transition hover:scale-105 hover:shadow-[0_8px_28px_rgba(89,47,146,0.45)]"
+      >
+        +
+      </button>
     </>
   );
 }
