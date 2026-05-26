@@ -1,7 +1,6 @@
 "use client";
 
 import { FeaturedSupplierSection } from "@/components/suppliers/FeaturedSupplierSection";
-import type { Categoria } from "@/types/categories";
 import type { SupplierWithFeaturedProfile } from "@/types/proveedores";
 import Image from "next/image";
 import Link from "next/link";
@@ -13,9 +12,7 @@ type LandingMarkupProps = {
   onMobileNavigate?: () => void;
   featuredSuppliers: SupplierWithFeaturedProfile[];
   featuredLoading: boolean;
-  categorias: Categoria[];
-  catLoading: boolean;
-  conteos: Record<string, number>;
+  catFotos: Record<string, string>;
 };
 
 export function LandingMarkup({
@@ -25,13 +22,8 @@ export function LandingMarkup({
   onMobileNavigate,
   featuredSuppliers,
   featuredLoading,
-  categorias: _categorias,
-  catLoading: _catLoading,
-  conteos: _conteos,
+  catFotos,
 }: LandingMarkupProps) {
-  void _categorias;
-  void _catLoading;
-  void _conteos;
   return (
     <>
       {/* Banner mobile — encima del navbar */}
@@ -468,15 +460,15 @@ export function LandingMarkup({
           { emoji: "📦", nombre: "Fardos de ropa" },
           { emoji: "💻", nombre: "Electronicos" },
           { emoji: "🏭", nombre: "Importadoras" },
-        ] as { emoji: string; nombre: string; fotoUrl?: string }[]
+        ] as { emoji: string; nombre: string }[]
       ).map((cat, i) => (
         <div
           key={cat.nombre}
           className={`cat-card reveal reveal-delay-${(i % 3) + 1}`}
           style={
-            cat.fotoUrl
+            catFotos[cat.nombre]
               ? {
-                  backgroundImage: `url(${cat.fotoUrl})`,
+                  backgroundImage: `url(${catFotos[cat.nombre]})`,
                   backgroundSize: "cover",
                   backgroundPosition: "center",
                   position: "relative",
@@ -484,8 +476,34 @@ export function LandingMarkup({
               : {}
           }
         >
-          <span className="cat-emoji">{cat.emoji}</span>
-          <div className="cat-name">{cat.nombre}</div>
+          {catFotos[cat.nombre] ? (
+            <div
+              style={{
+                position: "absolute",
+                inset: 0,
+                borderRadius: "inherit",
+                background:
+                  "linear-gradient(to top, rgba(26,6,51,0.75) 0%, rgba(26,6,51,0.1) 100%)",
+              }}
+              aria-hidden
+            />
+          ) : null}
+          <span
+            className="cat-emoji"
+            style={{ position: "relative", zIndex: 1 }}
+          >
+            {cat.emoji}
+          </span>
+          <div
+            className="cat-name"
+            style={{
+              position: "relative",
+              zIndex: 1,
+              color: catFotos[cat.nombre] ? "#fff" : undefined,
+            }}
+          >
+            {cat.nombre}
+          </div>
         </div>
       ))}
     </div>
