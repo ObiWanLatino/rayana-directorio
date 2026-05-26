@@ -246,7 +246,8 @@ export function LandingMarkup({
       loading={featuredLoading}
       paisCodigo="56"
       verTodosHref="/directorio"
-      hideWhatsapp={true}
+      hideWhatsapp={false}
+      showInstagram
     />
   </div>
 </section>
