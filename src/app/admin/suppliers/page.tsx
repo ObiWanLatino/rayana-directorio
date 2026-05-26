@@ -7,10 +7,10 @@ import {
   paisSlugToCodigo,
   type PaisSlug,
 } from "@/lib/admin/supplier-pais";
+import { fetchAllSuppliers } from "@/lib/admin/fetch-all-suppliers";
 import { SupplierAdminList } from "@/components/admin/SupplierAdminList";
 import { getAdminUser } from "@/lib/auth/require-admin";
 import { createAdminSupabaseClient } from "@/lib/supabase/admin";
-import type { Supplier } from "@/types";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 
@@ -77,17 +77,7 @@ export default async function AdminSuppliersPage({
   const pais_codigo = paisSlugToCodigo(paisSlug);
 
   const admin = createAdminSupabaseClient();
-  const { data, error } = await admin
-    .from("suppliers")
-    .select("*")
-    .eq("pais_codigo", pais_codigo)
-    .order("codigo", { ascending: true });
-
-  if (error) {
-    throw new Error(error.message);
-  }
-
-  const rows = (data ?? []) as Supplier[];
+  const rows = await fetchAllSuppliers(admin, pais_codigo);
 
   return (
     <div className="min-h-screen bg-zinc-50 px-4 py-10">

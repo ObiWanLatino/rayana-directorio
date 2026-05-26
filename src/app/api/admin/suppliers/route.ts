@@ -8,6 +8,7 @@ import {
   sanitizeTienda,
   sanitizeWhatsapp,
 } from "@/lib/utils/sanitize";
+import { fetchAllSuppliers } from "@/lib/admin/fetch-all-suppliers";
 import { generateSupplierCodigo } from "@/lib/admin/generate-supplier-codigo";
 import { createAdminSupabaseClient } from "@/lib/supabase/admin";
 import type { Supplier } from "@/types";
@@ -26,17 +27,16 @@ export async function GET(request: Request) {
   const pais_codigo = /^\d+$/.test(paisRaw) ? paisRaw : "56";
 
   const admin = createAdminSupabaseClient();
-  const { data, error } = await admin
-    .from("suppliers")
-    .select("*")
-    .eq("pais_codigo", pais_codigo)
-    .order("codigo", { ascending: true });
-
-  if (error) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
+  let list: Supplier[];
+  try {
+    list = await fetchAllSuppliers(admin, pais_codigo);
+  } catch (e) {
+    return NextResponse.json(
+      { error: e instanceof Error ? e.message : "Error al cargar proveedores" },
+      { status: 500 },
+    );
   }
 
-  let list = (data ?? []) as Supplier[];
   if (q) {
     list = list.filter(
       (s) =>
@@ -102,7 +102,7 @@ export async function POST(request: Request) {
   const admin = createAdminSupabaseClient();
   let codigo: number;
   try {
-    codigo = await generateSupplierCodigo(admin, pais);
+    codigo = await generateSupplierCodigo(admin);
   } catch (e) {
     return NextResponse.json(
       { error: e instanceof Error ? e.message : "Error al generar código" },
