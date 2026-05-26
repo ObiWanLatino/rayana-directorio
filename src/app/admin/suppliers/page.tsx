@@ -7,8 +7,8 @@ import {
   paisSlugToCodigo,
   type PaisSlug,
 } from "@/lib/admin/supplier-pais";
+import { SupplierAdminList } from "@/components/admin/SupplierAdminList";
 import { getAdminUser } from "@/lib/auth/require-admin";
-import { formatCodigo } from "@/lib/utils/format-codigo";
 import { createAdminSupabaseClient } from "@/lib/supabase/admin";
 import type { Supplier } from "@/types";
 import Link from "next/link";
@@ -119,77 +119,9 @@ export default async function AdminSuppliersPage({
           </Link>
         </div>
 
-        <div className="mt-8 overflow-x-auto rounded-xl border border-zinc-200 bg-white shadow-sm">
-          <table className="min-w-full divide-y divide-zinc-200 text-left text-sm">
-            <thead className="bg-zinc-50 text-xs font-medium uppercase tracking-wide text-zinc-500">
-              <tr>
-                <th className="px-4 py-3">Código</th>
-                <th className="px-4 py-3">Tienda</th>
-                <th className="px-4 py-3">Categoría</th>
-                <th className="px-4 py-3">WhatsApp</th>
-                <th className="px-4 py-3">Instagram</th>
-                <th className="px-4 py-3">Activo</th>
-                <th className="px-4 py-3">Destacado</th>
-                <th className="px-4 py-3">Verificado</th>
-                <th className="px-4 py-3" />
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-zinc-100">
-              {rows.map((r: Supplier) => (
-                <tr key={r.id} className="hover:bg-zinc-50/80">
-                  <td className="whitespace-nowrap px-4 py-3 font-mono text-xs font-semibold text-rose-900">
-                    {formatCodigo(r.codigo)}
-                  </td>
-                  <td className="max-w-[200px] truncate px-4 py-3 text-zinc-900">
-                    {r.tienda}
-                  </td>
-                  <td className="max-w-[140px] truncate px-4 py-3 text-zinc-600">
-                    {r.categoria ?? "—"}
-                  </td>
-                  <td className="whitespace-nowrap px-4 py-3 text-zinc-600">
-                    {r.whatsapp ?? "—"}
-                  </td>
-                  <td className="max-w-[120px] truncate px-4 py-3 text-zinc-600">
-                    {r.instagram ? `@${r.instagram}` : "—"}
-                  </td>
-                  <td className="px-4 py-3">
-                    <span
-                      className={
-                        r.activo
-                          ? "rounded-full bg-emerald-100 px-2 py-0.5 text-xs font-medium text-emerald-800"
-                          : "rounded-full bg-zinc-200 px-2 py-0.5 text-xs font-medium text-zinc-700"
-                      }
-                    >
-                      {r.activo ? "Sí" : "No"}
-                    </span>
-                  </td>
-                  <td className="px-4 py-3">
-                    <span className="text-xs text-zinc-700">
-                      {r.destacado ? "⭐ Sí" : "—"}
-                    </span>
-                  </td>
-                  <td className="px-4 py-3">
-                    <span className="text-xs text-zinc-700">
-                      {r.verificado ? "✓" : "—"}
-                    </span>
-                  </td>
-                  <td className="whitespace-nowrap px-4 py-3">
-                    <Link
-                      href={`/suppliers/${r.id}/edit`}
-                      className="font-medium text-zinc-900 underline decoration-zinc-300 underline-offset-2 hover:decoration-zinc-600"
-                    >
-                      Editar
-                    </Link>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+        <div className="mt-8">
+          <SupplierAdminList suppliers={rows} />
         </div>
-
-        <p className="mt-4 text-xs text-zinc-500">
-          {rows.length} proveedor{rows.length === 1 ? "" : "es"} en total.
-        </p>
       </div>
     </div>
   );
