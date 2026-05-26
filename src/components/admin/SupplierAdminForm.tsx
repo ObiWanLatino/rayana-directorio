@@ -6,14 +6,13 @@ import {
   paisDirectoryLabel,
 } from "@/lib/admin/supplier-pais";
 import { FeaturedCardPreview } from "@/components/admin/FeaturedCardPreview";
+import { ToggleSwitch } from "@/components/admin/ToggleSwitch";
 import { compressImage } from "@/lib/admin/compress-image";
 import { formatCodigo } from "@/lib/utils/format-codigo";
 import type { Supplier } from "@/types";
 import {
   AlertTriangle,
   Eye,
-  ImagePlus,
-  Loader2,
   X,
 } from "lucide-react";
 import Link from "next/link";
@@ -23,6 +22,50 @@ import { useMemo, useState } from "react";
 type Props =
   | { mode: "new"; listPaisSlug: PaisSlug; paisCodigo: string }
   | { mode: "edit"; supplier: Supplier };
+
+function UploadIcon() {
+  return (
+    <svg
+      width="32"
+      height="32"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="var(--color-primary)"
+      strokeWidth="1.5"
+      aria-hidden
+    >
+      <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4" />
+      <polyline points="17 8 12 3 7 8" />
+      <line x1="12" y1="3" x2="12" y2="15" />
+    </svg>
+  );
+}
+
+function UploadSpinner() {
+  return (
+    <svg
+      className="h-6 w-6 animate-spin text-indigo-600"
+      viewBox="0 0 24 24"
+      fill="none"
+      aria-hidden
+    >
+      <circle
+        cx="12"
+        cy="12"
+        r="10"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeOpacity="0.25"
+      />
+      <path
+        d="M12 2a10 10 0 0110 10"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="round"
+      />
+    </svg>
+  );
+}
 
 export function SupplierAdminForm(props: Props) {
   const router = useRouter();
@@ -365,7 +408,11 @@ export function SupplierAdminForm(props: Props) {
         </p>
       ) : null}
 
-      <form onSubmit={(e) => void handleSubmit(e)} className="space-y-4">
+      <form
+        id="supplier-admin-form"
+        onSubmit={(e) => void handleSubmit(e)}
+        className="space-y-4"
+      >
         {isEdit ? (
           <p className="text-xs text-zinc-500">
             Código:{" "}
@@ -526,25 +573,20 @@ export function SupplierAdminForm(props: Props) {
           />
         </div>
 
-        <label className="flex items-center gap-2 text-sm text-zinc-800">
-          <input
-            type="checkbox"
-            checked={activo}
-            onChange={(e) => setActivo(e.target.checked)}
-          />
-          Activo
-        </label>
+        <ToggleSwitch
+          label="Proveedor activo"
+          checked={activo}
+          onChange={setActivo}
+        />
 
         {isEdit ? (
           <>
-            <label className="flex items-center gap-2 text-sm text-zinc-800">
-              <input
-                type="checkbox"
-                checked={destacado}
-                onChange={(e) => setDestacado(e.target.checked)}
-              />
-              Proveedor Destacado (aparece en la zona superior con carrusel)
-            </label>
+            <ToggleSwitch
+              label="★ Destacado en landing"
+              checked={destacado}
+              onChange={setDestacado}
+              color="var(--color-accent)"
+            />
             <label className="flex items-center gap-2 text-sm text-zinc-800">
               <input
                 type="checkbox"
@@ -571,23 +613,34 @@ export function SupplierAdminForm(props: Props) {
                   alt=""
                   className="h-20 w-20 rounded-lg border border-zinc-100 object-cover"
                 />
-              ) : (
-                <div className="flex h-20 w-20 items-center justify-center rounded-lg bg-zinc-100 text-xs text-zinc-400">
-                  Sin logo
-                </div>
-              )}
-              <div>
-                <input
-                  type="file"
-                  accept="image/jpeg,image/png,image/webp"
-                  disabled={logoBusy}
-                  onChange={(e) => {
-                    const f = e.target.files?.[0];
-                    if (f) void uploadLogo(f);
-                    e.target.value = "";
-                  }}
-                  className="text-sm"
-                />
+              ) : null}
+              <div className="min-w-[200px] flex-1">
+                <label className="admin-upload-zone w-full">
+                  <input
+                    type="file"
+                    accept="image/jpeg,image/png,image/webp"
+                    disabled={logoBusy}
+                    onChange={(e) => {
+                      const f = e.target.files?.[0];
+                      if (f) void uploadLogo(f);
+                      e.target.value = "";
+                    }}
+                    style={{ display: "none" }}
+                  />
+                  <UploadIcon />
+                  <span
+                    style={{
+                      color: "var(--color-primary)",
+                      fontWeight: 600,
+                      fontSize: "0.9rem",
+                    }}
+                  >
+                    {logoUrl ? "Cambiar logo" : "Subir logo"}
+                  </span>
+                  <span style={{ color: "var(--color-muted)", fontSize: "0.75rem" }}>
+                    JPG o PNG — se comprime automáticamente
+                  </span>
+                </label>
                 {logoUrl ? (
                   <button
                     type="button"
@@ -642,15 +695,11 @@ export function SupplierAdminForm(props: Props) {
                     </button>
                   </>
                 ) : (
-                  <label className="flex h-full w-full cursor-pointer flex-col items-center justify-center gap-2 text-zinc-400">
-                    <ImagePlus className="h-8 w-8" aria-hidden />
-                    <span className="px-2 text-center text-xs">
-                      Subir imagen de portada
-                    </span>
+                  <label className="admin-upload-zone h-full w-full min-h-[120px]">
                     <input
                       type="file"
                       accept="image/jpeg,image/png,image/webp"
-                      className="hidden"
+                      style={{ display: "none" }}
                       disabled={coverBusy || fotoBusy !== null}
                       onChange={(e) => {
                         const f = e.target.files?.[0];
@@ -658,14 +707,24 @@ export function SupplierAdminForm(props: Props) {
                         e.target.value = "";
                       }}
                     />
+                    <UploadIcon />
+                    <span
+                      style={{
+                        color: "var(--color-primary)",
+                        fontWeight: 600,
+                        fontSize: "0.9rem",
+                      }}
+                    >
+                      Subir imagen de portada
+                    </span>
+                    <span style={{ color: "var(--color-muted)", fontSize: "0.75rem" }}>
+                      JPG o PNG — se comprime automáticamente
+                    </span>
                   </label>
                 )}
                 {coverBusy ? (
                   <div className="absolute inset-0 flex items-center justify-center bg-white/80">
-                    <Loader2
-                      className="h-6 w-6 animate-spin text-indigo-600"
-                      aria-hidden
-                    />
+                    <UploadSpinner />
                   </div>
                 ) : null}
               </div>
@@ -729,13 +788,11 @@ export function SupplierAdminForm(props: Props) {
                       </button>
                     </>
                   ) : (
-                    <label className="flex h-full w-full cursor-pointer flex-col items-center justify-center gap-2 text-zinc-400">
-                      <ImagePlus className="h-8 w-8" aria-hidden />
-                      <span className="px-2 text-center text-xs">{label}</span>
+                    <label className="admin-upload-zone h-full w-full min-h-[120px]">
                       <input
                         type="file"
                         accept="image/jpeg,image/png,image/webp"
-                        className="hidden"
+                        style={{ display: "none" }}
                         disabled={fotoBusy !== null || coverBusy}
                         onChange={(e) => {
                           const f = e.target.files?.[0];
@@ -743,14 +800,24 @@ export function SupplierAdminForm(props: Props) {
                           e.target.value = "";
                         }}
                       />
+                      <UploadIcon />
+                      <span
+                        style={{
+                          color: "var(--color-primary)",
+                          fontWeight: 600,
+                          fontSize: "0.9rem",
+                        }}
+                      >
+                        {url ? "Cambiar foto" : "Subir foto"}
+                      </span>
+                      <span style={{ color: "var(--color-muted)", fontSize: "0.75rem" }}>
+                        {label}
+                      </span>
                     </label>
                   )}
                   {fotoBusy === n ? (
                     <div className="absolute inset-0 flex items-center justify-center bg-white/80">
-                      <Loader2
-                        className="h-6 w-6 animate-spin text-indigo-600"
-                        aria-hidden
-                      />
+                      <UploadSpinner />
                     </div>
                   ) : null}
                 </div>
@@ -817,7 +884,9 @@ export function SupplierAdminForm(props: Props) {
           </div>
         ) : null}
 
-        <div className="flex flex-wrap gap-3 pt-2">
+        <div className="admin-sticky-save-spacer" aria-hidden />
+
+        <div className="admin-desktop-actions flex flex-wrap gap-3 pt-2">
           <button
             type="submit"
             disabled={saving}
@@ -837,6 +906,29 @@ export function SupplierAdminForm(props: Props) {
           ) : null}
         </div>
       </form>
+
+      <div className="admin-sticky-save">
+        <button
+          type="submit"
+          form="supplier-admin-form"
+          disabled={saving}
+          style={{
+            flex: 1,
+            padding: "14px",
+            borderRadius: 12,
+            background:
+              "linear-gradient(135deg, var(--color-primary), var(--color-accent))",
+            color: "#fff",
+            fontWeight: 700,
+            fontSize: "1rem",
+            border: "none",
+            cursor: saving ? "not-allowed" : "pointer",
+            opacity: saving ? 0.7 : 1,
+          }}
+        >
+          {saving ? "Guardando…" : isEdit ? "Guardar cambios" : "Guardar"}
+        </button>
+      </div>
     </div>
   );
 }
