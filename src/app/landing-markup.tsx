@@ -1,6 +1,7 @@
 "use client";
 
 import { FeaturedSupplierSection } from "@/components/suppliers/FeaturedSupplierSection";
+import type { Categoria } from "@/types/categories";
 import type { SupplierWithFeaturedProfile } from "@/types/proveedores";
 import Image from "next/image";
 import Link from "next/link";
@@ -12,6 +13,9 @@ type LandingMarkupProps = {
   onMobileNavigate?: () => void;
   featuredSuppliers: SupplierWithFeaturedProfile[];
   featuredLoading: boolean;
+  categorias: Categoria[];
+  catLoading: boolean;
+  conteos: Record<string, number>;
 };
 
 export function LandingMarkup({
@@ -21,6 +25,9 @@ export function LandingMarkup({
   onMobileNavigate,
   featuredSuppliers,
   featuredLoading,
+  categorias,
+  catLoading,
+  conteos,
 }: LandingMarkupProps) {
   return (
     <>
@@ -52,6 +59,23 @@ export function LandingMarkup({
           Acceder ahora
         </Link>
       </li>
+      <li>
+        <a href="#publicitate" className="btn-nav-publicitate">
+          <svg
+            width="16"
+            height="16"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2.5"
+            strokeLinecap="round"
+            aria-hidden
+          >
+            <path d="M3 11l19-9-9 19-2-8-8-2z" />
+          </svg>
+          Publícate aquí
+        </a>
+      </li>
     </ul>
     <button
       type="button"
@@ -81,6 +105,13 @@ export function LandingMarkup({
     <Link href="/checkout" className="btn-mob">
       Acceder ahora →
     </Link>
+    <a
+      href="#publicitate"
+      className="btn-mob-publicitate"
+      onClick={() => onMobileNavigate?.()}
+    >
+      📣 Publícate aquí
+    </a>
   </div>
 </nav>
 
@@ -373,66 +404,50 @@ export function LandingMarkup({
       <p style={{fontSize: '.85rem', color: 'var(--muted)', fontWeight: 600, marginTop: '8px'}}>más ventas, mas ganancias.</p>
     </div>
     <div className="cat-grid">
-      <div className="cat-card reveal reveal-delay-1">
-        <span className="cat-emoji"><i className="fas fa-female"></i></span>
-        <div className="cat-name">Moda Femenina</div>
-      </div>
-      <div className="cat-card reveal reveal-delay-1">
-        <span className="cat-emoji"><i className="fas fa-male"></i></span>
-        <div className="cat-name">Moda Masculina</div>
-      </div>
-      <div className="cat-card reveal reveal-delay-2">
-        <span className="cat-emoji"><i className="fas fa-child"></i></span>
-        <div className="cat-name">Moda Infantil</div>
-      </div>
-      <div className="cat-card reveal reveal-delay-2">
-        <span className="cat-emoji"><i className="fas fa-running"></i></span>
-        <div className="cat-name">Moda Deportiva</div>
-      </div>
-      <div className="cat-card reveal reveal-delay-3">
-        <span className="cat-emoji"><i className="fas fa-heart"></i></span>
-        <div className="cat-name">Lenceria</div>
-      </div>
-      <div className="cat-card reveal reveal-delay-3">
-        <span className="cat-emoji"><i className="fas fa-fire"></i></span>
-        <div className="cat-name">Sex Shop</div>
-      </div>
-      <div className="cat-card reveal reveal-delay-3">
-        <span className="cat-emoji"><i className="fas fa-paw"></i></span>
-        <div className="cat-name">Accesorios para mascotas</div>
-      </div>
-      <div className="cat-card reveal reveal-delay-3">
-        <span className="cat-emoji"><i className="fas fa-shoe-prints"></i></span>
-        <div className="cat-name">Calzados</div>
-      </div>
-      <div className="cat-card reveal reveal-delay-1">
-        <span className="cat-emoji"><i className="fas fa-shopping-bag"></i></span>
-        <div className="cat-name">Carteras y accesorios</div>
-      </div>
-      <div className="cat-card reveal reveal-delay-1">
-        <span className="cat-emoji"><i className="fas fa-gem"></i></span>
-        <div className="cat-name">Joyas y Bisutería</div>
-      </div>
-      <div className="cat-card reveal reveal-delay-2">
-        <span className="cat-emoji"><i className="fas fa-spa"></i></span>
-        <div className="cat-name">Cosmética y Maquillaje</div>
-      </div>
-      <div className="cat-card reveal reveal-delay-2">
-        <span className="cat-emoji"><i className="fas fa-home"></i></span>
-        <div className="cat-name">Deco Hogar</div>
-      </div>
-      <div className="cat-card reveal reveal-delay-3">
-        <span className="cat-emoji"><i className="fas fa-box-open"></i></span>
-        <div className="cat-name">Fardos de ropa</div>
-      </div>
-      <div className="cat-card reveal reveal-delay-3">
-        <span className="cat-emoji"><i className="fas fa-laptop"></i></span>
-        <div className="cat-name">Electronicos</div>
-      </div>
-      <div className="cat-card reveal reveal-delay-3">
-        <span className="cat-emoji"><i className="fas fa-ship"></i></span>
-        <div className="cat-name">Importadoras</div>
-      </div>
+      {catLoading
+        ? Array.from({ length: 8 }).map((_, i) => (
+            <div
+              key={`sk-${i}`}
+              className={`cat-card-photo cat-skeleton reveal reveal-delay-${(i % 4) + 1}`}
+            />
+          ))
+        : categorias.map((cat, i) => (
+            <div
+              key={cat.id}
+              className={`cat-card-photo reveal reveal-delay-${(i % 4) + 1}`}
+            >
+              {cat.foto_url ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  src={cat.foto_url}
+                  alt={cat.nombre}
+                  className="cat-card-photo-bg"
+                />
+              ) : (
+                <div className="cat-card-photo-gradient" />
+              )}
+              <div
+                className={
+                  cat.foto_url
+                    ? "cat-card-photo-overlay"
+                    : "cat-card-photo-overlay cat-card-photo-overlay--light"
+                }
+              />
+              <div
+                className={
+                  cat.foto_url
+                    ? "cat-card-photo-content cat-card-photo-content--bottom"
+                    : "cat-card-photo-content cat-card-photo-content--center"
+                }
+              >
+                <span className="cat-card-photo-emoji">{cat.emoji}</span>
+                <h3 className="cat-card-photo-title">{cat.nombre}</h3>
+                <span className="cat-card-photo-count">
+                  {conteos[cat.nombre] ?? 0} proveedores
+                </span>
+              </div>
+            </div>
+          ))}
     </div>
   </div>
 </section>
@@ -667,6 +682,51 @@ export function LandingMarkup({
       </Link>
       <div className="cta-hint">cancela cuando quieras · pago seguro</div>
     </div>
+  </div>
+</section>
+
+{/* PUBLÍCATE — mayoristas */}
+<section id="publicitate" className="mk-publicitate">
+  <div className="mk-publicitate-glow" aria-hidden />
+  <div className="mk-publicitate-inner">
+    <span className="mk-publicitate-badge">Para mayoristas y marcas</span>
+    <h2 className="mk-publicitate-title">
+      ¿Quieres que tus productos
+      <br />
+      lleguen a miles de emprendedoras?
+    </h2>
+    <p className="mk-publicitate-lead">
+      Makeray conecta mayoristas verificados con más de 1.500 emprendedoras
+      chilenas activas. Si tienes una marca o representas a un proveedor
+      mayorista, escríbele directamente a Rayana.
+    </p>
+    <div className="mk-publicitate-bullets">
+      {[
+        { icon: "👁️", text: "+1.500 emprendedoras" },
+        { icon: "✅", text: "Proveedores verificados" },
+        { icon: "🇨🇱", text: "Audiencia 100% chilena" },
+      ].map(({ icon, text }) => (
+        <div key={text} className="mk-publicitate-bullet">
+          <span aria-hidden>{icon}</span>
+          <span>{text}</span>
+        </div>
+      ))}
+    </div>
+    <a
+      href="https://wa.me/56989911156?text=Hola%20Rayana%2C%20me%20interesa%20publicitar%20mi%20marca%20en%20Makeray%20%F0%9F%91%8B"
+      target="_blank"
+      rel="noopener noreferrer"
+      className="mk-publicitate-cta"
+    >
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="#1a0633" aria-hidden>
+        <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z" />
+        <path d="M12 0C5.373 0 0 5.373 0 12c0 2.123.554 4.118 1.528 5.845L.057 23.428a.75.75 0 00.916.916l5.632-1.474A11.953 11.953 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 21.75a9.718 9.718 0 01-4.964-1.362l-.355-.211-3.684.965.982-3.593-.231-.369A9.718 9.718 0 012.25 12C2.25 6.615 6.615 2.25 12 2.25S21.75 6.615 21.75 12 17.385 21.75 12 21.75z" />
+      </svg>
+      Escribirle a Rayana por WhatsApp
+    </a>
+    <p className="mk-publicitate-note">
+      Responde en horario comercial · Solo proveedores mayoristas
+    </p>
   </div>
 </section>
 
