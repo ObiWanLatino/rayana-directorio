@@ -22,7 +22,11 @@ const NAV_ITEMS = [
   {
     href: "/categorias",
     label: "Categorías",
-    match: (path: string) => path.startsWith("/categorias"),
+    match: (path: string) =>
+      path === "/categorias" ||
+      path.startsWith("/categorias/") ||
+      path === "/admin/categorias" ||
+      path.startsWith("/admin/categorias/"),
     icon: (
       <svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden>
         <rect
