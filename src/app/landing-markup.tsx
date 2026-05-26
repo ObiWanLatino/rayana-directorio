@@ -60,10 +60,27 @@ export function LandingMarkup({
         </Link>
       </li>
       <li>
-        <a href="#publicitate" className="btn-nav-publicitate">
+        <a
+          href="#publicitate"
+          style={{
+            display: "inline-flex",
+            alignItems: "center",
+            gap: 6,
+            padding: "8px 18px",
+            borderRadius: 9999,
+            background: "#FFD600",
+            color: "#1a0633",
+            fontWeight: 700,
+            fontSize: "0.9rem",
+            textDecoration: "none",
+            textTransform: "none",
+            letterSpacing: "normal",
+            whiteSpace: "nowrap",
+          }}
+        >
           <svg
-            width="16"
-            height="16"
+            width="15"
+            height="15"
             viewBox="0 0 24 24"
             fill="none"
             stroke="currentColor"
@@ -107,7 +124,7 @@ export function LandingMarkup({
     </Link>
     <a
       href="#publicitate"
-      className="btn-mob-publicitate"
+      style={{ color: "#FFD600", fontWeight: 700 }}
       onClick={() => onMobileNavigate?.()}
     >
       📣 Publícate aquí
@@ -686,37 +703,133 @@ export function LandingMarkup({
 </section>
 
 {/* PUBLÍCATE — mayoristas */}
-<section id="publicitate" className="mk-publicitate">
-  <div className="mk-publicitate-glow" aria-hidden />
-  <div className="mk-publicitate-inner">
-    <span className="mk-publicitate-badge">Para mayoristas y marcas</span>
-    <h2 className="mk-publicitate-title">
+<section
+  id="publicitate"
+  style={{
+    background: "#1a0633",
+    padding: "80px 24px",
+    position: "relative",
+    overflow: "hidden",
+  }}
+>
+  <div
+    style={{
+      position: "absolute",
+      top: "50%",
+      left: "50%",
+      transform: "translate(-50%, -50%)",
+      width: 500,
+      height: 300,
+      background:
+        "radial-gradient(ellipse, rgba(255,214,0,0.08) 0%, transparent 70%)",
+      pointerEvents: "none",
+    }}
+    aria-hidden
+  />
+
+  <div
+    style={{
+      maxWidth: 680,
+      margin: "0 auto",
+      textAlign: "center",
+      position: "relative",
+    }}
+  >
+    <span
+      style={{
+        display: "inline-block",
+        background: "#FFD600",
+        color: "#1a0633",
+        fontSize: "0.75rem",
+        fontWeight: 800,
+        letterSpacing: "0.1em",
+        textTransform: "uppercase",
+        padding: "6px 18px",
+        borderRadius: 9999,
+        marginBottom: 24,
+      }}
+    >
+      Para mayoristas y marcas
+    </span>
+
+    <h2
+      style={{
+        fontFamily: "Fraunces, serif",
+        fontSize: "clamp(2rem, 4vw, 2.75rem)",
+        color: "#fff",
+        fontWeight: 700,
+        lineHeight: 1.2,
+        margin: "0 0 20px",
+      }}
+    >
       ¿Quieres que tus productos
       <br />
       lleguen a miles de emprendedoras?
     </h2>
-    <p className="mk-publicitate-lead">
+
+    <p
+      style={{
+        fontSize: "1.05rem",
+        color: "rgba(255,255,255,0.7)",
+        lineHeight: 1.7,
+        margin: "0 0 40px",
+        maxWidth: 540,
+        marginLeft: "auto",
+        marginRight: "auto",
+      }}
+    >
       Makeray conecta mayoristas verificados con más de 1.500 emprendedoras
       chilenas activas. Si tienes una marca o representas a un proveedor
       mayorista, escríbele directamente a Rayana.
     </p>
-    <div className="mk-publicitate-bullets">
+
+    <div
+      style={{
+        display: "flex",
+        justifyContent: "center",
+        gap: 32,
+        flexWrap: "wrap",
+        marginBottom: 44,
+      }}
+    >
       {[
         { icon: "👁️", text: "+1.500 emprendedoras" },
         { icon: "✅", text: "Proveedores verificados" },
         { icon: "🇨🇱", text: "Audiencia 100% chilena" },
       ].map(({ icon, text }) => (
-        <div key={text} className="mk-publicitate-bullet">
+        <div
+          key={text}
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: 8,
+            color: "rgba(255,255,255,0.85)",
+            fontSize: "0.9rem",
+            fontWeight: 500,
+          }}
+        >
           <span aria-hidden>{icon}</span>
           <span>{text}</span>
         </div>
       ))}
     </div>
+
     <a
       href="https://wa.me/56989911156?text=Hola%20Rayana%2C%20me%20interesa%20publicitar%20mi%20marca%20en%20Makeray%20%F0%9F%91%8B"
       target="_blank"
       rel="noopener noreferrer"
-      className="mk-publicitate-cta"
+      style={{
+        display: "inline-flex",
+        alignItems: "center",
+        gap: 10,
+        padding: "16px 36px",
+        borderRadius: 12,
+        background: "#FFD600",
+        color: "#1a0633",
+        fontWeight: 800,
+        fontSize: "1.05rem",
+        textDecoration: "none",
+      }}
     >
       <svg width="22" height="22" viewBox="0 0 24 24" fill="#1a0633" aria-hidden>
         <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z" />
@@ -724,7 +837,14 @@ export function LandingMarkup({
       </svg>
       Escribirle a Rayana por WhatsApp
     </a>
-    <p className="mk-publicitate-note">
+
+    <p
+      style={{
+        marginTop: 16,
+        fontSize: "0.8rem",
+        color: "rgba(255,255,255,0.4)",
+      }}
+    >
       Responde en horario comercial · Solo proveedores mayoristas
     </p>
   </div>
