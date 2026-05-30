@@ -166,7 +166,7 @@ export function LandingMarkup({
       </div>
       <div className="price-hint" style={{marginBottom: '20px'}}>
         <i className="fas fa-lock" style={{color: 'var(--primary)', fontSize: '.75rem'}}></i>
-        <strong>$19.990</strong> / mes · cancela cuando quieras
+        <strong>$14.990</strong> / mes · cancela cuando quieras
       </div>
       <div className="social-proof">
         <div className="avatars">
@@ -363,7 +363,7 @@ export function LandingMarkup({
             Suscribirme ahora <i className="fas fa-arrow-right"></i>
           </Link>
           <div className="price-pill">
-            <strong>$19.990</strong> / mes
+            <strong>$14.990</strong> / mes
           </div>
         </div>
       </div>
@@ -657,7 +657,7 @@ export function LandingMarkup({
         <div className="edition">Edición 2026</div>
       </div>
       <div className="pricing-amount">
-        <div className="price">$19.990</div>
+        <div className="price">$14.990</div>
         <div className="per">CLP / mes · cancela cuando quieras</div>
       </div>
       <ul className="pricing-features">
@@ -736,7 +736,7 @@ export function LandingMarkup({
       <h2>Tu negocio <em>empieza aquí.</em></h2>
       <p>Únete a cientos de emprendedoras que ya tienen acceso a los mejores proveedores mayoristas de Chile.</p>
       <Link href="/login" className="btn-accent-big">
-        Suscribirme — $19.990/mes <i className="fas fa-arrow-right"></i>
+        Suscribirme — $14.990/mes <i className="fas fa-arrow-right"></i>
       </Link>
       <div className="cta-hint">cancela cuando quieras · pago seguro</div>
     </div>

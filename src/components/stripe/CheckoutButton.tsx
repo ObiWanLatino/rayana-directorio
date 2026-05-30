@@ -38,7 +38,7 @@ export function CheckoutButton() {
         disabled={loading}
         className="rounded-xl bg-zinc-900 px-4 py-3 text-center text-sm font-medium text-white hover:bg-zinc-800 disabled:opacity-50"
       >
-        {loading ? "Redirigiendo al checkout…" : "Suscribirme — $19.990 CLP / mes"}
+        {loading ? "Redirigiendo al checkout…" : "Suscribirme — $14.990 CLP / mes"}
       </button>
       {error ? (
         <p className="text-center text-sm text-red-600" role="alert">
