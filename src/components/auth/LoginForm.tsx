@@ -196,7 +196,7 @@ export function LoginForm({
         }
         await fetch("/api/auth/sync-session", { method: "POST" });
         router.refresh();
-        router.push(redirectAfterLogin ?? "/directorio");
+        router.push(redirectAfterLogin ?? "/checkout");
         return;
       }
 
@@ -224,7 +224,7 @@ export function LoginForm({
       if (data.session) {
         await fetch("/api/auth/sync-session", { method: "POST" });
         router.refresh();
-        router.push(redirectAfterLogin ?? "/directorio");
+        router.push(redirectAfterLogin ?? "/checkout");
         return;
       }
 
