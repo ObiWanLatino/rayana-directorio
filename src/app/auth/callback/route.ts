@@ -32,6 +32,9 @@ async function updateProfileLastSession(userId: string, accessToken: string) {
 
 export async function GET(request: Request) {
   const requestUrl = new URL(request.url);
+  console.log("[auth/callback] searchParams:",
+    Object.fromEntries(requestUrl.searchParams.entries()));
+  console.log("[auth/callback] hash:", requestUrl.hash);
   const { searchParams } = requestUrl;
   const base = getAuthRedirectOrigin(request);
   const token_hash = searchParams.get("token_hash");
