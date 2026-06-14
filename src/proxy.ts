@@ -134,9 +134,8 @@ export async function proxy(request: NextRequest) {
   }
 
   if (pathname === "/login" && user) {
-    const hasAccess = await userHasListAccess(supabase, user.id);
     const url = request.nextUrl.clone();
-    url.pathname = hasAccess ? "/directorio" : "/checkout";
+    url.pathname = "/directorio";
     url.search = "";
     return NextResponse.redirect(url);
   }
