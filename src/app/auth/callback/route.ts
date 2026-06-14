@@ -38,6 +38,10 @@ export async function GET(request: Request) {
   const typeParam = searchParams.get("type");
   const code = searchParams.get("code");
   const nextRaw = searchParams.get("next");
+  const errorParam = searchParams.get("error");
+  if (errorParam) {
+    return NextResponse.redirect(`${base}/login?error=invalid_link`);
+  }
   const nextOrCheckout = safeInternalNext(nextRaw) ?? "/checkout";
 
   const supabase = await createServerSupabaseClient();
@@ -102,8 +106,5 @@ export async function GET(request: Request) {
     await updateProfileLastSession(user.id, sessionId);
   }
 
-  if (typeParam === "recovery") {
-    return NextResponse.redirect(`${base}/auth/reset-password`);
-  }
   return NextResponse.redirect(`${base}${nextOrCheckout}`);
 }

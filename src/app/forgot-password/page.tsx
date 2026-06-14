@@ -8,13 +8,13 @@ import { useMemo, useState } from "react";
 
 function recoveryRedirectTo(): string {
   const envUrl = process.env.NEXT_PUBLIC_APP_URL?.trim().replace(/\/$/, "");
-  if (envUrl && /^https?:\/\//i.test(envUrl)) {
-    return `${envUrl}/auth/callback`;
-  }
-  if (typeof window !== "undefined") {
-    return `${window.location.origin}/auth/callback`;
-  }
-  return "https://makeray.cl/auth/callback";
+  const base =
+    envUrl && /^https?:\/\//i.test(envUrl)
+      ? envUrl
+      : typeof window !== "undefined"
+        ? window.location.origin
+        : "https://makeray.cl";
+  return `${base}/auth/callback?next=/auth/reset-password`;
 }
 
 function isValidEmail(value: string): boolean {
