@@ -102,5 +102,8 @@ export async function GET(request: Request) {
     await updateProfileLastSession(user.id, sessionId);
   }
 
+  if (typeParam === "recovery") {
+    return NextResponse.redirect(`${base}/auth/reset-password`);
+  }
   return NextResponse.redirect(`${base}${nextOrCheckout}`);
 }

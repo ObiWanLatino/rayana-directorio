@@ -9,12 +9,12 @@ import { useMemo, useState } from "react";
 function recoveryRedirectTo(): string {
   const envUrl = process.env.NEXT_PUBLIC_APP_URL?.trim().replace(/\/$/, "");
   if (envUrl && /^https?:\/\//i.test(envUrl)) {
-    return `${envUrl}/auth/callback?type=recovery`;
+    return `${envUrl}/auth/callback`;
   }
   if (typeof window !== "undefined") {
-    return `${window.location.origin}/auth/callback?type=recovery`;
+    return `${window.location.origin}/auth/callback`;
   }
-  return "https://makeray.cl/auth/callback?type=recovery";
+  return "https://makeray.cl/auth/callback";
 }
 
 function isValidEmail(value: string): boolean {
