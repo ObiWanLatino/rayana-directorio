@@ -1,28 +1,16 @@
 "use client";
 
 import { MakerayLogo } from "@/components/MakerayLogo";
-import { createBrowserSupabaseClient } from "@/lib/supabase/client";
 import Link from "next/link";
 import { Loader2 } from "lucide-react";
-import { useMemo, useState } from "react";
-
-function recoveryRedirectTo(): string {
-  const envUrl = process.env.NEXT_PUBLIC_APP_URL?.trim().replace(/\/$/, "");
-  const base =
-    envUrl && /^https?:\/\//i.test(envUrl)
-      ? envUrl
-      : typeof window !== "undefined"
-        ? window.location.origin
-        : "https://makeray.cl";
-  return `${base}/auth/callback?next=/auth/reset-password`;
-}
+import { useState } from "react";
+import { requestPasswordReset } from "./actions";
 
 function isValidEmail(value: string): boolean {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value.trim());
 }
 
 export default function ForgotPasswordPage() {
-  const supabase = useMemo(() => createBrowserSupabaseClient(), []);
   const [email, setEmail] = useState("");
   const [emailError, setEmailError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
@@ -36,15 +24,10 @@ export default function ForgotPasswordPage() {
       return;
     }
     setLoading(true);
-    const { error } = await supabase.auth.resetPasswordForEmail(
-      email.trim(),
-      {
-        redirectTo: recoveryRedirectTo(),
-      },
-    );
+    const { error: resetError } = await requestPasswordReset(email.trim());
     setLoading(false);
-    if (error) {
-      setEmailError(error.message);
+    if (resetError) {
+      setEmailError(resetError);
       return;
     }
     setSent(true);
