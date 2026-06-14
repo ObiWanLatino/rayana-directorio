@@ -194,6 +194,7 @@ export function LoginForm({
           }
           return;
         }
+        await fetch("/api/auth/sync-session", { method: "POST" });
         router.refresh();
         router.push(redirectAfterLogin ?? "/directorio");
         return;
@@ -221,6 +222,7 @@ export function LoginForm({
       }
 
       if (data.session) {
+        await fetch("/api/auth/sync-session", { method: "POST" });
         router.refresh();
         router.push(redirectAfterLogin ?? "/directorio");
         return;
