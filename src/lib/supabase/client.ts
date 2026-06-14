@@ -8,5 +8,7 @@ export function createBrowserSupabaseClient() {
       "Missing NEXT_PUBLIC_SUPABASE_URL or NEXT_PUBLIC_SUPABASE_ANON_KEY",
     );
   }
-  return createBrowserClient(url, anonKey);
+  return createBrowserClient(url, anonKey, {
+    auth: { flowType: "implicit" },
+  });
 }
