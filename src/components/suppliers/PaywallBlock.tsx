@@ -84,7 +84,7 @@ export function PaywallBlock() {
           <p className="mt-4 text-sm text-navy/55">
             ¿Ya tienes cuenta?{" "}
             <Link
-              href="/login?next=/directorio"
+              href="/checkout"
               className="font-semibold text-primary underline-offset-2 hover:underline"
             >
               Inicia sesión
